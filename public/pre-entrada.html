@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pré-Entrada - Conferência - Nexus Gestão</title>
+  <link rel="stylesheet" href="/styles.css">
+  <style>
+    .pre-entrada-container {
+      max-width: 1800px;
+      margin: 20px auto;
+      padding: 20px;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+    }
+    .selecao-section {
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 30px;
+    }
+    .selecao-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr auto;
+      gap: 20px;
+      align-items: end;
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+    }
+    .form-group label {
+      margin-bottom: 8px;
+      font-weight: 600;
+      font-size: 14px;
+    }
+    .form-group select {
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+    .btn-conferir {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 12px 30px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 16px;
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    }
+    .btn-conferir:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+    }
+    .resumo-conferencia {
+      display: none;
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 30px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .resumo-conferencia.show {
+      display: block;
+    }
+    .status-conferencia {
+      text-align: center;
+      padding: 30px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+    .status-conferencia.ok {
+      background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+      color: white;
+    }
+    .status-conferencia.divergencias {
+      background: linear-gradient(135deg, #f12711 0%, #f5af19 100%);
+      color: white;
+    }
+    .status-conferencia h2 {
+      margin: 0 0 10px 0;
+      font-size: 32px;
+    }
+    .resumo-valores {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      margin-top: 20px;
+    }
+    .resumo-card {
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 8px;
+      text-align: center;
+    }
+    .resumo-card h4 {
+      margin: 0 0 10px 0;
+      color: #666;
+      font-size: 13px;
+      text-transform: uppercase;
+    }
+    .resumo-card .valor {
+      font-size: 24px;
+      font-weight: 700;
+      color: #333;
+    }
+    .divergencias-section {
+      margin-top: 30px;
+    }
+    .divergencias-list {
+      background: #fff3cd;
+      border-left: 4px solid #ffc107;
+      padding: 15px;
+      border-radius: 4px;
+      margin-top: 15px;
+    }
+    .divergencia-item {
+      padding: 10px;
+      margin-bottom: 10px;
+      background: white;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .divergencia-icon {
+      font-size: 24px;
+    }
+    .comparacao-section {
+      margin-top: 40px;
+    }
+    .comparacao-header {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+    .comparacao-titulo {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 15px;
+      border-radius: 8px;
+      text-align: center;
+      font-weight: 600;
+      font-size: 18px;
+    }
+    .comparacao-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    .item-card {
+      background: white;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 15px;
+      position: relative;
+    }
+    .item-card.divergente {
+      border-color: #ffc107;
+      background: #fffbf0;
+    }
+    .item-card.ok {
+      border-color: #28a745;
+      background: #f0fff4;
+    }
+    .item-card.extra {
+      border-color: #17a2b8;
+      background: #e7f6f8;
+    }
+    .item-card.nao-encontrado {
+      border-color: #dc3545;
+      background: #fff0f0;
+    }
+    .status-badge-item {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .badge-ok { background: #d4edda; color: #155724; }
+    .badge-divergente { background: #fff3cd; color: #856404; }
+    .badge-extra { background: #d1ecf1; color: #0c5460; }
+    .badge-nao-encontrado { background: #f8d7da; color: #721c24; }
+    .item-info {
+      margin-bottom: 10px;
+    }
+    .item-info label {
+      display: block;
+      font-size: 11px;
+      color: #666;
+      text-transform: uppercase;
+      margin-bottom: 2px;
+    }
+    .item-info value {
+      display: block;
+      font-size: 14px;
+      font-weight: 600;
+      color: #333;
+    }
+    .acoes-finais {
+      display: none;
+      margin-top: 30px;
+      padding: 20px;
+      background: #f8f9fa;
+      border-radius: 8px;
+      text-align: center;
+    }
+    .acoes-finais.show {
+      display: block;
+    }
+    .btn-acao-final {
+      padding: 15px 30px;
+      margin: 0 10px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 16px;
+    }
+    .btn-importar {
+      background: #28a745;
+      color: white;
+    }
+    .btn-nova-conferencia {
+      background: #6c757d;
+      color: white;
+    }
+    .loading {
+      text-align: center;
+      padding: 40px;
+      font-size: 18px;
+      color: #667eea;
+    }
+  </style>
+</head>
+<body>
+  <div class="pre-entrada-container">
+    <div class="header">
+      <h1>🔍 Pré-Entrada - Conferência de Mercadorias</h1>
+    </div>
+
+    <!-- Seleção -->
+    <div class="selecao-section">
+      <h3>Selecione o Pedido de Compra e a Nota Fiscal</h3>
+      <div class="selecao-grid">
+        <div class="form-group">
+          <label>📋 Pedido de Compra</label>
+          <select id="pedidoSelect">
+            <option value="">Carregando...</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>📄 NF-e de Entrada</label>
+          <select id="nfeSelect">
+            <option value="">Carregando...</option>
+          </select>
+        </div>
+
+        <button class="btn-conferir" onclick="realizarConferencia()">
+          🔍 Iniciar Conferência
+        </button>
+      </div>
+    </div>
+
+    <!-- Loading -->
+    <div id="loadingDiv" class="loading" style="display: none;">
+      ⏳ Processando conferência...
+    </div>
+
+    <!-- Resumo da Conferência -->
+    <div id="resumoConferencia" class="resumo-conferencia">
+      <!-- Status -->
+      <div id="statusConferencia" class="status-conferencia"></div>
+
+      <!-- Resumo Valores -->
+      <div class="resumo-valores">
+        <div class="resumo-card">
+          <h4>💰 Valor Pedido</h4>
+          <div class="valor" id="valorPedido">R$ 0,00</div>
+        </div>
+        <div class="resumo-card">
+          <h4>📑 Valor NF-e</h4>
+          <div class="valor" id="valorNfe">R$ 0,00</div>
+        </div>
+        <div class="resumo-card">
+          <h4>📊 Diferença</h4>
+          <div class="valor" id="valorDiferenca">R$ 0,00</div>
+        </div>
+      </div>
+
+      <!-- Divergências -->
+      <div id="divergenciasSection" class="divergencias-section" style="display: none;">
+        <h3>⚠️ Divergências Encontradas</h3>
+        <div id="divergenciasList" class="divergencias-list"></div>
+      </div>
+    </div>
+
+    <!-- Comparação Lado a Lado -->
+    <div id="comparacaoSection" class="comparacao-section" style="display: none;">
+      <h2 style="margin-bottom: 20px;">📊 Comparação Detalhada</h2>
+      
+      <div class="comparacao-header">
+        <div class="comparacao-titulo">📋 Pedido de Compra</div>
+        <div class="comparacao-titulo">📄 Nota Fiscal</div>
+      </div>
+
+      <div id="comparacaoGrid" class="comparacao-grid"></div>
+    </div>
+
+    <!-- Ações Finais -->
+    <div id="acoesFinais" class="acoes-finais">
+      <h3 style="margin-bottom: 20px;">O que deseja fazer?</h3>
+      <button class="btn-acao-final btn-importar" onclick="importarEntrada()">
+        ✅ Importar e Criar Entrada de Mercadoria
+      </button>
+      <button class="btn-acao-final btn-nova-conferencia" onclick="novaConferencia()">
+        🔄 Nova Conferência
+      </button>
+    </div>
+  </div>
+
+  <script>
+    let pedidoAtual = null;
+    let nfeAtual = null;
+    let conferencia = null;
+
+    // Carregar dados ao iniciar
+    carregarPedidos();
+    carregarNFes();
+
+    async function carregarPedidos() {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch('/api/pedidos-compra?limit=100&status=ENVIADO', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await response.json();
+        
+        const select = document.getElementById('pedidoSelect');
+        select.innerHTML = '<option value="">Selecione um pedido...</option>' +
+          data.pedidos.map(p => 
+            `<option value="${p.id}">${p.numero_pedido} - ${p.fornecedor_razao_social} - R$ ${parseFloat(p.valor_total).toFixed(2)}</option>`
+          ).join('');
+
+      } catch (error) {
+        console.error('Erro ao carregar pedidos:', error);
+        alert('❌ Erro ao carregar pedidos');
+      }
+    }
+
+    async function carregarNFes() {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch('/api/nfe-entrada?limit=100&status_entrada=PENDENTE', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await response.json();
+        
+        const select = document.getElementById('nfeSelect');
+        select.innerHTML = '<option value="">Selecione uma nota...</option>' +
+          data.nfes.map(nfe => 
+            `<option value="${nfe.id}">NFe ${nfe.numero_nfe} - ${nfe.fornecedor_razao_social} - R$ ${parseFloat(nfe.valor_total_nfe).toFixed(2)}</option>`
+          ).join('');
+
+      } catch (error) {
+        console.error('Erro ao carregar NF-es:', error);
+        alert('❌ Erro ao carregar notas fiscais');
+      }
+    }
+
+    async function realizarConferencia() {
+      pedidoAtual = document.getElementById('pedidoSelect').value;
+      nfeAtual = document.getElementById('nfeSelect').value;
+
+      if (!pedidoAtual || !nfeAtual) {
+        alert('⚠️ Selecione o pedido e a nota fiscal para conferir');
+        return;
+      }
+
+      // Mostrar loading
+      document.getElementById('loadingDiv').style.display = 'block';
+      document.getElementById('resumoConferencia').classList.remove('show');
+      document.getElementById('comparacaoSection').style.display = 'none';
+      document.getElementById('acoesFinais').classList.remove('show');
+
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch('/api/entradas-mercadorias/pre-entrada', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            pedido_compra_id: parseInt(pedidoAtual),
+            nfe_entrada_id: parseInt(nfeAtual)
+          })
+        });
+
+        conferencia = await response.json();
+
+        if (!response.ok) {
+          throw new Error(conferencia.error || 'Erro ao realizar conferência');
+        }
+
+        // Esconder loading
+        document.getElementById('loadingDiv').style.display = 'none';
+
+        // Renderizar resultados
+        renderizarResumo();
+        renderizarComparacao();
+        
+        // Mostrar seções
+        document.getElementById('resumoConferencia').classList.add('show');
+        document.getElementById('comparacaoSection').style.display = 'block';
+        document.getElementById('acoesFinais').classList.add('show');
+
+        // Scroll suave para os resultados
+        document.getElementById('resumoConferencia').scrollIntoView({ behavior: 'smooth' });
+
+      } catch (error) {
+        console.error('Erro na conferência:', error);
+        document.getElementById('loadingDiv').style.display = 'none';
+        alert('❌ ' + error.message);
+      }
+    }
+
+    function renderizarResumo() {
+      // Status
+      const statusDiv = document.getElementById('statusConferencia');
+      if (conferencia.status === 'OK') {
+        statusDiv.className = 'status-conferencia ok';
+        statusDiv.innerHTML = `
+          <h2>✅ CONFERÊNCIA OK!</h2>
+          <p style="font-size: 18px; margin: 0;">Todos os itens estão corretos. Pode prosseguir com a entrada.</p>
+        `;
+      } else {
+        statusDiv.className = 'status-conferencia divergencias';
+        statusDiv.innerHTML = `
+          <h2>⚠️ DIVERGÊNCIAS ENCONTRADAS</h2>
+          <p style="font-size: 18px; margin: 0;">${conferencia.divergencias.length} divergência(s) detectada(s). Revise antes de prosseguir.</p>
+        `;
+      }
+
+      // Valores
+      document.getElementById('valorPedido').textContent = 
+        `R$ ${parseFloat(conferencia.resumo_valores.valor_total_pedido).toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+      document.getElementById('valorNfe').textContent = 
+        `R$ ${parseFloat(conferencia.resumo_valores.valor_total_nfe).toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+      
+      const diferenca = conferencia.resumo_valores.valor_total_nfe - conferencia.resumo_valores.valor_total_pedido;
+      const diferencaDiv = document.getElementById('valorDiferenca');
+      diferencaDiv.textContent = `R$ ${Math.abs(diferenca).toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+      diferencaDiv.style.color = diferenca > 0 ? '#dc3545' : (diferenca < 0 ? '#28a745' : '#333');
+
+      // Divergências
+      if (conferencia.divergencias.length > 0) {
+        const divSection = document.getElementById('divergenciasSection');
+        divSection.style.display = 'block';
+
+        const icones = {
+          'PRODUTO_NAO_ENCONTRADO': '❌',
+          'DIVERGENCIA_QUANTIDADE': '📊',
+          'DIVERGENCIA_VALOR': '💰',
+          'PRODUTO_EXTRA': '➕'
+        };
+
+        document.getElementById('divergenciasList').innerHTML = 
+          conferencia.divergencias.map(div => `
+            <div class="divergencia-item">
+              <span class="divergencia-icon">${icones[div.tipo]}</span>
+              <div>
+                <strong>${div.tipo.replace(/_/g, ' ')}</strong>: ${div.descricao}
+              </div>
+            </div>
+          `).join('');
+      } else {
+        document.getElementById('divergenciasSection').style.display = 'none';
+      }
+    }
+
+    function renderizarComparacao() {
+      const grid = document.getElementById('comparacaoGrid');
+      grid.innerHTML = '';
+
+      conferencia.comparacao_completa.forEach(comp => {
+        // Card Pedido
+        const cardPedido = criarCardItem(comp.item_pedido, 'pedido', comp.status);
+        
+        // Card NF-e
+        const cardNfe = criarCardItem(comp.item_nfe, 'nfe', comp.status);
+
+        grid.appendChild(cardPedido);
+        grid.appendChild(cardNfe);
+      });
+    }
+
+    function criarCardItem(item, origem, status) {
+      const div = document.createElement('div');
+      
+      if (!item) {
+        div.className = 'item-card nao-encontrado';
+        div.innerHTML = `
+          <span class="status-badge-item badge-nao-encontrado">NÃO ENCONTRADO</span>
+          <div style="text-align: center; padding: 20px; color: #999;">
+            ${origem === 'pedido' ? '📋 Item não está no pedido' : '📄 Item não está na nota'}
+          </div>
+        `;
+        return div;
+      }
+
+      const classes = {
+        'OK': 'ok',
+        'PRODUTO_NAO_ENCONTRADO': 'nao-encontrado',
+        'PRODUTO_EXTRA': 'extra',
+        'DIVERGENCIA_QUANTIDADE': 'divergente',
+        'DIVERGENCIA_VALOR': 'divergente'
+      };
+
+      const badges = {
+        'OK': 'badge-ok',
+        'PRODUTO_NAO_ENCONTRADO': 'badge-nao-encontrado',
+        'PRODUTO_EXTRA': 'badge-extra',
+        'DIVERGENCIA_QUANTIDADE': 'badge-divergente',
+        'DIVERGENCIA_VALOR': 'badge-divergente'
+      };
+
+      div.className = `item-card ${classes[status] || ''}`;
+      div.innerHTML = `
+        <span class="status-badge-item ${badges[status]}">${status.replace(/_/g, ' ')}</span>
+        
+        <div class="item-info">
+          <label>Produto</label>
+          <value>${item.descricao || item.nome_produto}</value>
+        </div>
+
+        <div class="item-info">
+          <label>Código</label>
+          <value>${item.codigo_produto || item.codigo_principal || '-'}</value>
+        </div>
+
+        <div class="item-info">
+          <label>Quantidade</label>
+          <value>${parseFloat(item.quantidade || item.quantidade_solicitada).toFixed(2)}</value>
+        </div>
+
+        <div class="item-info">
+          <label>Valor Unitário</label>
+          <value>R$ ${parseFloat(item.valor_unitario).toFixed(2)}</value>
+        </div>
+
+        <div class="item-info">
+          <label>Valor Total</label>
+          <value style="font-size: 16px; color: #667eea;">R$ ${parseFloat(item.valor_total).toFixed(2)}</value>
+        </div>
+      `;
+
+      return div;
+    }
+
+    async function importarEntrada() {
+      if (!confirm('Confirma a importação e criação da entrada de mercadoria?')) return;
+
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`/api/nfe-entrada/${nfeAtual}/importar`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            pedido_compra_id: parseInt(pedidoAtual)
+          })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          alert(`✅ Entrada criada com sucesso!\nNúmero: ${data.entrada.numero_entrada}`);
+          novaConferencia();
+        } else {
+          alert('❌ Erro: ' + data.error);
+        }
+
+      } catch (error) {
+        console.error('Erro ao importar:', error);
+        alert('❌ Erro ao criar entrada');
+      }
+    }
+
+    function novaConferencia() {
+      document.getElementById('pedidoSelect').value = '';
+      document.getElementById('nfeSelect').value = '';
+      document.getElementById('resumoConferencia').classList.remove('show');
+      document.getElementById('comparacaoSection').style.display = 'none';
+      document.getElementById('acoesFinais').classList.remove('show');
+      
+      pedidoAtual = null;
+      nfeAtual = null;
+      conferencia = null;
+
+      // Scroll para o topo
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+
+      // Recarregar listas
+      carregarPedidos();
+      carregarNFes();
+    }
+  </script>
+</body>
+</html>

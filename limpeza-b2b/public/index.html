@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Nexus_B2b - Sistema de Controle de Pedidos</title>
+  <style>
+    body { 
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; 
+      margin: 0; 
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      color: #e2e8f0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .container {
+      text-align: center;
+      padding: 40px;
+      background: rgba(15, 23, 42, 0.8);
+      border-radius: 20px;
+      border: 1px solid #334155;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+      max-width: 500px;
+    }
+    h1 { 
+      font-size: 2.5rem; 
+      margin: 0 0 20px 0; 
+      background: linear-gradient(135deg, #22c55e, #16a34a);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    p { 
+      font-size: 1.1rem; 
+      color: #94a3b8; 
+      margin-bottom: 30px; 
+      line-height: 1.6;
+    }
+    .buttons {
+      display: flex;
+      gap: 15px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .btn {
+      display: inline-block;
+      padding: 12px 24px;
+      text-decoration: none;
+      border-radius: 12px;
+      font-weight: 600;
+      transition: all 0.2s;
+      border: 1px solid transparent;
+    }
+    .btn-primary {
+      background: #22c55e;
+      color: #052e13;
+    }
+    .btn-primary:hover {
+      background: #16a34a;
+      transform: translateY(-2px);
+    }
+    .btn-secondary {
+      background: transparent;
+      color: #94a3b8;
+      border-color: #475569;
+    }
+    .btn-secondary:hover {
+      background: #334155;
+      color: #e2e8f0;
+    }
+    .features {
+      margin-top: 40px;
+      text-align: left;
+    }
+    .features h3 {
+      color: #22c55e;
+      margin-bottom: 15px;
+    }
+    .features ul {
+      list-style: none;
+      padding: 0;
+    }
+    .features li {
+      padding: 8px 0;
+      color: #cbd5e1;
+      position: relative;
+      padding-left: 25px;
+    }
+    .features li:before {
+      content: "✓";
+      position: absolute;
+      left: 0;
+      color: #22c55e;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Nexus_B2b</h1>
+    <p>Sistema de controle de pedidos para equipes de limpeza com gestão de orçamentos e integração ERP.</p>
+    
+    <div class="buttons">
+      <a href="/login.html" class="btn btn-primary">Fazer Login</a>
+      <a href="/gestor.html" class="btn btn-secondary">Dashboard Gestor</a>
+      <a href="/equipe.html" class="btn btn-secondary">Página Equipe</a>
+    </div>
+
+    <div class="features">
+      <h3>Funcionalidades</h3>
+      <ul>
+        <li>Controle de orçamento por equipe</li>
+        <li>Pedidos com aprovação de gestores</li>
+        <li>Integração com ERP Oracle</li>
+        <li>Notificações automáticas</li>
+        <li>Interface moderna e responsiva</li>
+      </ul>
+    </div>
+  </div>
+
+  <script>
+    // Auto-redirect se já estiver logado
+    const token = localStorage.getItem('nexus_b2b_token');
+    if (token) {
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        if (payload.perfil === 'gestor') {
+          window.location.href = '/gestor.html';
+        } else if (payload.perfil === 'equipe') {
+          window.location.href = '/equipe.html';
+        }
+      } catch (e) {
+        // Token inválido, remove
+        localStorage.removeItem('nexus_b2b_token');
+      }
+    }
+  </script>
+</body>
+</html>

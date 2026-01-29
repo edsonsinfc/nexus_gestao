@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste Vendedores</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #1a1a1a;
+            color: #fff;
+        }
+        .box {
+            background: #2a2a2a;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        pre {
+            background: #000;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        .error {
+            color: #ff4444;
+        }
+        .success {
+            color: #4CAF50;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 Teste de Carregamento de Vendedores</h1>
+    
+    <div class="box">
+        <h2>1. Informações do Token</h2>
+        <div id="token-info"></div>
+    </div>
+    
+    <div class="box">
+        <h2>2. Testar API</h2>
+        <button onclick="testarAPI()">🚀 Testar /api/vendedores</button>
+        <div id="api-result"></div>
+    </div>
+    
+    <div class="box">
+        <h2>3. Logs Detalhados</h2>
+        <pre id="logs"></pre>
+    </div>
+
+    <script>
+        let logs = [];
+        
+        function addLog(msg, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const emoji = type === 'error' ? '❌' : type === 'success' ? '✅' : '📝';
+            logs.push(`[${timestamp}] ${emoji} ${msg}`);
+            document.getElementById('logs').textContent = logs.join('\n');
+        }
+        
+        // 1. Verificar token
+        const token = localStorage.getItem('token');
+        const tokenInfo = document.getElementById('token-info');
+        
+        if (!token) {
+            tokenInfo.innerHTML = '<p class="error">❌ Token NÃO encontrado no localStorage!</p>';
+            addLog('Token não encontrado', 'error');
+        } else {
+            tokenInfo.innerHTML = `
+                <p class="success">✅ Token encontrado!</p>
+                <p><strong>Início:</strong> ${token.substring(0, 50)}...</p>
+                <p><strong>Tamanho:</strong> ${token.length} caracteres</p>
+            `;
+            addLog('Token encontrado: ' + token.substring(0, 50) + '...', 'success');
+        }
+        
+        // 2. Função para testar API
+        async function testarAPI() {
+            const resultDiv = document.getElementById('api-result');
+            resultDiv.innerHTML = '<p>⏳ Testando API...</p>';
+            addLog('Iniciando teste da API /api/vendedores');
+            
+            try {
+                addLog('Fazendo requisição fetch...');
+                
+                const response = await fetch('/api/vendedores', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                addLog(`Response status: ${response.status} ${response.statusText}`);
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    addLog(`Erro HTTP ${response.status}: ${errorText}`, 'error');
+                    resultDiv.innerHTML = `
+                        <p class="error">❌ Erro HTTP ${response.status}</p>
+                        <pre>${errorText}</pre>
+                    `;
+                    return;
+                }
+                
+                const data = await response.json();
+                addLog('Resposta recebida: ' + JSON.stringify(data, null, 2), 'success');
+                
+                // Analisar estrutura
+                let vendedores = [];
+                if (Array.isArray(data)) {
+                    vendedores = data;
+                    addLog('✅ Resposta é um array direto', 'success');
+                } else if (data.vendedores && Array.isArray(data.vendedores)) {
+                    vendedores = data.vendedores;
+                    addLog('✅ Resposta tem data.vendedores[]', 'success');
+                } else if (data.data && Array.isArray(data.data)) {
+                    vendedores = data.data;
+                    addLog('✅ Resposta tem data.data[]', 'success');
+                } else {
+                    addLog('⚠️ Estrutura inesperada: ' + Object.keys(data).join(', '), 'error');
+                }
+                
+                addLog(`📊 Total de vendedores: ${vendedores.length}`);
+                
+                // Filtrar ativos
+                const ativos = vendedores.filter(v => v.ativo === 1 || v.ativo === true || v.ativo === '1');
+                addLog(`✅ Vendedores ATIVOS: ${ativos.length}`);
+                
+                // Mostrar resultado
+                resultDiv.innerHTML = `
+                    <p class="success">✅ API funcionando!</p>
+                    <p><strong>Total:</strong> ${vendedores.length} vendedores</p>
+                    <p><strong>Ativos:</strong> ${ativos.length} vendedores</p>
+                    <h3>Dados:</h3>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                    ${ativos.length > 0 ? `
+                        <h3>Primeiro vendedor ativo:</h3>
+                        <pre>${JSON.stringify(ativos[0], null, 2)}</pre>
+                    ` : '<p class="error">❌ Nenhum vendedor ativo encontrado!</p>'}
+                `;
+                
+            } catch (error) {
+                addLog('ERRO: ' + error.message, 'error');
+                addLog('Stack: ' + error.stack, 'error');
+                resultDiv.innerHTML = `
+                    <p class="error">❌ Erro: ${error.message}</p>
+                    <pre>${error.stack}</pre>
+                `;
+            }
+        }
+        
+        addLog('Página carregada. Clique no botão para testar!');
+    </script>
+</body>
+</html>

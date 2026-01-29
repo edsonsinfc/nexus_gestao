@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Exportar XMLs para Contador - Nexus Gestão</title>
+  <link rel="stylesheet" href="/styles.css">
+  <style>
+    .export-container {
+      max-width: 1200px;
+      margin: 40px auto;
+      padding: 20px;
+    }
+    .export-card {
+      background: white;
+      border-radius: 12px;
+      padding: 40px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      margin-bottom: 30px;
+    }
+    .form-section {
+      margin-bottom: 30px;
+    }
+    .form-section h3 {
+      margin: 0 0 20px 0;
+      color: #667eea;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+    }
+    .form-group.full {
+      grid-column: 1 / -1;
+    }
+    .form-group label {
+      margin-bottom: 8px;
+      font-weight: 600;
+      font-size: 14px;
+    }
+    .form-group input {
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+    .preview-section {
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 8px;
+      margin: 20px 0;
+    }
+    .preview-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+    .stat-card {
+      background: white;
+      padding: 15px;
+      border-radius: 6px;
+      text-align: center;
+    }
+    .stat-card .valor {
+      font-size: 28px;
+      font-weight: 700;
+      color: #667eea;
+    }
+    .stat-card .label {
+      font-size: 12px;
+      color: #666;
+      margin-top: 5px;
+    }
+    .btn-preview {
+      background: #17a2b8;
+      color: white;
+      padding: 12px 30px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      width: 100%;
+    }
+    .btn-enviar {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 15px 40px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 16px;
+      width: 100%;
+    }
+    .historico-section {
+      margin-top: 40px;
+    }
+    .historico-item {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 20px;
+      align-items: center;
+    }
+    .historico-status {
+      width: 12px;
+      height: 60px;
+      border-radius: 6px;
+    }
+    .status-ENVIADO { background: #28a745; }
+    .status-ERRO { background: #dc3545; }
+    .status-PROCESSANDO { background: #ffc107; }
+    .historico-info h4 {
+      margin: 0 0 5px 0;
+      color: #333;
+    }
+    .historico-info p {
+      margin: 0;
+      font-size: 13px;
+      color: #666;
+    }
+    .historico-acoes button {
+      background: #6c757d;
+      color: white;
+      padding: 8px 16px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <div class="export-container">
+    <h1>📧 Exportar XMLs para Contador</h1>
+
+    <!-- Formulário de Exportação -->
+    <div class="export-card">
+      <div class="form-section">
+        <h3>📅 Período de Exportação</h3>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Data Início *</label>
+            <input type="date" id="dataInicio" required>
+          </div>
+          <div class="form-group">
+            <label>Data Fim *</label>
+            <input type="date" id="dataFim" required>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h3>📮 Destinatários</h3>
+        <div class="form-grid">
+          <div class="form-group full">
+            <label>Email do Contador *</label>
+            <input type="email" id="emailContador" placeholder="contador@escritorio.com.br" required>
+          </div>
+          <div class="form-group full">
+            <label>Email Cópia (opcional)</label>
+            <input type="email" id="emailCopia" placeholder="gerencia@empresa.com.br">
+          </div>
+        </div>
+      </div>
+
+      <!-- Preview -->
+      <div id="previewSection" class="preview-section" style="display: none;">
+        <h4 style="margin: 0 0 15px 0;">📊 Preview dos XMLs</h4>
+        <div class="preview-stats">
+          <div class="stat-card">
+            <div class="valor" id="previewNFCe">0</div>
+            <div class="label">NFC-e</div>
+          </div>
+          <div class="stat-card">
+            <div class="valor" id="previewNFe">0</div>
+            <div class="label">NF-e</div>
+          </div>
+          <div class="stat-card">
+            <div class="valor" id="previewValor">R$ 0,00</div>
+            <div class="label">Valor Total</div>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn-preview" onclick="previewXMLs()">
+        🔍 Visualizar XMLs Disponíveis
+      </button>
+
+      <div style="margin-top: 20px;">
+        <button id="btnEnviar" class="btn-enviar" onclick="enviarXMLs()" disabled>
+          📧 Enviar para Contador
+        </button>
+      </div>
+    </div>
+
+    <!-- Histórico -->
+    <div class="historico-section">
+      <h2>📋 Histórico de Envios</h2>
+      <div id="historicoContainer"></div>
+    </div>
+  </div>
+
+  <script>
+    let previewData = null;
+
+    // Configurar datas padrão (mês anterior)
+    window.onload = () => {
+      const hoje = new Date();
+      const mesPassado = new Date(hoje.getFullYear(), hoje.getMonth() - 1, 1);
+      const ultimoDiaMesPassado = new Date(hoje.getFullYear(), hoje.getMonth(), 0);
+      
+      document.getElementById('dataInicio').valueAsDate = mesPassado;
+      document.getElementById('dataFim').valueAsDate = ultimoDiaMesPassado;
+
+      carregarHistorico();
+    };
+
+    async function previewXMLs() {
+      const dataInicio = document.getElementById('dataInicio').value;
+      const dataFim = document.getElementById('dataFim').value;
+
+      if (!dataInicio || !dataFim) {
+        alert('⚠️ Selecione o período');
+        return;
+      }
+
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`/api/xml-contador/preview?data_inicio=${dataInicio}&data_fim=${dataFim}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Erro ao buscar XMLs');
+        }
+
+        previewData = data;
+
+        // Atualizar preview
+        document.getElementById('previewNFCe').textContent = data.stats.total_nfce;
+        document.getElementById('previewNFe').textContent = data.stats.total_nfe;
+        document.getElementById('previewValor').textContent = 
+          'R$ ' + (data.stats.valor_total_nfce + data.stats.valor_total_nfe).toLocaleString('pt-BR', {minimumFractionDigits: 2});
+
+        document.getElementById('previewSection').style.display = 'block';
+        document.getElementById('btnEnviar').disabled = (data.stats.total_nfce + data.stats.total_nfe) === 0;
+
+        if (data.stats.total_nfce + data.stats.total_nfe === 0) {
+          alert('⚠️ Nenhum XML encontrado no período selecionado');
+        }
+
+      } catch (error) {
+        console.error('Erro:', error);
+        alert('❌ ' + error.message);
+      }
+    }
+
+    async function enviarXMLs() {
+      const dataInicio = document.getElementById('dataInicio').value;
+      const dataFim = document.getElementById('dataFim').value;
+      const emailContador = document.getElementById('emailContador').value;
+      const emailCopia = document.getElementById('emailCopia').value;
+
+      if (!emailContador) {
+        alert('⚠️ Informe o email do contador');
+        return;
+      }
+
+      if (!confirm(`Confirma o envio de ${previewData.stats.total_nfce + previewData.stats.total_nfe} XMLs para ${emailContador}?`)) {
+        return;
+      }
+
+      try {
+        const token = localStorage.getItem('token');
+        
+        document.getElementById('btnEnviar').disabled = true;
+        document.getElementById('btnEnviar').textContent = '⏳ Processando...';
+
+        const response = await fetch('/api/xml-contador/enviar', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            data_inicio: dataInicio,
+            data_fim: dataFim,
+            email_contador: emailContador,
+            email_copia: emailCopia || null
+          })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Erro ao enviar XMLs');
+        }
+
+        alert(`✅ ${data.message}\n\nEnvio ID: ${data.envio_id}`);
+        
+        // Limpar formulário
+        document.getElementById('emailContador').value = '';
+        document.getElementById('emailCopia').value = '';
+        document.getElementById('previewSection').style.display = 'none';
+        
+        // Recarregar histórico
+        setTimeout(carregarHistorico, 2000);
+
+      } catch (error) {
+        console.error('Erro:', error);
+        alert('❌ ' + error.message);
+      } finally {
+        document.getElementById('btnEnviar').disabled = false;
+        document.getElementById('btnEnviar').textContent = '📧 Enviar para Contador';
+      }
+    }
+
+    async function carregarHistorico() {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch('/api/xml-contador/historico', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        const data = await response.json();
+
+        const container = document.getElementById('historicoContainer');
+
+        if (data.envios.length === 0) {
+          container.innerHTML = '<p style="text-align: center; color: #999; padding: 40px;">Nenhum envio realizado ainda</p>';
+          return;
+        }
+
+        container.innerHTML = data.envios.map(envio => `
+          <div class="historico-item">
+            <div class="historico-status status-${envio.status}"></div>
+            <div class="historico-info">
+              <h4>
+                Período: ${new Date(envio.periodo_inicio).toLocaleDateString('pt-BR')} - ${new Date(envio.periodo_fim).toLocaleDateString('pt-BR')}
+              </h4>
+              <p>
+                📧 ${envio.email_contador} | 
+                📄 ${envio.quantidade_nfce} NFC-e + ${envio.quantidade_nfe} NF-e | 
+                📅 ${envio.data_envio ? new Date(envio.data_envio).toLocaleString('pt-BR') : 'Aguardando'} |
+                ⚡ ${envio.status}
+              </p>
+              ${envio.erro_mensagem ? `<p style="color: #dc3545;">❌ ${envio.erro_mensagem}</p>` : ''}
+            </div>
+            <div class="historico-acoes">
+              <button onclick="verDetalhes(${envio.id})">👁️ Detalhes</button>
+            </div>
+          </div>
+        `).join('');
+
+      } catch (error) {
+        console.error('Erro ao carregar histórico:', error);
+      }
+    }
+
+    async function verDetalhes(envioId) {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`/api/xml-contador/${envioId}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        const data = await response.json();
+
+        alert(`📦 Envio #${envioId}\n\n` +
+              `Período: ${new Date(data.envio.periodo_inicio).toLocaleDateString('pt-BR')} - ${new Date(data.envio.periodo_fim).toLocaleDateString('pt-BR')}\n` +
+              `Email: ${data.envio.email_contador}\n` +
+              `NFC-e: ${data.envio.quantidade_nfce}\n` +
+              `NF-e: ${data.envio.quantidade_nfe}\n` +
+              `Status: ${data.envio.status}\n` +
+              `Tamanho: ${(data.envio.tamanho_arquivo_bytes / 1024 / 1024).toFixed(2)} MB`
+        );
+
+      } catch (error) {
+        console.error('Erro ao buscar detalhes:', error);
+      }
+    }
+  </script>
+</body>
+</html>

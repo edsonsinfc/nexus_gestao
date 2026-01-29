@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Teste de Estoque - Nexus Gestão</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css" />
+  <style>
+    .test-container { max-width: 800px; margin: 0 auto; padding: 20px; }
+    .test-section { background: var(--card); padding: 20px; border-radius: 12px; margin-bottom: 20px; }
+    .test-button { margin: 10px 5px; padding: 10px 20px; }
+    .result { background: #0f1630; padding: 15px; border-radius: 8px; margin-top: 10px; font-family: monospace; white-space: pre-wrap; }
+    .success { border-left: 4px solid #65f3b8; }
+    .error { border-left: 4px solid #ff7a7a; }
+  </style>
+</head>
+<body>
+  <div class="test-container">
+    <h1>🧪 Teste do Módulo de Estoque</h1>
+    
+    <div class="test-section">
+      <h2>1. Autenticação</h2>
+      <button class="btn btn-primary test-button" onclick="testarLogin()">Fazer Login</button>
+      <div id="login-result" class="result" style="display: none;"></div>
+    </div>
+
+    <div class="test-section">
+      <h2>2. Relatório de Estoque</h2>
+      <button class="btn btn-primary test-button" onclick="testarRelatorio()">Testar Relatório</button>
+      <div id="relatorio-result" class="result" style="display: none;"></div>
+    </div>
+
+    <div class="test-section">
+      <h2>3. Estoque Baixo</h2>
+      <button class="btn btn-primary test-button" onclick="testarEstoqueBaixo()">Testar Estoque Baixo</button>
+      <div id="estoque-baixo-result" class="result" style="display: none;"></div>
+    </div>
+
+    <div class="test-section">
+      <h2>4. Movimentações</h2>
+      <button class="btn btn-primary test-button" onclick="testarMovimentacoes()">Testar Movimentações</button>
+      <div id="movimentacoes-result" class="result" style="display: none;"></div>
+    </div>
+
+    <div class="test-section">
+      <h2>5. Entrada de Mercadorias</h2>
+      <button class="btn btn-primary test-button" onclick="testarEntradas()">Testar Entradas</button>
+      <div id="entradas-result" class="result" style="display: none;"></div>
+    </div>
+
+    <div class="test-section">
+      <h2>6. Criar Movimentação</h2>
+      <button class="btn btn-primary test-button" onclick="criarMovimentacao()">Criar Movimentação</button>
+      <div id="criar-mov-result" class="result" style="display: none;"></div>
+    </div>
+  </div>
+
+  <script>
+    let token = null;
+
+    function showResult(elementId, data, isError = false) {
+      const element = document.getElementById(elementId);
+      element.style.display = 'block';
+      element.className = `result ${isError ? 'error' : 'success'}`;
+      element.textContent = JSON.stringify(data, null, 2);
+    }
+
+    async function testarLogin() {
+      try {
+        const response = await fetch('/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ login: 'admin', senha: '123456' })
+        });
+
+        const data = await response.json();
+        
+        if (response.ok) {
+          token = data.token;
+          showResult('login-result', { success: true, message: 'Login realizado com sucesso', token: token.substring(0, 20) + '...' });
+        } else {
+          showResult('login-result', data, true);
+        }
+      } catch (error) {
+        showResult('login-result', { error: error.message }, true);
+      }
+    }
+
+    async function testarRelatorio() {
+      if (!token) {
+        showResult('relatorio-result', { error: 'Faça login primeiro' }, true);
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/estoque/relatorio', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        const data = await response.json();
+        showResult('relatorio-result', data, !response.ok);
+      } catch (error) {
+        showResult('relatorio-result', { error: error.message }, true);
+      }
+    }
+
+    async function testarEstoqueBaixo() {
+      if (!token) {
+        showResult('estoque-baixo-result', { error: 'Faça login primeiro' }, true);
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/estoque/estoque-baixo', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        const data = await response.json();
+        showResult('estoque-baixo-result', data, !response.ok);
+      } catch (error) {
+        showResult('estoque-baixo-result', { error: error.message }, true);
+      }
+    }
+
+    async function testarMovimentacoes() {
+      if (!token) {
+        showResult('movimentacoes-result', { error: 'Faça login primeiro' }, true);
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/estoque/movimentacoes', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        const data = await response.json();
+        showResult('movimentacoes-result', data, !response.ok);
+      } catch (error) {
+        showResult('movimentacoes-result', { error: error.message }, true);
+      }
+    }
+
+    async function testarEntradas() {
+      if (!token) {
+        showResult('entradas-result', { error: 'Faça login primeiro' }, true);
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/estoque/entradas', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        const data = await response.json();
+        showResult('entradas-result', data, !response.ok);
+      } catch (error) {
+        showResult('entradas-result', { error: error.message }, true);
+      }
+    }
+
+    async function criarMovimentacao() {
+      if (!token) {
+        showResult('criar-mov-result', { error: 'Faça login primeiro' }, true);
+        return;
+      }
+
+      try {
+        // Primeiro, buscar um produto
+        const produtosResponse = await fetch('/api/produtos', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        const produtosData = await produtosResponse.json();
+        
+        if (!produtosResponse.ok || produtosData.produtos.length === 0) {
+          showResult('criar-mov-result', { error: 'Nenhum produto encontrado' }, true);
+          return;
+        }
+
+        const produto = produtosData.produtos[0];
+        
+        // Criar movimentação
+        const movimentacao = {
+          produto_id: produto.id,
+          tipo: 'ENTRADA',
+          quantidade: 10,
+          observacoes: 'Teste de movimentação via interface'
+        };
+
+        const response = await fetch('/api/estoque/movimentacoes', {
+          method: 'POST',
+          headers: { 
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(movimentacao)
+        });
+
+        const data = await response.json();
+        showResult('criar-mov-result', data, !response.ok);
+      } catch (error) {
+        showResult('criar-mov-result', { error: error.message }, true);
+      }
+    }
+  </script>
+</body>
+</html>
+

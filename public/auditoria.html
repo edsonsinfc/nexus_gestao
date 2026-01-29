@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Auditoria - Nexus Gestão</title>
+  <link rel="stylesheet" href="/styles.css">
+  <style>
+    .auditoria-container {
+      max-width: 1400px;
+      margin: 20px auto;
+      padding: 20px;
+    }
+    .filters {
+      background: #f5f5f5;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+    }
+    .filter-group {
+      display: flex;
+      flex-direction: column;
+    }
+    .filter-group label {
+      margin-bottom: 5px;
+      font-weight: 600;
+      color: #333;
+    }
+    .filter-group select,
+    .filter-group input {
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+    .stats-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+    .stat-card {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .stat-card h3 {
+      margin: 0 0 10px 0;
+      font-size: 14px;
+      opacity: 0.9;
+    }
+    .stat-card .value {
+      font-size: 32px;
+      font-weight: bold;
+    }
+    .logs-table {
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .logs-table table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .logs-table th {
+      background: #667eea;
+      color: white;
+      padding: 12px;
+      text-align: left;
+      font-weight: 600;
+    }
+    .logs-table td {
+      padding: 12px;
+      border-bottom: 1px solid #eee;
+    }
+    .logs-table tr:hover {
+      background: #f9f9f9;
+    }
+    .operacao-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .operacao-INSERT {
+      background: #d4edda;
+      color: #155724;
+    }
+    .operacao-UPDATE {
+      background: #fff3cd;
+      color: #856404;
+    }
+    .operacao-DELETE {
+      background: #f8d7da;
+      color: #721c24;
+    }
+    .operacao-LOGIN {
+      background: #d1ecf1;
+      color: #0c5460;
+    }
+    .pagination {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    .pagination button {
+      padding: 8px 16px;
+      border: 1px solid #ddd;
+      background: white;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    .pagination button:hover:not(:disabled) {
+      background: #667eea;
+      color: white;
+    }
+    .pagination button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .details-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+    .details-modal.show {
+      display: flex;
+    }
+    .modal-content {
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      max-width: 800px;
+      max-height: 80vh;
+      overflow-y: auto;
+      position: relative;
+    }
+    .modal-close {
+      position: absolute;
+      top: 10px;
+      right: 15px;
+      font-size: 28px;
+      cursor: pointer;
+      color: #999;
+    }
+    .json-viewer {
+      background: #f5f5f5;
+      padding: 15px;
+      border-radius: 4px;
+      overflow-x: auto;
+      font-family: monospace;
+      font-size: 13px;
+    }
+    .export-btn {
+      background: #28a745;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 600;
+      margin-bottom: 15px;
+    }
+    .export-btn:hover {
+      background: #218838;
+    }
+  </style>
+</head>
+<body>
+  <div class="auditoria-container">
+    <h1>📋 Auditoria e Logs do Sistema</h1>
+
+    <!-- Estatísticas -->
+    <div class="stats-cards" id="statsCards">
+      <div class="stat-card">
+        <h3>Total de Ações (30 dias)</h3>
+        <div class="value" id="totalAcoes">-</div>
+      </div>
+      <div class="stat-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+        <h3>Usuários Ativos</h3>
+        <div class="value" id="usuariosAtivos">-</div>
+      </div>
+      <div class="stat-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+        <h3>Mudanças Hoje</h3>
+        <div class="value" id="mudancasHoje">-</div>
+      </div>
+      <div class="stat-card" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
+        <h3>Alertas Segurança</h3>
+        <div class="value" id="alertasSeguranca">-</div>
+      </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="filters">
+      <div class="filter-group">
+        <label for="filtroTabela">Tabela</label>
+        <select id="filtroTabela">
+          <option value="">Todas</option>
+          <option value="produtos">Produtos</option>
+          <option value="vendas">Vendas</option>
+          <option value="clientes">Clientes</option>
+          <option value="usuarios">Usuários</option>
+          <option value="nfce">NFC-e</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label for="filtroOperacao">Operação</label>
+        <select id="filtroOperacao">
+          <option value="">Todas</option>
+          <option value="INSERT">INSERT</option>
+          <option value="UPDATE">UPDATE</option>
+          <option value="DELETE">DELETE</option>
+          <option value="LOGIN">LOGIN</option>
+          <option value="LOGOUT">LOGOUT</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label for="dataInicio">Data Início</label>
+        <input type="date" id="dataInicio">
+      </div>
+
+      <div class="filter-group">
+        <label for="dataFim">Data Fim</label>
+        <input type="date" id="dataFim">
+      </div>
+
+      <div class="filter-group" style="align-self: flex-end;">
+        <button onclick="filtrar()" style="padding: 8px 20px; background: #667eea; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600;">
+          🔍 Filtrar
+        </button>
+      </div>
+
+      <div class="filter-group" style="align-self: flex-end;">
+        <button onclick="exportarCSV()" class="export-btn">
+          📥 Exportar CSV
+        </button>
+      </div>
+    </div>
+
+    <!-- Tabela de Logs -->
+    <div class="logs-table">
+      <table>
+        <thead>
+          <tr>
+            <th>Data/Hora</th>
+            <th>Tabela</th>
+            <th>Registro ID</th>
+            <th>Operação</th>
+            <th>Usuário</th>
+            <th>IP</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody id="logsTableBody">
+          <tr>
+            <td colspan="7" style="text-align: center; padding: 40px;">Carregando...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Paginação -->
+    <div class="pagination">
+      <button id="btnPrevPage" onclick="mudarPagina(-1)">Anterior</button>
+      <span id="paginaInfo">Página 1</span>
+      <button id="btnNextPage" onclick="mudarPagina(1)">Próxima</button>
+    </div>
+  </div>
+
+  <!-- Modal de Detalhes -->
+  <div class="details-modal" id="detailsModal">
+    <div class="modal-content">
+      <span class="modal-close" onclick="fecharModal()">&times;</span>
+      <h2>Detalhes da Auditoria</h2>
+      <div id="modalContent"></div>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = '/api/auditoria';
+    let paginaAtual = 1;
+    let totalPaginas = 1;
+
+    // Configurar datas padrão (últimos 30 dias)
+    const hoje = new Date();
+    const trintaDiasAtras = new Date();
+    trintaDiasAtras.setDate(hoje.getDate() - 30);
+    
+    document.getElementById('dataInicio').valueAsDate = trintaDiasAtras;
+    document.getElementById('dataFim').valueAsDate = hoje;
+
+    // Carregar dados iniciais
+    carregarEstatisticas();
+    carregarLogs();
+
+    async function carregarEstatisticas() {
+      try {
+        const token = localStorage.getItem('token');
+        const dataInicio = document.getElementById('dataInicio').value;
+        const dataFim = document.getElementById('dataFim').value;
+
+        const response = await fetch(`${API_BASE}/resumo?data_inicio=${dataInicio}&data_fim=${dataFim}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        const data = await response.json();
+
+        // Calcular totais
+        const totalAcoes = data.porTabela.reduce((sum, item) => sum + item.quantidade, 0);
+        const usuariosUnicos = data.usuariosAtivos.length;
+        const mudancasHoje = data.porDia[0]?.quantidade || 0;
+
+        document.getElementById('totalAcoes').textContent = totalAcoes.toLocaleString();
+        document.getElementById('usuariosAtivos').textContent = usuariosUnicos;
+        document.getElementById('mudancasHoje').textContent = mudancasHoje;
+
+        // Buscar alertas
+        const alertasResp = await fetch(`${API_BASE}/suspeitas`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const alertas = await alertasResp.json();
+        const totalAlertas = (alertas.tentativasLoginSuspeitas?.length || 0) + 
+                            (alertas.mudancasMassaSuspeitas?.length || 0);
+        document.getElementById('alertasSeguranca').textContent = totalAlertas;
+
+      } catch (error) {
+        console.error('Erro ao carregar estatísticas:', error);
+      }
+    }
+
+    async function carregarLogs() {
+      try {
+        const token = localStorage.getItem('token');
+        const tabela = document.getElementById('filtroTabela').value;
+        const operacao = document.getElementById('filtroOperacao').value;
+        const dataInicio = document.getElementById('dataInicio').value;
+        const dataFim = document.getElementById('dataFim').value;
+
+        let url = `${API_BASE}?page=${paginaAtual}&limit=20`;
+        if (tabela) url += `&tabela=${tabela}`;
+        if (operacao) url += `&operacao=${operacao}`;
+        if (dataInicio) url += `&data_inicio=${dataInicio}`;
+        if (dataFim) url += `&data_fim=${dataFim}`;
+
+        const response = await fetch(url, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        const data = await response.json();
+        
+        totalPaginas = data.pagination.totalPages;
+        renderizarLogs(data.logs);
+        atualizarPaginacao(data.pagination);
+
+      } catch (error) {
+        console.error('Erro ao carregar logs:', error);
+        document.getElementById('logsTableBody').innerHTML = `
+          <tr><td colspan="7" style="text-align: center; color: red;">Erro ao carregar logs</td></tr>
+        `;
+      }
+    }
+
+    function renderizarLogs(logs) {
+      const tbody = document.getElementById('logsTableBody');
+      
+      if (logs.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">Nenhum log encontrado</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = logs.map(log => `
+        <tr>
+          <td>${new Date(log.timestamp).toLocaleString('pt-BR')}</td>
+          <td>${log.tabela}</td>
+          <td>${log.registro_id || '-'}</td>
+          <td><span class="operacao-badge operacao-${log.operacao}">${log.operacao}</span></td>
+          <td>${log.usuario || log.usuario_nome || 'Sistema'}</td>
+          <td>${log.ip_address || '-'}</td>
+          <td>
+            <button onclick="verDetalhes(${log.id})" style="padding: 4px 12px; background: #667eea; color: white; border: none; border-radius: 4px; cursor: pointer;">
+              Ver Detalhes
+            </button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function atualizarPaginacao(pagination) {
+      document.getElementById('paginaInfo').textContent = 
+        `Página ${pagination.page} de ${pagination.totalPages} (${pagination.total} registros)`;
+      
+      document.getElementById('btnPrevPage').disabled = pagination.page === 1;
+      document.getElementById('btnNextPage').disabled = pagination.page >= pagination.totalPages;
+    }
+
+    function mudarPagina(direcao) {
+      paginaAtual += direcao;
+      if (paginaAtual < 1) paginaAtual = 1;
+      if (paginaAtual > totalPaginas) paginaAtual = totalPaginas;
+      carregarLogs();
+    }
+
+    function filtrar() {
+      paginaAtual = 1;
+      carregarLogs();
+      carregarEstatisticas();
+    }
+
+    async function verDetalhes(logId) {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_BASE}?page=1&limit=1`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await response.json();
+        const log = data.logs.find(l => l.id === logId);
+
+        if (!log) return;
+
+        const modalContent = document.getElementById('modalContent');
+        modalContent.innerHTML = `
+          <p><strong>ID:</strong> ${log.id}</p>
+          <p><strong>Tabela:</strong> ${log.tabela}</p>
+          <p><strong>Registro ID:</strong> ${log.registro_id || '-'}</p>
+          <p><strong>Operação:</strong> ${log.operacao}</p>
+          <p><strong>Usuário:</strong> ${log.usuario || log.usuario_nome || 'Sistema'}</p>
+          <p><strong>IP:</strong> ${log.ip_address || '-'}</p>
+          <p><strong>Data/Hora:</strong> ${new Date(log.timestamp).toLocaleString('pt-BR')}</p>
+          
+          ${log.dados_anteriores ? `
+            <h3>Dados Anteriores:</h3>
+            <div class="json-viewer">${JSON.stringify(JSON.parse(log.dados_anteriores), null, 2)}</div>
+          ` : ''}
+          
+          ${log.dados_novos ? `
+            <h3>Dados Novos:</h3>
+            <div class="json-viewer">${JSON.stringify(JSON.parse(log.dados_novos), null, 2)}</div>
+          ` : ''}
+        `;
+
+        document.getElementById('detailsModal').classList.add('show');
+      } catch (error) {
+        console.error('Erro ao carregar detalhes:', error);
+        alert('Erro ao carregar detalhes');
+      }
+    }
+
+    function fecharModal() {
+      document.getElementById('detailsModal').classList.remove('show');
+    }
+
+    async function exportarCSV() {
+      try {
+        const token = localStorage.getItem('token');
+        const tabela = document.getElementById('filtroTabela').value;
+        const dataInicio = document.getElementById('dataInicio').value;
+        const dataFim = document.getElementById('dataFim').value;
+
+        let url = `${API_BASE}/export?`;
+        if (tabela) url += `&tabela=${tabela}`;
+        if (dataInicio) url += `&data_inicio=${dataInicio}`;
+        if (dataFim) url += `&data_fim=${dataFim}`;
+
+        const response = await fetch(url, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        const blob = await response.blob();
+        const downloadUrl = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = downloadUrl;
+        a.download = `auditoria_${Date.now()}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+
+      } catch (error) {
+        console.error('Erro ao exportar:', error);
+        alert('Erro ao exportar CSV');
+      }
+    }
+
+    // Fechar modal ao clicar fora
+    document.getElementById('detailsModal').addEventListener('click', function(e) {
+      if (e.target === this) {
+        fecharModal();
+      }
+    });
+  </script>
+</body>
+</html>

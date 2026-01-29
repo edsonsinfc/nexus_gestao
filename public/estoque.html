@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gerenciamento de Estoque - Nexus Gestão</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    :root {
+      --primary: #5b8cff;
+      --secondary: #64748b;
+      --success: #10b981;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --bg: #0f172a;
+      --surface: #1e293b;
+      --border: #334155;
+      --text: #e2e8f0;
+      --text-muted: #94a3b8;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, var(--bg) 0%, #1a2332 100%);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container { max-width: 1600px; margin: 0 auto; }
+
+    .header {
+      background: var(--surface);
+      padding: 20px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border: 1px solid var(--border);
+    }
+
+    h1 { font-size: 24px; color: var(--primary); }
+
+    .btn-voltar {
+      background: var(--secondary);
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      padding: 20px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+
+    .stat-value {
+      font-size: 32px;
+      font-weight: 700;
+      margin-bottom: 5px;
+    }
+
+    .stat-label {
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .tab {
+      flex: 1;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 15px;
+      text-align: center;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s;
+      color: var(--text-muted);
+    }
+
+    .tab.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    .content-section {
+      display: none;
+      background: var(--surface);
+      padding: 20px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+
+    .content-section.active { display: block; }
+
+    .toolbar {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .search-box {
+      flex: 1;
+      min-width: 250px;
+    }
+
+    .search-box input {
+      width: 100%;
+      padding: 10px 15px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.3s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-success { background: var(--success); color: white; }
+    .btn-danger { background: var(--danger); color: white; }
+    .btn-warning { background: var(--warning); color: white; }
+    .btn-secondary { background: var(--secondary); color: white; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+
+    thead { background: var(--bg); }
+
+    th {
+      padding: 12px;
+      text-align: left;
+      font-weight: 600;
+      color: var(--primary);
+      border-bottom: 2px solid var(--border);
+    }
+
+    td {
+      padding: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    tbody tr:hover { background: rgba(91, 140, 255, 0.05); }
+
+    .badge {
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .badge-success { background: rgba(16, 185, 129, 0.2); color: var(--success); }
+    .badge-danger { background: rgba(239, 68, 68, 0.2); color: var(--danger); }
+    .badge-warning { background: rgba(245, 158, 11, 0.2); color: var(--warning); }
+    .badge-info { background: rgba(91, 140, 255, 0.2); color: var(--primary); }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .modal.show { display: flex; }
+
+    .modal-content {
+      background: var(--surface);
+      padding: 30px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      width: 90%;
+      max-width: 600px;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .modal-header {
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-header h2 {
+      color: var(--primary);
+      font-size: 20px;
+    }
+
+    .close-btn {
+      background: none;
+      border: none;
+      color: var(--text);
+      font-size: 24px;
+      cursor: pointer;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 5px;
+      color: var(--text);
+      font-weight: 500;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 10px 15px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 14px;
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      margin-top: 20px;
+    }
+
+    .message {
+      padding: 12px 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      display: none;
+    }
+
+    .message.show { display: block; }
+    .message.success { background: rgba(16, 185, 129, 0.2); color: var(--success); border: 1px solid var(--success); }
+    .message.error { background: rgba(239, 68, 68, 0.2); color: var(--danger); border: 1px solid var(--danger); }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-muted);
+    }
+
+    .filters {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 15px;
+    }
+
+    .filter-item {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .filter-item label {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .filter-item select,
+    .filter-item input {
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--bg);
+      color: var(--text);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>📦 Gerenciamento de Estoque</h1>
+      <a href="admin.html" class="btn-voltar">← Voltar</a>
+    </div>
+
+    <div id="message" class="message"></div>
+
+    <!-- Estatísticas -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-value" id="stat-total">-</div>
+        <div class="stat-label">Total de Produtos</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="stat-baixo" style="color: var(--warning);">-</div>
+        <div class="stat-label">Estoque Baixo</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="stat-zerado" style="color: var(--danger);">-</div>
+        <div class="stat-label">Estoque Zerado</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="stat-valor">R$ -</div>
+        <div class="stat-label">Valor Total Estoque</div>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <div class="tab active" onclick="showTab('produtos')">📦 Produtos</div>
+      <div class="tab" onclick="showTab('movimentacoes')">📋 Movimentações</div>
+    </div>
+
+    <!-- Produtos -->
+    <div id="produtos-section" class="content-section active">
+      <div class="toolbar">
+        <div class="search-box">
+          <input type="text" id="search-produtos" placeholder="🔍 Buscar por código, descrição ou GTIN...">
+        </div>
+        <button class="btn btn-warning" onclick="filtrarEstoqueBaixo()">⚠️ Estoque Baixo</button>
+        <button class="btn btn-success" onclick="abrirModalMovimentacao('ENTRADA')">➕ Entrada</button>
+        <button class="btn btn-danger" onclick="abrirModalMovimentacao('SAIDA')">➖ Saída</button>
+        <button class="btn btn-primary" onclick="abrirModalMovimentacao('AJUSTE')">⚙️ Ajuste</button>
+      </div>
+
+      <table id="table-produtos">
+        <thead>
+          <tr>
+            <th>Código</th>
+            <th>Descrição</th>
+            <th>Categoria</th>
+            <th>Un.</th>
+            <th>Estoque Atual</th>
+            <th>Mín.</th>
+            <th>Máx.</th>
+            <th>Localização</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <!-- Movimentações -->
+    <div id="movimentacoes-section" class="content-section">
+      <div class="filters">
+        <div class="filter-item">
+          <label>Tipo</label>
+          <select id="filtro-tipo" onchange="carregarMovimentacoes()">
+            <option value="">Todos</option>
+            <option value="ENTRADA">Entrada</option>
+            <option value="SAIDA">Saída</option>
+            <option value="AJUSTE_ENTRADA">Ajuste Entrada</option>
+            <option value="AJUSTE_SAIDA">Ajuste Saída</option>
+            <option value="DEVOLUCAO">Devolução</option>
+            <option value="PERDA">Perda</option>
+          </select>
+        </div>
+        <div class="filter-item">
+          <label>Data Início</label>
+          <input type="date" id="filtro-data-inicio" onchange="carregarMovimentacoes()">
+        </div>
+        <div class="filter-item">
+          <label>Data Fim</label>
+          <input type="date" id="filtro-data-fim" onchange="carregarMovimentacoes()">
+        </div>
+        <div class="filter-item" style="align-self: flex-end;">
+          <button class="btn btn-secondary" onclick="limparFiltros()">🔄 Limpar Filtros</button>
+        </div>
+      </div>
+
+      <table id="table-movimentacoes">
+        <thead>
+          <tr>
+            <th>Data/Hora</th>
+            <th>Produto</th>
+            <th>Tipo</th>
+            <th>Quantidade</th>
+            <th>Est. Anterior</th>
+            <th>Est. Novo</th>
+            <th>Motivo</th>
+            <th>Usuário</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Modal Movimentação -->
+  <div id="modal-movimentacao" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="modal-title">Nova Movimentação</h2>
+        <button class="close-btn" onclick="fecharModal()">&times;</button>
+      </div>
+      <form id="form-movimentacao" onsubmit="salvarMovimentacao(event)">
+        <input type="hidden" id="mov-tipo">
+        
+        <div class="form-group">
+          <label>Produto *</label>
+          <select id="mov-produto" required>
+            <option value="">Selecione um produto...</option>
+          </select>
+        </div>
+
+        <div class="form-group" id="group-tipo-ajuste" style="display:none;">
+          <label>Tipo de Ajuste *</label>
+          <select id="mov-tipo-ajuste">
+            <option value="AJUSTE_ENTRADA">Entrada (Adicionar)</option>
+            <option value="AJUSTE_SAIDA">Saída (Remover)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Quantidade *</label>
+          <input type="number" id="mov-quantidade" step="0.001" min="0.001" required>
+        </div>
+
+        <div class="form-group">
+          <label>Motivo *</label>
+          <select id="mov-motivo" required>
+            <option value="">Selecione...</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Observação</label>
+          <textarea id="mov-observacao" rows="3"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Documento Referência</label>
+          <input type="text" id="mov-documento" placeholder="NF-e, pedido, etc.">
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary" onclick="fecharModal()">Cancelar</button>
+          <button type="submit" class="btn btn-success">Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="js/estoque.js"></script>
+</body>
+</html>

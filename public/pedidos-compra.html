@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pedidos de Compra - Nexus Gestão</title>
+  <link rel="stylesheet" href="/styles.css">
+  <style>
+    .pedidos-container {
+      max-width: 1600px;
+      margin: 20px auto;
+      padding: 20px;
+    }
+    .header-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    .btn-novo {
+      background: #28a745;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .filters {
+      background: #f5f5f5;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+    }
+    .filter-group {
+      display: flex;
+      flex-direction: column;
+    }
+    .filter-group label {
+      margin-bottom: 5px;
+      font-weight: 600;
+      font-size: 13px;
+    }
+    .filter-group select,
+    .filter-group input {
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+    .table-container {
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .table-container table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .table-container th {
+      background: #667eea;
+      color: white;
+      padding: 12px;
+      text-align: left;
+      font-weight: 600;
+      font-size: 13px;
+    }
+    .table-container td {
+      padding: 12px;
+      border-bottom: 1px solid #eee;
+      font-size: 13px;
+    }
+    .table-container tr:hover {
+      background: #f9f9f9;
+    }
+    .status-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .status-RASCUNHO { background: #e2e3e5; color: #383d41; }
+    .status-AGUARDANDO_APROVACAO { background: #fff3cd; color: #856404; }
+    .status-APROVADO { background: #cce5ff; color: #004085; }
+    .status-ENVIADO { background: #d1ecf1; color: #0c5460; }
+    .status-PARCIALMENTE_RECEBIDO { background: #fff3cd; color: #856404; }
+    .status-RECEBIDO { background: #d4edda; color: #155724; }
+    .status-CANCELADO { background: #f8d7da; color: #721c24; }
+    .btn-acao {
+      padding: 4px 12px;
+      margin: 0 2px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .btn-visualizar { background: #17a2b8; color: white; }
+    .btn-editar { background: #ffc107; color: #000; }
+    .btn-aprovar { background: #28a745; color: white; }
+    .btn-enviar { background: #007bff; color: white; }
+    .btn-cancelar { background: #dc3545; color: white; }
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal.show {
+      display: flex;
+    }
+    .modal-content {
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      max-width: 1200px;
+      max-height: 90vh;
+      overflow-y: auto;
+      position: relative;
+      width: 95%;
+    }
+    .modal-close {
+      position: absolute;
+      top: 10px;
+      right: 15px;
+      font-size: 28px;
+      cursor: pointer;
+      color: #999;
+    }
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 15px;
+      margin: 20px 0;
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+    }
+    .form-group label {
+      margin-bottom: 5px;
+      font-weight: 600;
+      font-size: 13px;
+    }
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+    .form-group.full-width {
+      grid-column: 1 / -1;
+    }
+    .itens-section {
+      margin: 30px 0;
+      padding: 20px;
+      background: #f8f9fa;
+      border-radius: 8px;
+    }
+    .item-row {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr auto;
+      gap: 10px;
+      margin-bottom: 10px;
+      align-items: end;
+    }
+    .btn-add-item {
+      background: #28a745;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 600;
+      margin-top: 10px;
+    }
+    .btn-remove-item {
+      background: #dc3545;
+      color: white;
+      padding: 8px 12px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="pedidos-container">
+    <div class="header-actions">
+      <h1>🛒 Pedidos de Compra</h1>
+      <button class="btn-novo" onclick="abrirModalNovo()">
+        ➕ Novo Pedido
+      </button>
+    </div>
+
+    <!-- Filtros -->
+    <div class="filters">
+      <div class="filter-group">
+        <label>Status</label>
+        <select id="filtroStatus">
+          <option value="">Todos</option>
+          <option value="RASCUNHO">Rascunho</option>
+          <option value="AGUARDANDO_APROVACAO">Aguardando Aprovação</option>
+          <option value="APROVADO">Aprovado</option>
+          <option value="ENVIADO">Enviado</option>
+          <option value="PARCIALMENTE_RECEBIDO">Parcialmente Recebido</option>
+          <option value="RECEBIDO">Recebido</option>
+          <option value="CANCELADO">Cancelado</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label>Data Início</label>
+        <input type="date" id="filtroDataInicio">
+      </div>
+
+      <div class="filter-group">
+        <label>Data Fim</label>
+        <input type="date" id="filtroDataFim">
+      </div>
+
+      <div class="filter-group" style="align-self: flex-end;">
+        <button onclick="filtrar()" style="padding: 8px 20px; background: #667eea; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600;">
+          🔍 Filtrar
+        </button>
+      </div>
+    </div>
+
+    <!-- Tabela -->
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Número</th>
+            <th>Fornecedor</th>
+            <th>Data Pedido</th>
+            <th>Entrega Prevista</th>
+            <th>Valor Total</th>
+            <th>Status</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody id="pedidosTableBody">
+          <tr>
+            <td colspan="7" style="text-align: center; padding: 40px;">Carregando...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Paginação -->
+    <div class="pagination" style="display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 20px;">
+      <button id="btnPrevPage" onclick="mudarPagina(-1)">Anterior</button>
+      <span id="paginaInfo">Página 1</span>
+      <button id="btnNextPage" onclick="mudarPagina(1)">Próxima</button>
+    </div>
+  </div>
+
+  <!-- Modal Novo/Editar Pedido -->
+  <div class="modal" id="modalPedido">
+    <div class="modal-content">
+      <span class="modal-close" onclick="fecharModal('modalPedido')">&times;</span>
+      <h2 id="modalTitle">➕ Novo Pedido de Compra</h2>
+      
+      <form id="formPedido" onsubmit="salvarPedido(event)">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Fornecedor *</label>
+            <select id="fornecedor_id" required>
+              <option value="">Selecione...</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Data do Pedido *</label>
+            <input type="date" id="data_pedido" required>
+          </div>
+
+          <div class="form-group">
+            <label>Entrega Prevista</label>
+            <input type="date" id="data_entrega_prevista">
+          </div>
+
+          <div class="form-group">
+            <label>Prazo Entrega (dias)</label>
+            <input type="number" id="prazo_entrega_dias" min="0">
+          </div>
+
+          <div class="form-group">
+            <label>Forma de Pagamento</label>
+            <input type="text" id="forma_pagamento">
+          </div>
+
+          <div class="form-group">
+            <label>Condição de Pagamento</label>
+            <input type="text" id="condicao_pagamento">
+          </div>
+
+          <div class="form-group full-width">
+            <label>Local de Entrega</label>
+            <textarea id="local_entrega" rows="2"></textarea>
+          </div>
+
+          <div class="form-group full-width">
+            <label>Observações</label>
+            <textarea id="observacoes" rows="3"></textarea>
+          </div>
+        </div>
+
+        <!-- Itens do Pedido -->
+        <div class="itens-section">
+          <h3>📦 Itens do Pedido</h3>
+          <div id="itensContainer"></div>
+          <button type="button" class="btn-add-item" onclick="adicionarItem()">
+            ➕ Adicionar Item
+          </button>
+        </div>
+
+        <div style="text-align: right; margin-top: 20px;">
+          <button type="button" onclick="fecharModal('modalPedido')" style="padding: 10px 20px; margin-right: 10px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">
+            Cancelar
+          </button>
+          <button type="submit" style="padding: 10px 20px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600;">
+            💾 Salvar Pedido
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal Detalhes -->
+  <div class="modal" id="modalDetalhes">
+    <div class="modal-content">
+      <span class="modal-close" onclick="fecharModal('modalDetalhes')">&times;</span>
+      <div id="detalhesContent"></div>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = '/api/pedidos-compra';
+    let paginaAtual = 1;
+    let totalPaginas = 1;
+    let pedidoAtual = null;
+    let fornecedores = [];
+    let produtos = [];
+
+    // Carregar dados ao iniciar
+    carregarFornecedores();
+    carregarProdutos();
+    carregarPedidos();
+
+    async function carregarFornecedores() {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch('/api/fornecedores', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        fornecedores = await response.json();
+      } catch (error) {
+        console.error('Erro ao carregar fornecedores:', error);
+      }
+    }
+
+    async function carregarProdutos() {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch('/api/produtos', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        produtos = await response.json();
+      } catch (error) {
+        console.error('Erro ao carregar produtos:', error);
+      }
+    }
+
+    async function carregarPedidos() {
+      try {
+        const token = localStorage.getItem('token');
+        
+        const status = document.getElementById('filtroStatus').value;
+        const dataInicio = document.getElementById('filtroDataInicio').value;
+        const dataFim = document.getElementById('filtroDataFim').value;
+
+        let url = `${API_BASE}?page=${paginaAtual}&limit=20`;
+        if (status) url += `&status=${status}`;
+        if (dataInicio) url += `&data_inicio=${dataInicio}`;
+        if (dataFim) url += `&data_fim=${dataFim}`;
+
+        const response = await fetch(url, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        const data = await response.json();
+        
+        totalPaginas = data.pagination.totalPages;
+        renderizarPedidos(data.pedidos);
+        atualizarPaginacao(data.pagination);
+
+      } catch (error) {
+        console.error('Erro ao carregar pedidos:', error);
+        document.getElementById('pedidosTableBody').innerHTML = `
+          <tr><td colspan="7" style="text-align: center; color: red;">Erro ao carregar pedidos</td></tr>
+        `;
+      }
+    }
+
+    function renderizarPedidos(pedidos) {
+      const tbody = document.getElementById('pedidosTableBody');
+      
+      if (pedidos.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">Nenhum pedido encontrado</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = pedidos.map(pedido => `
+        <tr>
+          <td><strong>${pedido.numero_pedido}</strong></td>
+          <td>${pedido.fornecedor_razao_social || pedido.fornecedor_nome_fantasia}</td>
+          <td>${new Date(pedido.data_pedido).toLocaleDateString('pt-BR')}</td>
+          <td>${pedido.data_entrega_prevista ? new Date(pedido.data_entrega_prevista).toLocaleDateString('pt-BR') : '-'}</td>
+          <td>R$ ${parseFloat(pedido.valor_total).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
+          <td><span class="status-badge status-${pedido.status}">${pedido.status.replace(/_/g, ' ')}</span></td>
+          <td>
+            <button class="btn-acao btn-visualizar" onclick="visualizarPedido(${pedido.id})">👁️ Ver</button>
+            ${pedido.status === 'RASCUNHO' || pedido.status === 'AGUARDANDO_APROVACAO' ? 
+              `<button class="btn-acao btn-editar" onclick="editarPedido(${pedido.id})">✏️ Editar</button>` : ''}
+            ${pedido.status === 'RASCUNHO' || pedido.status === 'AGUARDANDO_APROVACAO' ? 
+              `<button class="btn-acao btn-aprovar" onclick="aprovarPedido(${pedido.id})">✅ Aprovar</button>` : ''}
+            ${pedido.status === 'APROVADO' ? 
+              `<button class="btn-acao btn-enviar" onclick="enviarPedido(${pedido.id})">📧 Enviar</button>` : ''}
+            ${pedido.status !== 'RECEBIDO' && pedido.status !== 'CANCELADO' ? 
+              `<button class="btn-acao btn-cancelar" onclick="cancelarPedido(${pedido.id})">🚫 Cancelar</button>` : ''}
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function atualizarPaginacao(pagination) {
+      document.getElementById('paginaInfo').textContent = 
+        `Página ${pagination.page} de ${pagination.totalPages} (${pagination.total} registros)`;
+      
+      document.getElementById('btnPrevPage').disabled = pagination.page === 1;
+      document.getElementById('btnNextPage').disabled = pagination.page >= pagination.totalPages;
+    }
+
+    function mudarPagina(direcao) {
+      paginaAtual += direcao;
+      if (paginaAtual < 1) paginaAtual = 1;
+      if (paginaAtual > totalPaginas) paginaAtual = totalPaginas;
+      carregarPedidos();
+    }
+
+    function filtrar() {
+      paginaAtual = 1;
+      carregarPedidos();
+    }
+
+    function abrirModalNovo() {
+      pedidoAtual = null;
+      document.getElementById('modalTitle').textContent = '➕ Novo Pedido de Compra';
+      document.getElementById('formPedido').reset();
+      document.getElementById('data_pedido').valueAsDate = new Date();
+      
+      // Preencher fornecedores
+      const selectFornecedor = document.getElementById('fornecedor_id');
+      selectFornecedor.innerHTML = '<option value="">Selecione...</option>' +
+        fornecedores.map(f => `<option value="${f.id}">${f.razao_social || f.nome_fantasia}</option>`).join('');
+      
+      // Limpar itens e adicionar um vazio
+      document.getElementById('itensContainer').innerHTML = '';
+      adicionarItem();
+      
+      document.getElementById('modalPedido').classList.add('show');
+    }
+
+    function adicionarItem() {
+      const container = document.getElementById('itensContainer');
+      const index = container.children.length;
+      
+      const itemRow = document.createElement('div');
+      itemRow.className = 'item-row';
+      itemRow.innerHTML = `
+        <select class="produto_id" required>
+          <option value="">Selecione o produto...</option>
+          ${produtos.map(p => `<option value="${p.id}">${p.descricao}</option>`).join('')}
+        </select>
+        <input type="number" step="0.01" class="quantidade" placeholder="Quantidade" required>
+        <input type="number" step="0.01" class="valor_unitario" placeholder="Valor Unit." required>
+        <input type="number" step="0.01" class="valor_desconto" placeholder="Desconto" value="0">
+        <button type="button" class="btn-remove-item" onclick="removerItem(this)">🗑️</button>
+      `;
+      
+      container.appendChild(itemRow);
+    }
+
+    function removerItem(btn) {
+      btn.parentElement.remove();
+    }
+
+    async function salvarPedido(event) {
+      event.preventDefault();
+
+      const itensRows = document.querySelectorAll('#itensContainer .item-row');
+      const itens = [];
+      
+      itensRows.forEach(row => {
+        itens.push({
+          produto_id: parseInt(row.querySelector('.produto_id').value),
+          quantidade_solicitada: parseFloat(row.querySelector('.quantidade').value),
+          valor_unitario: parseFloat(row.querySelector('.valor_unitario').value),
+          valor_desconto: parseFloat(row.querySelector('.valor_desconto').value) || 0
+        });
+      });
+
+      if (itens.length === 0) {
+        alert('Adicione pelo menos um item ao pedido');
+        return;
+      }
+
+      const payload = {
+        fornecedor_id: parseInt(document.getElementById('fornecedor_id').value),
+        data_pedido: document.getElementById('data_pedido').value,
+        data_entrega_prevista: document.getElementById('data_entrega_prevista').value || null,
+        prazo_entrega_dias: document.getElementById('prazo_entrega_dias').value || null,
+        forma_pagamento: document.getElementById('forma_pagamento').value || null,
+        condicao_pagamento: document.getElementById('condicao_pagamento').value || null,
+        local_entrega: document.getElementById('local_entrega').value || null,
+        observacoes: document.getElementById('observacoes').value || null,
+        itens
+      };
+
+      try {
+        const token = localStorage.getItem('token');
+        const method = pedidoAtual ? 'PUT' : 'POST';
+        const url = pedidoAtual ? `${API_BASE}/${pedidoAtual}` : API_BASE;
+
+        const response = await fetch(url, {
+          method,
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          alert(`✅ Pedido ${pedidoAtual ? 'atualizado' : 'criado'} com sucesso!`);
+          fecharModal('modalPedido');
+          carregarPedidos();
+        } else {
+          alert('❌ Erro: ' + data.error);
+        }
+
+      } catch (error) {
+        console.error('Erro ao salvar pedido:', error);
+        alert('❌ Erro ao salvar pedido');
+      }
+    }
+
+    async function visualizarPedido(id) {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_BASE}/${id}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        const { pedido, itens } = await response.json();
+
+        const content = `
+          <h2>📄 Pedido ${pedido.numero_pedido}</h2>
+          
+          <div class="form-grid">
+            <div class="detalhe-item">
+              <label>Fornecedor</label>
+              <value>${pedido.razao_social || pedido.nome_fantasia}</value>
+            </div>
+            <div class="detalhe-item">
+              <label>Data Pedido</label>
+              <value>${new Date(pedido.data_pedido).toLocaleDateString('pt-BR')}</value>
+            </div>
+            <div class="detalhe-item">
+              <label>Status</label>
+              <value><span class="status-badge status-${pedido.status}">${pedido.status.replace(/_/g, ' ')}</span></value>
+            </div>
+            <div class="detalhe-item">
+              <label>Valor Total</label>
+              <value>R$ ${parseFloat(pedido.valor_total).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</value>
+            </div>
+          </div>
+
+          <h3 style="margin-top: 30px;">📦 Itens (${itens.length})</h3>
+          <div class="itens-nfe">
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Produto</th>
+                  <th>Qtd Solicitada</th>
+                  <th>Qtd Recebida</th>
+                  <th>Qtd Pendente</th>
+                  <th>Vlr Unit.</th>
+                  <th>Total</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${itens.map((item, i) => `
+                  <tr>
+                    <td>${i + 1}</td>
+                    <td>${item.descricao}</td>
+                    <td>${item.quantidade_solicitada}</td>
+                    <td>${item.quantidade_recebida}</td>
+                    <td>${item.quantidade_pendente}</td>
+                    <td>R$ ${parseFloat(item.valor_unitario).toFixed(2)}</td>
+                    <td>R$ ${parseFloat(item.valor_total).toFixed(2)}</td>
+                    <td><span class="status-badge status-${item.status}">${item.status}</span></td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        `;
+
+        document.getElementById('detalhesContent').innerHTML = content;
+        document.getElementById('modalDetalhes').classList.add('show');
+
+      } catch (error) {
+        console.error('Erro ao buscar detalhes:', error);
+        alert('Erro ao carregar detalhes do pedido');
+      }
+    }
+
+    async function aprovarPedido(id) {
+      if (!confirm('Deseja aprovar este pedido?')) return;
+
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_BASE}/${id}/aprovar`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (response.ok) {
+          alert('✅ Pedido aprovado com sucesso!');
+          carregarPedidos();
+        } else {
+          const data = await response.json();
+          alert('❌ Erro: ' + data.error);
+        }
+
+      } catch (error) {
+        console.error('Erro ao aprovar:', error);
+        alert('❌ Erro ao aprovar pedido');
+      }
+    }
+
+    async function enviarPedido(id) {
+      if (!confirm('Marcar pedido como enviado para o fornecedor?')) return;
+
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_BASE}/${id}/enviar`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (response.ok) {
+          alert('✅ Pedido marcado como enviado!');
+          carregarPedidos();
+        } else {
+          const data = await response.json();
+          alert('❌ Erro: ' + data.error);
+        }
+
+      } catch (error) {
+        console.error('Erro ao enviar:', error);
+        alert('❌ Erro ao enviar pedido');
+      }
+    }
+
+    async function cancelarPedido(id) {
+      const motivo = prompt('Motivo do cancelamento:');
+      if (!motivo) return;
+
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_BASE}/${id}/cancelar`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ motivo })
+        });
+
+        if (response.ok) {
+          alert('✅ Pedido cancelado!');
+          carregarPedidos();
+        } else {
+          const data = await response.json();
+          alert('❌ Erro: ' + data.error);
+        }
+
+      } catch (error) {
+        console.error('Erro ao cancelar:', error);
+        alert('❌ Erro ao cancelar pedido');
+      }
+    }
+
+    function fecharModal(modalId) {
+      document.getElementById(modalId).classList.remove('show');
+    }
+
+    // Fechar modal ao clicar fora
+    document.querySelectorAll('.modal').forEach(modal => {
+      modal.addEventListener('click', function(e) {
+        if (e.target === this) {
+          this.classList.remove('show');
+        }
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDV - Nexus Gestão</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/pdv-novo.css">
+</head>
+<body>
+    <div class="pdv-container">
+        <!-- Área Principal -->
+        <main class="main-area">
+            <header class="header">
+                <h1>PDV - Ponto de Venda</h1>
+                <p>Sistema de Vendas Online/Offline</p>
+            </header>
+
+            <div class="search-area">
+                <div class="search-wrapper">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" 
+                           id="product-search" 
+                           class="search-input" 
+                           placeholder="Buscar produto por nome, código ou código de barras..."
+                           autocomplete="off">
+                    <div id="search-results" class="search-results"></div>
+                </div>
+                <button class="btn btn-primary" onclick="openModal('modal-cliente')">
+                    <i class="fas fa-user"></i>
+                    <span id="cliente-nome">Cliente</span>
+                </button>
+            </div>
+
+            <!-- Operações -->
+            <div class="operations-bar">
+                <button class="btn btn-warning" onclick="iniciarDevolucao()">
+                    <i class="fas fa-undo-alt"></i>
+                    Devolução
+                </button>
+                <button class="btn btn-info" onclick="iniciarTroca()">
+                    <i class="fas fa-exchange-alt"></i>
+                    Troca
+                </button>
+                <button class="btn btn-danger" onclick="iniciarCancelamento()">
+                    <i class="fas fa-times-circle"></i>
+                    Cancelar Venda
+                </button>
+                <button class="btn btn-secondary" onclick="window.open('/admin.html#sec-config-fiscal','_blank')">
+                    <i class="fas fa-gear"></i>
+                    Config. Fiscais
+                </button>
+            </div>
+
+            <!-- Instruções -->
+            <div class="instructions">
+                <h3>Dica:</h3>
+                <p>Use a busca acima para encontrar produtos rapidamente. Os resultados aparecerão em uma lista suspensa.</p>
+            </div>
+
+            <!-- Grid de Produtos (oculto por padrão) -->
+            <div class="products-grid" id="products-grid" style="display: none;">
+                <!-- Produtos serão inseridos aqui via JavaScript -->
+            </div>
+        </main>
+
+        <!-- Carrinho -->
+        <aside class="cart">
+            <div class="cart-header">
+                <h2>Carrinho de Compras</h2>
+                <p id="cart-count">0 itens</p>
+            </div>
+
+            <div class="cart-items" id="cart-items">
+                <!-- Itens do carrinho serão inseridos aqui -->
+            </div>
+
+            <div class="cart-footer">
+                <div class="cart-row">
+                    <span>Subtotal:</span>
+                    <span id="cart-subtotal">R$ 0,00</span>
+                </div>
+                <div class="cart-row discount-row">
+                    <span>Desconto:</span>
+                    <div class="discount-controls">
+                        <span id="cart-discount">R$ 0,00</span>
+                        <button class="btn-icon" onclick="openModal('modal-desconto')" title="Aplicar Desconto">
+                            <i class="fas fa-percentage"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="cart-row total">
+                    <span>Total:</span>
+                    <span id="cart-total">R$ 0,00</span>
+                </div>
+
+                <button class="btn btn-success btn-full" onclick="finalizarVenda()">
+                    <i class="fas fa-check"></i>
+                    Finalizar Venda
+                </button>
+            </div>
+        </aside>
+    </div>
+
+    <!-- Modal de Cliente -->
+    <div id="modal-cliente" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Selecionar Cliente</h3>
+                <button class="btn" onclick="closeModal('modal-cliente')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="form-grid">
+                <div class="field">
+                    <span>Buscar Cliente</span>
+                    <input type="text" id="cliente-search" placeholder="Nome ou CPF/CNPJ">
+                </div>
+                
+                <div id="clientes-lista">
+                    <!-- Lista de clientes será inserida aqui -->
+                </div>
+
+                <button class="btn btn-primary btn-full">
+                    Venda Avulsa (Sem Cliente)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Finalização -->
+    <div id="modal-finalizar" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Finalizar Venda</h3>
+                <button class="btn" onclick="closeModal('modal-finalizar')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="form-grid">
+                <div class="field">
+                    <span>Forma de Pagamento</span>
+                    <select id="forma-pagamento" class="select">
+                        <option value="DINHEIRO">Dinheiro</option>
+                        <option value="CARTAO_CREDITO">Cartão de Crédito</option>
+                        <option value="CARTAO_DEBITO">Cartão de Débito</option>
+                        <option value="PIX">PIX</option>
+                    </select>
+                </div>
+
+                <div class="field">
+                    <span>Vendedor</span>
+                    <select id="vendedor" class="select">
+                        <!-- Vendedores serão inseridos aqui -->
+                    </select>
+                </div>
+
+                <div class="field">
+                    <span>Observações</span>
+                    <textarea id="observacoes" rows="3"></textarea>
+                </div>
+
+                <button class="btn btn-success btn-full" onclick="confirmarVenda()">
+                    <i class="fas fa-check"></i>
+                    Confirmar Venda
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal PIX -->
+    <div id="modal-pix" class="modal">
+        <div class="modal-content" style="max-width: 520px;">
+            <div class="modal-header">
+                <h3 class="modal-title">Pagamento PIX</h3>
+                <button class="btn" onclick="closeModal('modal-pix')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="form-grid" style="gap: 12px;">
+                                <div id="pix-status" style="font-size:14px; color: var(--text-secondary);">Gerando cobrança...</div>
+                                <div id="pix-progress" style="width:100%; height:8px; background: rgba(255,255,255,0.08); border-radius: 6px; overflow: hidden; display:none;">
+                                    <div id="pix-progress-bar" style="height:100%; width:0%; background: linear-gradient(90deg, #5b8cff, #65f3b8); transition: width 0.3s;"></div>
+                                </div>
+                                <div id="pix-progress-remaining" style="font-size:12px; color: var(--text-secondary); display:none;">10:00 restantes</div>
+                <div style="display:flex; justify-content:center;">
+                    <img id="pix-qrcode" alt="QR Code PIX" style="width: 240px; height: 240px; border: 1px solid var(--border); border-radius: 8px; background: #fff;" />
+                </div>
+                <div>
+                    <label style="font-size:12px; color: var(--text-secondary);">Copia e Cola</label>
+                    <textarea id="pix-copiacola" readonly rows="3" style="width:100%; padding:8px; border-radius:6px; border:1px solid var(--border); background: var(--background); color: var(--text);"></textarea>
+                    <button class="btn" onclick="navigator.clipboard.writeText(document.getElementById('pix-copiacola').value)">Copiar</button>
+                </div>
+                <div style="display:flex; gap: 12px;">
+                    <button id="btn-pix-confirmar" class="btn btn-success" style="flex:1; display:none;" onclick="window.__pixConfirmarManual && window.__pixConfirmarManual()">
+                        <i class="fas fa-check"></i> Confirmar manualmente
+                    </button>
+                    <button id="btn-pix-cancelar" class="btn btn-danger" style="flex:1;" onclick="window.__pixCancelar && window.__pixCancelar()">
+                        <i class="fas fa-times"></i> Cancelar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Desconto -->
+    <div id="modal-desconto" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Aplicar Desconto</h3>
+                <button class="btn" onclick="closeModal('modal-desconto')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="form-grid">
+                <div class="desconto-info">
+                    <i class="fas fa-info-circle"></i>
+                    <p>Seu limite de desconto é de <strong id="limite-desconto">10%</strong></p>
+                </div>
+
+                <div class="field">
+                    <span>Tipo de Desconto</span>
+                    <div class="radio-group">
+                        <label>
+                            <input type="radio" name="tipo-desconto" value="percentual" checked onchange="toggleDescontoType()">
+                            Percentual (%)
+                        </label>
+                        <label>
+                            <input type="radio" name="tipo-desconto" value="valor" onchange="toggleDescontoType()">
+                            Valor (R$)
+                        </label>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <span id="label-desconto">Desconto (%)</span>
+                    <input type="number" id="valor-desconto" min="0" step="0.01" placeholder="0.00">
+                </div>
+
+                <div class="desconto-preview">
+                    <div class="preview-row">
+                        <span>Subtotal:</span>
+                        <span id="preview-subtotal">R$ 0,00</span>
+                    </div>
+                    <div class="preview-row desconto">
+                        <span>Desconto:</span>
+                        <span id="preview-desconto">- R$ 0,00</span>
+                    </div>
+                    <div class="preview-row total">
+                        <span>Total:</span>
+                        <span id="preview-total">R$ 0,00</span>
+                    </div>
+                </div>
+
+                <div id="desconto-erro" class="error-message" style="display: none;">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span id="desconto-erro-texto"></span>
+                </div>
+
+                <button class="btn btn-success btn-full" onclick="aplicarDesconto()">
+                    <i class="fas fa-check"></i>
+                    Aplicar Desconto
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Barra de Status -->
+    <div class="status-bar">
+        <div>
+            Status: <span id="connection-status">Verificando...</span>
+        </div>
+        <div>
+            <span id="sync-status">0 vendas pendentes</span>
+        </div>
+    </div>
+
+    <script src="/pdv-novo.js"></script>
+</body>
+</html>

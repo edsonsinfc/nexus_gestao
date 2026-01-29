@@ -1,0 +1,4112 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Nexus Gestão - Administração</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #5b8cff;
+      --card: #1b2233;
+      --muted: #a0a8c0;
+      --text: #f0f0f0;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #0b1020;
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+    }
+    .admin-container { display: grid; grid-template-columns: 250px 1fr; min-height: 100vh; }
+    .sidebar { background: var(--card); border-right: 1px solid rgba(255,255,255,0.1); padding: 20px; overflow-y: auto; }
+    .sidebar h3 { color: var(--primary); margin-bottom: 20px; font-size: 18px; }
+    .sidebar nav { display: grid; gap: 4px; }
+    .sidebar a { color: var(--muted); text-decoration: none; padding: 12px 16px; border-radius: 8px; transition: all 0.2s; display: flex; align-items: center; gap: 8px; }
+    .sidebar a:hover, .sidebar a.active { background: rgba(91,140,255,0.1); color: var(--primary); }
+    
+    /* Submenu styles */
+    .menu-group { margin-bottom: 8px; }
+    .menu-group-title { 
+      color: var(--muted); 
+      text-decoration: none; 
+      padding: 12px 16px; 
+      border-radius: 8px; 
+      transition: all 0.2s; 
+      display: flex; 
+      align-items: center; 
+      gap: 8px; 
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .menu-group-title:hover { background: rgba(91,140,255,0.05); color: var(--primary); }
+    .menu-group-title::after { 
+      content: '▼'; 
+      margin-left: auto; 
+      font-size: 10px; 
+      transition: transform 0.2s; 
+    }
+    .menu-group-title.collapsed::after { transform: rotate(-90deg); }
+    .submenu { 
+      display: grid; 
+      gap: 2px; 
+      padding-left: 12px; 
+      margin-top: 4px;
+      max-height: 500px;
+      overflow: hidden;
+      transition: max-height 0.3s ease;
+    }
+    .submenu.collapsed { max-height: 0; }
+    .submenu a { 
+      padding: 10px 16px; 
+      font-size: 14px;
+      color: rgba(160, 168, 192, 0.9);
+    }
+    .submenu a:hover { background: rgba(91,140,255,0.08); }
+    .main-content { padding: 20px; overflow-y: auto; }
+    .page { display: none; }
+    .page.active { display: block; }
+    .page-header { margin-bottom: 24px; }
+    .page-title { font-size: 24px; font-weight: 700; margin-bottom: 8px; }
+    .page-subtitle { color: var(--muted); }
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .stat-card { background: var(--card); padding: 20px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); }
+    .stat-value { font-size: 28px; font-weight: 700; color: var(--primary); margin-bottom: 4px; }
+    .stat-label { color: var(--muted); font-size: 14px; }
+    .data-table { background: var(--card); border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); overflow: hidden; }
+    .table-header { padding: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: center; }
+    .table-title { font-size: 18px; font-weight: 600; }
+    .table-content { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 12px 16px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.05); }
+    th { background: rgba(255,255,255,0.02); font-weight: 600; color: var(--muted); font-size: 14px; }
+    td { font-size: 14px; }
+    .status { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; }
+    .status.active { background: rgba(101,243,184,0.2); color: #65f3b8; }
+    .status.inactive { background: rgba(255,122,122,0.2); color: #ff7a7a; }
+    .btn { padding: 10px 16px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; transition: all 0.2s; }
+    .btn-primary { background: var(--primary); color: #0b1020; }
+    .btn-primary:hover { transform: translateY(-1px); }
+    .btn-secondary { background: transparent; color: var(--muted); border: 1px solid rgba(255,255,255,0.2); }
+    .btn-secondary:hover { color: var(--primary); border-color: var(--primary); }
+    .btn-add { padding: 8px 12px; min-width: 40px; }
+    .search-bar { display: flex; gap: 12px; margin-bottom: 20px; }
+    .search-input { flex: 1; }
+    input, select, textarea {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 8px;
+      padding: 10px;
+      color: var(--text);
+      font-size: 14px;
+      width: 100%;
+    }
+    textarea { resize: none; }
+    .modal { 
+      position: fixed; 
+      top: 0; 
+      left: 0; 
+      width: 100%; 
+      height: 100%; 
+      background: rgba(0,0,0,0.8); 
+      display: none; 
+      align-items: center; 
+      justify-content: center; 
+      z-index: 1000; 
+    }
+    .modal.active {
+      display: flex;
+    }
+    .modal-content { 
+      background: var(--card); 
+      border-radius: 12px; 
+      padding: 24px; 
+      width: 90%; 
+      max-width: 600px; 
+      max-height: 90vh; 
+      overflow-y: auto;
+      position: relative;
+    }
+    .close-btn { 
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 24px;
+      cursor: pointer;
+      padding: 5px;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+    }
+    .close-btn:hover {
+      background: rgba(255,255,255,0.1);
+    }
+    .form-actions {
+      margin-top: 20px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+    .form-actions button {
+      min-width: 100px;
+    }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .modal-title { font-size: 20px; font-weight: 600; }
+    .close-btn { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 24px; }
+    .form-grid { display: grid; gap: 16px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .form-actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 20px; }
+    .field { display: flex; flex-direction: column; gap: 6px; }
+    .field span { font-size: 14px; color: var(--muted); }
+    .input-group { display: flex; gap: 8px; align-items: stretch; }
+    .input-group select { flex: 1; }
+  .alert { padding: 10px 12px; border-radius: 8px; margin: 10px 0; font-size: 13px; }
+  .alert-warning { background: rgba(255,193,7,0.1); color: #ffd166; border: 1px solid rgba(255,193,7,0.25); }
+  .alert-info { background: rgba(91,140,255,0.12); color: #9db8ff; border: 1px solid rgba(91,140,255,0.25); }
+    
+    /* Estilos específicos para o módulo de vendas */
+    .card {
+      background: var(--card);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+    .card h4 {
+      margin: 0 0 16px 0;
+      font-size: 16px;
+      color: var(--primary);
+    }
+    .table-container {
+      width: 100%;
+      overflow-x: auto;
+      margin: 16px 0;
+    }
+    .totais {
+      display: flex;
+      justify-content: flex-end;
+      gap: 24px;
+      margin: 16px 0;
+      padding: 16px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 8px;
+    }
+    .total-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .total-item span {
+      color: var(--muted);
+    }
+    .total-item strong {
+      font-size: 18px;
+      color: var(--primary);
+    }
+    #modal-venda .modal-content {
+      max-width: 900px;
+    }
+    .campo-fiscal {
+      display: none;
+    }
+    .campo-entrega {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <script>
+    // Função Toggle Submenu - carregada imediatamente
+    window.toggleSubmenu = function(element) {
+      const submenu = element.nextElementSibling;
+      const isCollapsed = submenu.classList.contains('collapsed');
+      
+      if (isCollapsed) {
+        submenu.classList.remove('collapsed');
+        element.classList.remove('collapsed');
+      } else {
+        submenu.classList.add('collapsed');
+        element.classList.add('collapsed');
+      }
+    };
+  </script>
+  
+  <div class="admin-container">
+    <aside class="sidebar">
+      <h3>Nexus Gestão</h3>
+      <nav>
+        <!-- Dashboard -->
+        <a href="#" class="nav-link active" data-page="dashboard">📊 Dashboard</a>
+        
+        <!-- Cadastros -->
+        <div class="menu-group">
+          <div class="menu-group-title collapsed" onclick="toggleSubmenu(this)">
+            📚 Cadastros
+          </div>
+          <div class="submenu collapsed">
+            <a href="#" class="nav-link" data-page="produtos">📦 Produtos</a>
+            <a href="#" class="nav-link" data-page="clientes">👥 Clientes</a>
+            <a href="#" class="nav-link" data-page="vendedores">💼 Vendedores</a>
+            <a href="#" class="nav-link" data-page="fornecedores">🏭 Fornecedores</a>
+            <a href="categorias-produtos.html">🏷️ Categorias de Produtos</a>
+            <a href="categorias-financeiras.html">📋 Categorias Financeiras</a>
+            <a href="contas-bancarias.html">🏦 Contas Bancárias</a>
+            <a href="planos-pagamento.html">💳 Planos de Pagamento</a>
+          </div>
+        </div>
+
+        <!-- Comercial -->
+        <div class="menu-group">
+          <div class="menu-group-title collapsed" onclick="toggleSubmenu(this)">
+            � Comercial
+          </div>
+          <div class="submenu collapsed">
+            <a href="#" class="nav-link" data-page="vendas">💰 Vendas</a>
+            <a href="/pdv-novo.html">🛒 PDV</a>
+            <a href="#" class="nav-link" data-page="comissoes">💵 Comissões</a>
+            <a href="/views/estoque/dashboard.html">� Estoque</a>
+            <a href="nfe-entrada.html">📥 Entrada de Notas</a>
+          </div>
+        </div>
+
+        <!-- Financeiro -->
+        <div class="menu-group">
+          <div class="menu-group-title collapsed" onclick="toggleSubmenu(this)">
+            � Financeiro
+          </div>
+          <div class="submenu collapsed">
+            <a href="lancamentos-financeiros.html">💰 Lançamentos Financeiros</a>
+            <a href="contas-pagar.html">💳 Contas a Pagar</a>
+            <a href="contas-pagar.html?status=PAGO">✅ Contas Pagas</a>
+            <a href="contas-receber.html">💵 Contas a Receber</a>
+            <a href="contas-receber.html?status=RECEBIDO">✅ Contas Recebidas</a>
+            <a href="fluxo-caixa.html">💵 Fluxo de Caixa</a>
+            <a href="conciliacao-bancaria.html">🏦 Conciliação Bancária</a>
+          </div>
+        </div>
+
+        <!-- Fiscal & Contábil -->
+        <div class="menu-group">
+          <div class="menu-group-title collapsed" onclick="toggleSubmenu(this)">
+            � Fiscal & Contábil
+          </div>
+          <div class="submenu collapsed">
+            <a href="dashboard-fiscal.html">📊 Dashboard Fiscal</a>
+            <a href="xml-contador.html">📧 XML para Contador</a>
+            <a href="dre-interface.html">💼 DRE</a>
+            <a href="balancete.html">📊 Balancete</a>
+            <a href="#" class="nav-link" data-page="tributacao">🧾 Tributação</a>
+            <a href="configuracoes-operacoes.html">⚙️ Mapeamento de Operações</a>
+            <a href="auditoria.html">🔍 Auditoria</a>
+          </div>
+        </div>
+
+        <!-- Relatórios -->
+        <div class="menu-group">
+          <div class="menu-group-title collapsed" onclick="toggleSubmenu(this)">
+            � Relatórios
+          </div>
+          <div class="submenu collapsed">
+            <a href="#" class="nav-link" data-page="relatorios">📈 Relatórios Gerenciais</a>
+          </div>
+        </div>
+
+        <!-- Configurações -->
+        <div class="menu-group">
+          <div class="menu-group-title collapsed" onclick="toggleSubmenu(this)">
+            ⚙️ Configurações
+          </div>
+          <div class="submenu collapsed">
+            <a href="#" class="nav-link" data-page="configuracoes">⚙️ Configurações Gerais</a>
+            <a href="#" class="nav-link" data-page="configuracoes" data-scroll="#sec-config-fiscal">⚙️ Config. Fiscais (NFC-e)</a>
+            <a href="#" class="nav-link" data-page="contas-bancarias">🏦 Contas Bancárias</a>
+            <a href="#" class="nav-link" data-page="formas-pagamento">💳 Formas de Pagamento</a>
+          </div>
+        </div>
+      </nav>
+    </aside>
+
+    <main class="main-content">
+      <!-- Dashboard -->
+      <div id="dashboard" class="page active">
+        <div class="page-header">
+          <h1 class="page-title">Dashboard</h1>
+          <p class="page-subtitle">Visão geral do sistema</p>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-value" id="stat-produtos">-</div>
+            <div class="stat-label">Total de Produtos</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="stat-clientes">-</div>
+            <div class="stat-label">Total de Clientes</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="stat-vendas-hoje">-</div>
+            <div class="stat-label">Vendas Hoje</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="stat-estoque-baixo">-</div>
+            <div class="stat-label">Produtos Estoque Baixo</div>
+          </div>
+        </div>
+
+        <!-- Novos Módulos Financeiros/Fiscais -->
+        <div class="data-table" style="margin-top: 2rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none;">
+          <div style="padding: 2rem; color: white;">
+            <h2 style="color: white; margin-bottom: 1rem;">🎉 Novos Módulos Implementados!</h2>
+            <p style="margin-bottom: 1.5rem; opacity: 0.95;">Seu sistema agora possui módulos completos de gestão financeira e fiscal:</p>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+              <a href="dashboard-fiscal.html" style="background: rgba(255,255,255,0.2); padding: 1rem; border-radius: 8px; text-decoration: none; color: white; backdrop-filter: blur(10px);">
+                <div style="font-size: 2rem; margin-bottom: 0.5rem;">📊</div>
+                <div style="font-weight: 600;">Dashboard Fiscal</div>
+                <div style="font-size: 0.85rem; opacity: 0.9;">CFOP, CST, evolução diária</div>
+              </a>
+              
+              <a href="xml-contador.html" style="background: rgba(255,255,255,0.2); padding: 1rem; border-radius: 8px; text-decoration: none; color: white; backdrop-filter: blur(10px);">
+                <div style="font-size: 2rem; margin-bottom: 0.5rem;">📧</div>
+                <div style="font-weight: 600;">XML para Contador</div>
+                <div style="font-size: 0.85rem; opacity: 0.9;">Exportar e enviar XMLs</div>
+              </a>
+              
+              <a href="auditoria.html" style="background: rgba(255,255,255,0.2); padding: 1rem; border-radius: 8px; text-decoration: none; color: white; backdrop-filter: blur(10px);">
+                <div style="font-size: 2rem; margin-bottom: 0.5rem;">🔍</div>
+                <div style="font-weight: 600;">Auditoria</div>
+                <div style="font-size: 0.85rem; opacity: 0.9;">Logs e rastreabilidade</div>
+              </a>
+            </div>
+            
+            <div style="background: rgba(255,255,255,0.15); padding: 1rem; border-radius: 8px; backdrop-filter: blur(10px);">
+              <div style="font-weight: 600; margin-bottom: 0.5rem;">✅ Também disponíveis via API:</div>
+              <ul style="margin: 0; padding-left: 1.5rem; font-size: 0.9rem; opacity: 0.95;">
+                <li>💼 DRE (Demonstração do Resultado do Exercício)</li>
+                <li>💵 Fluxo de Caixa (Realizado e Projetado)</li>
+                <li>🏦 Conciliação Bancária (Upload CSV/OFX)</li>
+                <li>🧾 Geração de XML NFC-e com todos os campos SEFAZ 4.0</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="data-table">
+          <div class="table-header">
+            <h3 class="table-title">Últimas Vendas</h3>
+          </div>
+          <div class="table-content">
+            <table>
+              <thead>
+                <tr>
+                  <th>Número</th>
+                  <th>Cliente</th>
+                  <th>Valor</th>
+                  <th>Data</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>001</td>
+                  <td>Pet Shop Alpha</td>
+                  <td>R$ 1.250,00</td>
+                  <td>09/10/2025</td>
+                  <td><span class="status active">Concluída</span></td>
+                </tr>
+                <tr>
+                  <td>002</td>
+                  <td>Clínica Veterinária Beta</td>
+                  <td>R$ 3.450,00</td>
+                  <td>09/10/2025</td>
+                  <td><span class="status active">Concluída</span></td>
+                </tr>
+                <tr>
+                  <td>003</td>
+                  <td>Pet Shop Gamma</td>
+                  <td>R$ 890,00</td>
+                  <td>08/10/2025</td>
+                  <td><span class="status active">Concluída</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Produtos -->
+      <div id="produtos" class="page">
+        <div class="page-header">
+          <h1 class="page-title">Produtos</h1>
+          <p class="page-subtitle">Gerenciar catálogo de produtos</p>
+        </div>
+
+        <div class="search-bar">
+          <input type="text" class="search-input" placeholder="Buscar produtos...">
+          <button class="btn btn-primary" onclick="abrirModalProduto()">+ Novo Produto</button>
+        </div>
+
+        <div class="card" style="margin-bottom:16px;">
+          <h4>Atalho: Prévia de Tributação (Saída)</h4>
+          <div class="form-row">
+            <div class="field" style="max-width:260px;">
+              <span>ID do Produto</span>
+              <input type="number" id="prod-prev-id-shortcut" placeholder="Ex.: 123" />
+            </div>
+            <div class="field" style="align-self:end;">
+              <button class="btn btn-secondary" id="btn-open-trib-prev" type="button">Abrir Prévia</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="data-table">
+          <div class="table-content">
+            <table id="produtos-table">
+              <thead>
+                <tr>
+                  <th>Código</th>
+                  <th>Descrição</th>
+                  <th>Preço</th>
+                  <th>Estoque</th>
+                  <th>Status</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td colspan="6" style="color:var(--muted);">Carregando...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Clientes -->
+      <div id="clientes" class="page">
+        <div class="page-header">
+          <h1 class="page-title">Clientes</h1>
+          <p class="page-subtitle">Gerenciar base de clientes</p>
+        </div>
+
+        <div class="search-bar">
+          <input type="text" id="clientes-search" class="search-input" placeholder="Buscar clientes...">
+          <button class="btn btn-primary" onclick="abrirModalCliente()">+ Novo Cliente</button>
+        </div>
+
+        <div class="data-table">
+          <div class="table-content">
+            <table id="clientes-table">
+              <thead>
+                <tr>
+                  <th>Código</th>
+                  <th>Nome/Razão Social</th>
+                  <th>CPF/CNPJ</th>
+                  <th>Vendedor</th>
+                  <th>Status</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- Dados carregados dinamicamente -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Outras páginas -->
+      <div id="vendedores" class="page">
+        <div class="page-header">
+          <h1 class="page-title">Vendedores</h1>
+          <p class="page-subtitle">Gerenciar equipe de vendas</p>
+        </div>
+
+        <div class="search-bar">
+          <input type="text" id="vendedores-search" class="search-input" placeholder="Buscar vendedores...">
+          <button class="btn btn-primary" id="btn-novo-vendedor">+ Novo Vendedor</button>
+        </div>
+
+        <div class="data-table">
+          <div class="table-content">
+            <table id="vendedores-table">
+              <thead>
+                <tr>
+                  <th>Código</th>
+                  <th>Nome</th>
+                  <th>CPF</th>
+                  <th>Telefone</th>
+                  <th>Email</th>
+                  <th>Comissão</th>
+                  <th>Status</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- Dados carregados dinamicamente -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Vendedor -->
+      <div id="modal-vendedor" class="modal">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h3 class="modal-title">Novo Vendedor</h3>
+            <button class="close-btn" onclick="document.getElementById('modal-vendedor').style.display = 'none';">&times;</button>
+          </div>
+          <form id="form-vendedor" class="form-grid">
+            <div class="form-group">
+              <label for="nome">Nome *</label>
+              <input type="text" id="nome" name="nome" required>
+            </div>
+
+            <div class="form-group">
+              <label for="cpf">CPF</label>
+              <input type="text" id="cpf" name="cpf" placeholder="000.000.000-00">
+            </div>
+
+            <div class="form-group">
+              <label for="telefone">Telefone</label>
+              <input type="text" id="telefone" name="telefone" placeholder="(00) 00000-0000">
+            </div>
+
+            <div class="form-group">
+              <label for="email">Email *</label>
+              <input type="email" id="email" name="email" required placeholder="email@exemplo.com">
+            </div>
+
+            <div class="form-group">
+              <label for="endereco">Endereço</label>
+              <input type="text" id="endereco" name="endereco">
+            </div>
+
+            <div class="form-group">
+              <label for="comissao_padrao">Comissão Padrão (%)</label>
+              <input type="number" id="comissao_padrao" name="comissao_padrao" step="0.01" min="0" max="100" value="2.5">
+            </div>
+
+            <div class="form-group">
+              <label for="ativo">Status</label>
+              <select id="ativo" name="ativo">
+                <option value="true">Ativo</option>
+                <option value="false">Inativo</option>
+              </select>
+            </div>
+
+            <div class="form-actions">
+              <button type="button" class="btn btn-secondary" onclick="document.getElementById('modal-vendedor').style.display = 'none';">Cancelar</button>
+              <button type="submit" class="btn btn-primary">Salvar</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div id="fornecedores" class="page">
+        <div class="page-header">
+          <h1 class="page-title">Fornecedores</h1>
+          <p class="page-subtitle">Gerenciar fornecedores</p>
+        </div>
+        
+        <div class="page-actions">
+          <div class="search-container">
+            <input type="text" id="fornecedores-search" placeholder="Buscar fornecedores..." class="search-input">
+          </div>
+          <button class="btn btn-primary" onclick="abrirModalFornecedor()">
+            + Novo Fornecedor
+          </button>
+        </div>
+
+        <div class="table-container">
+          <table id="fornecedores-table" class="data-table">
+            <thead>
+              <tr>
+                <th>Código</th>
+                <th>Razão Social</th>
+                <th>Nome Fantasia</th>
+                <th>CNPJ</th>
+                <th>Telefone</th>
+                <th>Email</th>
+                <th>Cidade</th>
+                <th>Status</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Dados carregados dinamicamente -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="estoque" class="page">
+        <div class="page-header">
+          <h1 class="page-title">Estoque</h1>
+          <p class="page-subtitle">Controle de estoque</p>
+        </div>
+        <p>Em desenvolvimento...</p>
+      </div>
+
+      <div id="vendas" class="page">
+        <div class="page-header">
+          <h1 class="page-title">Vendas</h1>
+          <p class="page-subtitle">Histórico de vendas</p>
+        </div>
+
+        <div class="search-bar">
+          <input type="text" id="vendas-search" class="search-input" placeholder="Buscar vendas...">
+          <button type="button" class="btn btn-primary" onclick="window.location.href='/views/vendas/nova.html'">+ Nova Venda</button>
+        </div>
+
+        <div class="data-table">
+          <div class="table-content">
+            <table id="vendas-table">
+              <thead>
+                <tr>
+                  <th>Número</th>
+                  <th>Data</th>
+                  <th>Cliente</th>
+                  <th>Vendedor</th>
+                  <th>Tipo</th>
+                  <th>Valor Total</th>
+                  <th>Status</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- Dados carregados dinamicamente -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Venda -->
+      <div id="modal-venda" class="modal">
+        <div class="modal-content" style="max-width: 800px;">
+          <div class="modal-header">
+            <h3 class="modal-title">Nova Venda</h3>
+            <button class="close-btn" onclick="fecharModal('modal-venda')">&times;</button>
+          </div>
+
+          <form id="form-venda" class="form-grid">
+            <!-- Dados Gerais -->
+            <div class="form-row">
+              <div class="field">
+                <span>Data da Venda *</span>
+                <input type="date" name="data_venda" required>
+              </div>
+              <div class="field">
+                <span>Tipo de Venda *</span>
+                <select name="tipo_venda" id="tipo-venda" required>
+                  <option value="">Selecione...</option>
+                  <option value="FISCAL">Fiscal</option>
+                  <option value="NAO_FISCAL">Não Fiscal</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="field">
+                <span>Cliente *</span>
+                <select name="cliente_id" id="cliente" required>
+                  <option value="">Carregando...</option>
+                </select>
+              </div>
+              <div class="field">
+                <span>Vendedor *</span>
+                <select name="vendedor_id" id="vendedor" required>
+                  <option value="">Carregando...</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="field">
+                <span>Condição de Pagamento *</span>
+                <select name="condicao_pagamento_id" id="condicao-pagamento" required>
+                  <option value="">Carregando...</option>
+                </select>
+              </div>
+              <div class="field">
+                <span>Forma de Pagamento *</span>
+                <select name="forma_pagamento_id" id="forma-pagamento" required>
+                  <option value="">Carregando...</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Adicionar Produtos -->
+            <div class="card">
+              <h4>Adicionar Produto</h4>
+              <div class="form-row">
+                <div class="field" style="flex: 3;">
+                  <span>Produto</span>
+                  <select id="produto">
+                    <option value="">Carregando...</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <span>Quantidade</span>
+                  <input type="number" id="quantidade" step="0.001" min="0.001">
+                </div>
+                <div class="field">
+                  <span>Preço Unit.</span>
+                  <input type="number" id="preco-unitario" step="0.01" min="0.01">
+                </div>
+                <div class="field">
+                  <span>Desconto (%)</span>
+                  <input type="number" id="desconto-item" step="0.01" min="0" max="100">
+                </div>
+                <div class="field" style="align-self: flex-end;">
+                  <button type="button" class="btn btn-secondary" onclick="adicionarItem()">Adicionar</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Lista de Itens -->
+            <div class="table-container">
+              <table id="itens-table">
+                <thead>
+                  <tr>
+                    <th>Código</th>
+                    <th>Produto</th>
+                    <th>Quantidade</th>
+                    <th>Preço Unit.</th>
+                    <th>Desconto</th>
+                    <th>Subtotal</th>
+                    <th>Ações</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <!-- Itens adicionados dinamicamente -->
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Campos Financeiros -->
+            <div class="form-row">
+              <div class="field">
+                <span>Frete (R$)</span>
+                <input type="number" name="valor_frete" id="valor-frete" step="0.01" min="0">
+              </div>
+              <div class="field">
+                <span>Outras Despesas (R$)</span>
+                <input type="number" name="valor_despesas" id="valor-despesas" step="0.01" min="0">
+              </div>
+              <div class="field">
+                <span>Desconto Geral (%)</span>
+                <input type="number" name="desconto_percentual" id="desconto-geral" step="0.01" min="0" max="100">
+              </div>
+            </div>
+
+            <!-- Totais -->
+            <div class="totais">
+              <div class="total-item">
+                <span>Subtotal:</span>
+                <strong id="subtotal">R$ 0,00</strong>
+              </div>
+              <div class="total-item">
+                <span>Total:</span>
+                <strong id="valor-total">R$ 0,00</strong>
+              </div>
+            </div>
+
+            <!-- Entrega -->
+            <div class="form-row">
+              <div class="field">
+                <span>Modo de Entrega *</span>
+                <select name="modo_entrega" id="modo-entrega" required>
+                  <option value="TOTAL">Total</option>
+                  <option value="PARCIAL">Parcial</option>
+                </select>
+              </div>
+              <div class="field campo-entrega" style="display: none;">
+                <span>Responsável pela Entrega</span>
+                <input type="text" name="responsavel_entrega" id="responsavel-entrega">
+              </div>
+            </div>
+
+            <div class="field">
+              <span>Observações</span>
+              <textarea name="observacoes" rows="3"></textarea>
+            </div>
+
+            <div class="form-actions">
+              <button type="button" class="btn btn-secondary" onclick="fecharModal('modal-venda')">Cancelar</button>
+              <button type="submit" class="btn btn-primary">Salvar</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Modal Entrega -->
+      <div id="modal-entrega" class="modal">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h3 class="modal-title">Registrar Entrega</h3>
+            <button class="close-btn" onclick="fecharModal('modal-entrega')">&times;</button>
+          </div>
+
+          <form id="form-entrega" class="form-grid">
+            <input type="hidden" name="venda_id">
+
+            <div class="form-row">
+              <div class="field">
+                <span>Data da Entrega *</span>
+                <input type="date" name="data_entrega" required>
+              </div>
+              <div class="field">
+                <span>Responsável</span>
+                <input type="text" name="responsavel">
+              </div>
+            </div>
+
+            <!-- Lista de Itens para Entrega -->
+            <div class="table-container">
+              <table id="itens-entrega-table">
+                <thead>
+                  <tr>
+                    <th>Produto</th>
+                    <th>Qtd. Total</th>
+                    <th>Qtd. Entregue</th>
+                    <th>Qtd. Entregar</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <!-- Itens carregados dinamicamente -->
+                </tbody>
+              </table>
+            </div>
+
+            <div class="field">
+              <span>Observações</span>
+              <textarea name="observacoes" rows="3"></textarea>
+            </div>
+
+            <div class="form-actions">
+              <button type="button" class="btn btn-secondary" onclick="fecharModal('modal-entrega')">Cancelar</button>
+              <button type="submit" class="btn btn-primary">Registrar Entrega</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div id="comissoes" class="page">
+        <div class="page-header">
+          <h1 class="page-title">Comissões</h1>
+          <p class="page-subtitle">Controle de comissões</p>
+        </div>
+        <p>Em desenvolvimento...</p>
+      </div>
+
+      <div id="relatorios" class="page">
+        <div class="page-header">
+          <h1 class="page-title">Relatórios</h1>
+          <p class="page-subtitle">Relatórios e indicadores</p>
+        </div>
+        <p>Em desenvolvimento...</p>
+      </div>
+
+      <!-- Tributação -->
+      <div id="tributacao" class="page">
+        <div class="page-header">
+          <h1 class="page-title">Tributação</h1>
+          <p class="page-subtitle">Figuras Tributárias de Entrada e Saída, mapeamentos por NCM e vínculo por produto</p>
+        </div>
+        <div class="card">
+          <h4>Figuras de Entrada</h4>
+          <div class="form-grid">
+            <div class="form-row">
+              <div class="field"><span>Nome</span><input id="trib-ent-nome" type="text" placeholder="Ex.: Compra padrão"/></div>
+              <div class="field"><span>CFOP</span><input id="trib-ent-cfop" type="text" placeholder="1102"/></div>
+            </div>
+            <div class="form-row">
+              <div class="field"><span>CST ICMS</span><input id="trib-ent-cst" type="text" placeholder="00, 10, 41, ..."/></div>
+              <div class="field"><span>CSOSN</span><input id="trib-ent-csosn" type="text" placeholder="101, 102, 400... (SN)"/></div>
+            </div>
+            <div class="form-row">
+              <div class="field"><span>Alíquota ICMS (%)</span><input id="trib-ent-aliq-icms" type="number" step="0.01"/></div>
+              <div class="field"><span>Redução BC ICMS (%)</span><input id="trib-ent-red-icms" type="number" step="0.01"/></div>
+            </div>
+            <div class="form-row">
+              <div class="field"><span>PIS CST</span><input id="trib-ent-pis-cst" type="text"/></div>
+              <div class="field"><span>PIS Alíquota (%)</span><input id="trib-ent-pis-aliq" type="number" step="0.01"/></div>
+            </div>
+            <div class="form-row">
+              <div class="field"><span>COFINS CST</span><input id="trib-ent-cof-cst" type="text"/></div>
+              <div class="field"><span>COFINS Alíquota (%)</span><input id="trib-ent-cof-aliq" type="number" step="0.01"/></div>
+            </div>
+            <div class="form-actions" style="justify-content:flex-start; gap:8px;">
+              <button class="btn btn-primary" id="btn-trib-ent-salvar" type="button">Salvar Figura de Entrada</button>
+              <button class="btn btn-secondary" id="btn-trib-ent-recarregar" type="button">Recarregar Lista</button>
+            </div>
+            <div class="table-container">
+              <table id="tbl-trib-ent">
+                <thead><tr><th>ID</th><th>Nome</th><th>CFOP</th><th>CST/CSOSN</th><th>Ações</th></tr></thead>
+                <tbody><tr><td colspan="5" style="color:var(--muted);">Sem dados</td></tr></tbody>
+              </table>
+            </div>
+            <div class="form-row">
+              <div class="field"><span>Adicionar NCM à Figura Selecionada</span><input id="trib-ent-ncm" type="text" placeholder="NCM (8 dígitos ou padrão com *)"/></div>
+              <div class="field" style="align-self:end;"><button class="btn btn-secondary" id="btn-trib-ent-add-ncm" type="button">Adicionar NCM</button></div>
+            </div>
+            <div class="table-container">
+              <table id="tbl-trib-ent-ncm">
+                <thead><tr><th>ID</th><th>NCM</th><th>Obs</th><th></th></tr></thead>
+                <tbody><tr><td colspan="4" style="color:var(--muted);">Selecione uma figura</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h4>Figuras de Saída</h4>
+          <div class="form-grid">
+            <div class="form-row">
+              <div class="field"><span>Nome</span><input id="trib-sai-nome" type="text" placeholder="Ex.: Venda interna padrão"/></div>
+              <div class="field"><span>CFOP</span><input id="trib-sai-cfop" type="text" placeholder="5102"/></div>
+            </div>
+            <div class="form-row">
+              <div class="field"><span>CST ICMS</span><input id="trib-sai-cst" type="text"/></div>
+              <div class="field"><span>CSOSN</span><input id="trib-sai-csosn" type="text"/></div>
+            </div>
+            <div class="form-row">
+              <div class="field"><span>Alíquota ICMS (%)</span><input id="trib-sai-aliq-icms" type="number" step="0.01"/></div>
+              <div class="field"><span>Redução BC ICMS (%)</span><input id="trib-sai-red-icms" type="number" step="0.01"/></div>
+            </div>
+            <div class="form-row">
+              <div class="field"><span>PIS CST</span><input id="trib-sai-pis-cst" type="text"/></div>
+              <div class="field"><span>PIS Alíquota (%)</span><input id="trib-sai-pis-aliq" type="number" step="0.01"/></div>
+            </div>
+            <div class="form-row">
+              <div class="field"><span>COFINS CST</span><input id="trib-sai-cof-cst" type="text"/></div>
+              <div class="field"><span>COFINS Alíquota (%)</span><input id="trib-sai-cof-aliq" type="number" step="0.01"/></div>
+            </div>
+            <div class="form-actions" style="justify-content:flex-start; gap:8px;">
+              <button class="btn btn-primary" id="btn-trib-sai-salvar" type="button">Salvar Figura de Saída</button>
+              <button class="btn btn-secondary" id="btn-trib-sai-recarregar" type="button">Recarregar Lista</button>
+            </div>
+            <div class="table-container">
+              <table id="tbl-trib-sai">
+                <thead><tr><th>ID</th><th>Nome</th><th>CFOP</th><th>CST/CSOSN</th><th>Ações</th></tr></thead>
+                <tbody><tr><td colspan="5" style="color:var(--muted);">Sem dados</td></tr></tbody>
+              </table>
+            </div>
+            <div class="form-row">
+              <div class="field"><span>Adicionar NCM à Figura Selecionada</span><input id="trib-sai-ncm" type="text" placeholder="NCM (8 dígitos ou *)"/></div>
+              <div class="field" style="align-self:end;"><button class="btn btn-secondary" id="btn-trib-sai-add-ncm" type="button">Adicionar NCM</button></div>
+            </div>
+            <div class="table-container">
+              <table id="tbl-trib-sai-ncm">
+                <thead><tr><th>ID</th><th>NCM</th><th>Obs</th><th></th></tr></thead>
+                <tbody><tr><td colspan="4" style="color:var(--muted);">Selecione uma figura</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h4>Vínculo por Produto</h4>
+          <div class="form-grid">
+            <div class="form-row">
+              <div class="field"><span>ID do Produto</span><input id="trib-prod-id" type="number" placeholder="ID"/></div>
+              <div class="field"><span>Figura Entrada</span><select id="trib-prod-ent"></select></div>
+              <div class="field"><span>Figura Saída</span><select id="trib-prod-sai"></select></div>
+            </div>
+            <div class="form-actions" style="justify-content:flex-start; gap:8px;">
+              <button class="btn btn-primary" id="btn-trib-prod-carregar" type="button">Carregar</button>
+              <button class="btn btn-secondary" id="btn-trib-prod-salvar" type="button">Salvar Vínculo</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h4>Prévia de Tributação (Saída)</h4>
+          <div class="form-grid">
+            <div class="form-row">
+              <div class="field"><span>ID do Produto (opcional)</span><input id="trib-prev-prod-id" type="number" placeholder="ID do produto"/></div>
+              <div class="field"><span>NCM (opcional)</span><input id="trib-prev-ncm" type="text" placeholder="Ex.: 84713000 ou 84*"/></div>
+            </div>
+            <div class="form-actions" style="justify-content:flex-start; gap:8px;">
+              <button class="btn btn-secondary" id="btn-trib-prev-testar" type="button">Testar Resolução</button>
+            </div>
+            <div class="table-container" style="max-height: 280px; overflow:auto; background: rgba(255,255,255,0.03); border-radius:8px;">
+              <pre id="trib-prev-result" style="margin:0; padding:12px; white-space: pre-wrap; word-break: break-word; color:#9db8ff;">Informe Produto e/ou NCM e clique em "Testar Resolução"</pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="configuracoes" class="page">
+        <div class="page-header">
+          <h1 class="page-title">Configurações</h1>
+          <p class="page-subtitle">Configurações do sistema</p>
+        </div>
+        
+        <form id="form-configuracoes" class="form-grid">
+          <!-- Configurações da Empresa -->
+          <div class="card">
+            <h4>Dados da Empresa</h4>
+            <div class="form-grid">
+              <div class="field">
+                <span>Nome da Empresa</span>
+                <input type="text" id="empresa_nome" name="empresa_nome" required>
+              </div>
+              
+              <div class="form-row">
+                <div class="field">
+                  <span>CNPJ</span>
+                  <input type="text" id="empresa_cnpj" name="empresa_cnpj" required>
+                </div>
+                <div class="field">
+                  <span>Telefone</span>
+                  <input type="text" id="empresa_telefone" name="empresa_telefone">
+                </div>
+              </div>
+              
+              <div class="field">
+                <span>Endereço</span>
+                <input type="text" id="empresa_endereco" name="empresa_endereco">
+              </div>
+              
+              <div class="field">
+                <span>E-mail</span>
+                <input type="email" id="empresa_email" name="empresa_email">
+              </div>
+            </div>
+          </div>
+
+          <!-- Configurações Fiscais -->
+          <div class="card">
+            <h4>Configurações Fiscais</h4>
+            <div class="form-grid">
+              <div class="form-row">
+                <div class="field">
+                  <span>Ambiente NFe</span>
+                  <select id="nfe_ambiente" name="nfe_ambiente">
+                    <option value="1">Produção</option>
+                    <option value="2">Homologação</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <span>Série NFe</span>
+                  <input type="number" id="nfe_serie" name="nfe_serie" min="1">
+                </div>
+              </div>
+              
+              <div class="field">
+                <span>Próxima Numeração NFe</span>
+                <input type="number" id="nfe_proxima_numeracao" name="nfe_proxima_numeracao" min="1">
+              </div>
+            </div>
+          </div>
+
+          <!-- Configurações de Pagamento -->
+          <div class="card">
+            <h4>Configurações de Pagamento</h4>
+            <div class="form-grid">
+              <div class="form-row">
+                <div class="field">
+                  <span>Chave PIX</span>
+                  <input type="text" id="pix_chave" name="pix_chave">
+                </div>
+                <div class="field">
+                  <span>Tipo Chave PIX</span>
+                  <select id="pix_tipo" name="pix_tipo">
+                    <option value="cnpj">CNPJ</option>
+                    <option value="email">E-mail</option>
+                    <option value="telefone">Telefone</option>
+                    <option value="aleatoria">Chave Aleatória</option>
+                  </select>
+                </div>
+              </div>
+              
+              <div class="field">
+                <span>TEF (Cartão)</span>
+                <select id="cartao_tef_tipo" name="cartao_tef_tipo">
+                  <option value="none">Nenhum</option>
+                  <option value="stone">Stone</option>
+                  <option value="rede">Rede</option>
+                  <option value="getnet">Getnet</option>
+                  <option value="sipag">Sipag</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Configurações do PDV -->
+          <div class="card">
+            <h4>Configurações do PDV</h4>
+            <div class="form-grid">
+              <div class="field">
+                <span>Modo de Operação</span>
+                <select id="modo_pdv" name="modo_pdv">
+                  <option value="simples">Simples</option>
+                  <option value="completo">Completo</option>
+                  <option value="fiscal">Fiscal</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Salvar Configurações</button>
+          </div>
+        </form>
+
+        <!-- Configurações Fiscais (NFC-e) -->
+        <div class="card" id="sec-config-fiscal">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <h4>Configurações Fiscais (NFC-e)</h4>
+            <button type="button" class="btn btn-secondary" id="btn-fiscal-voltar" style="padding:6px 10px; font-size:12px;">← VOLTAR</button>
+          </div>
+          <div class="form-grid">
+            <div class="form-row">
+              <div class="field">
+                <span>Razão Social</span>
+                <input type="text" name="razao_social" id="fiscal-razao_social" required>
+              </div>
+              <div class="field">
+                <span>Nome Fantasia</span>
+                <input type="text" name="nome_fantasia" id="fiscal-nome_fantasia">
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="field">
+                <span>CNPJ</span>
+                <input type="text" name="cnpj" id="fiscal-cnpj" required>
+              </div>
+              <div class="field">
+                <span>Inscrição Estadual</span>
+                <input type="text" name="inscricao_estadual" id="fiscal-inscricao_estadual" required>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="field">
+                <span>Logradouro</span>
+                <input type="text" name="logradouro" id="fiscal-logradouro" required>
+              </div>
+              <div class="field">
+                <span>Número</span>
+                <input type="text" name="numero" id="fiscal-numero" required>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="field">
+                <span>Complemento</span>
+                <input type="text" name="complemento" id="fiscal-complemento">
+              </div>
+              <div class="field">
+                <span>Bairro</span>
+                <input type="text" name="bairro" id="fiscal-bairro" required>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="field">
+                <span>Município</span>
+                <input type="text" name="municipio" id="fiscal-municipio" required>
+              </div>
+              <div class="field">
+                <span>UF</span>
+                <input type="text" name="uf" id="fiscal-uf" maxlength="2" required>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="field">
+                <span>CEP</span>
+                <input type="text" name="cep" id="fiscal-cep" required>
+              </div>
+              <div class="field">
+                <span>Código Município (IBGE)</span>
+                <input type="text" name="codigo_municipio" id="fiscal-codigo_municipio" required>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="field">
+                <span>Telefone</span>
+                <input type="text" name="telefone" id="fiscal-telefone">
+              </div>
+              <div class="field">
+                <span>Email</span>
+                <input type="email" name="email" id="fiscal-email">
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="field">
+                <span>Ambiente</span>
+                <select name="ambiente_nfce" id="fiscal-ambiente_nfce">
+                  <option value="HOMOLOGACAO">Homologação</option>
+                  <option value="PRODUCAO">Produção</option>
+                </select>
+              </div>
+              <div class="field">
+                <span>Série NFC-e</span>
+                <input type="number" name="serie_nfce" id="fiscal-serie_nfce" min="1">
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="field">
+                <span>Próximo Número</span>
+                <input type="number" name="proximo_numero" id="fiscal-proximo_numero" min="1">
+              </div>
+              <div class="field">
+                <span>Observações Padrão</span>
+                <input type="text" name="observacoes_padrao" id="fiscal-observacoes_padrao">
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="field">
+                <span>CSC ID</span>
+                <input type="text" name="csc_id" id="fiscal-csc_id">
+              </div>
+              <div class="field">
+                <span>CSC Token</span>
+                <input type="text" name="csc_token" id="fiscal-csc_token">
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <button type="button" class="btn btn-primary" id="btn-fiscal-salvar">Salvar Configurações Fiscais</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Integração Bancária (PIX) -->
+        <div class="card" id="sec-integracao-pix">
+          <h4>Integração Bancária (PIX)</h4>
+          <div class="form-grid">
+            <div id="pix-webhook-indicator" class="alert" style="display:none;"></div>
+            <div class="field" style="margin-top: -4px;">
+              <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+                <input type="checkbox" id="pix-debug" name="pix_debug" value="1" style="width:16px; height:16px;">
+                <span>Habilitar logs de debug do PIX (apenas para diagnóstico)</span>
+              </label>
+              <small style="color: var(--muted);">Quando habilitado, o backend registra etapas do fluxo de cobrança/consulta PIX. Recomenda-se desligar em produção.</small>
+            </div>
+            <div class="form-row">
+              <div class="field">
+                <span>Provedor/Instituição</span>
+                <select name="pix_provider" id="pix-provider">
+                  <option value="SIMULADO">Simulado (teste)</option>
+                  <option value="SICOOB">Sicoob</option>
+                  <option value="BANCO_DO_BRASIL">Banco do Brasil</option>
+                </select>
+              </div>
+              <div class="field">
+                <span>Ambiente PIX</span>
+                <select name="pix_ambiente" id="pix-ambiente">
+                  <option value="HOMOLOGACAO">Homologação</option>
+                  <option value="PRODUCAO">Produção</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="field">
+                <span>Base URL da API</span>
+                <input type="text" name="pix_base_url" id="pix-base_url" placeholder="https://api.seubanco.com/..">
+              </div>
+              <div class="field">
+                <span>ISPB</span>
+                <input type="text" name="pix_ispb" id="pix-ispb" placeholder="Ex.: 60701190">
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="field">
+                <span>Agência</span>
+                <input type="text" name="pix_agencia" id="pix-agencia">
+              </div>
+              <div class="field">
+                <span>Conta</span>
+                <input type="text" name="pix_conta" id="pix-conta">
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="field">
+                <span>Tipo de Conta</span>
+                <select name="pix_tipo_conta" id="pix-tipo_conta">
+                  <option value="CC">Conta Corrente</option>
+                  <option value="CP">Conta Poupança</option>
+                </select>
+              </div>
+              <div class="field">
+                <span>Chave PIX</span>
+                <input type="text" name="pix_chave" id="pix-chave" placeholder="CNPJ, e-mail, telefone ou aleatória">
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="field">
+                <span>Client ID</span>
+                <input type="text" name="pix_client_id" id="pix-client_id">
+              </div>
+              <div class="field">
+                <span>Client Secret</span>
+                <input type="password" name="pix_client_secret" id="pix-client_secret" placeholder="Deixe em branco para manter o atual">
+                <small id="pix-client_secret_masked" style="color: var(--muted);"></small>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="field">
+                <span>Webhook URL</span>
+                <input type="text" name="pix_webhook_url" id="pix-webhook_url" placeholder="https://seusistema.com/api/pix/webhook">
+              </div>
+              <div class="field">
+                <span>Webhook Token/Secreto</span>
+                <input type="text" name="pix_webhook_token" id="pix-webhook_token" placeholder="Deixe em branco para manter o atual">
+                <small id="pix-webhook_token_masked" style="color: var(--muted);"></small>
+                <div class="form-actions" style="justify-content:flex-start; gap:8px; margin-top:8px;">
+                  <button type="button" class="btn btn-secondary" id="btn-pix-webhook-gerar" style="padding:6px 10px; font-size:12px;">Gerar Token</button>
+                  <button type="button" class="btn btn-secondary" id="btn-pix-webhook-limpar" style="padding:6px 10px; font-size:12px; background:#ef4444; color:#fff;">Limpar Token</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="card" style="background: rgba(255,255,255,0.03); border: 1px dashed rgba(255,255,255,0.15);">
+              <h4>Certificados/TLS do PIX</h4>
+              <div class="form-grid">
+                <div class="form-row">
+                  <div class="field">
+                    <span>Certificado PFX/P12 (caminho no servidor)</span>
+                    <input type="text" name="pix_cert_pfx_path" id="pix-cert_pfx_path" placeholder="C:\\caminho\\certificado.pfx">
+                  </div>
+                  <div class="field">
+                    <span>Senha do PFX/P12</span>
+                    <input type="password" name="pix_cert_pfx_password" id="pix-cert_pfx_password" placeholder="Deixe em branco para manter a senha atual">
+                    <small id="pix-cert_pfx_password_masked" style="color: var(--muted);"></small>
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div class="field">
+                    <span>Certificado (PEM) - opcional</span>
+                    <input type="text" name="pix_cert_cert_path" id="pix-cert_cert_path" placeholder="C:\\caminho\\cert.pem">
+                  </div>
+                  <div class="field">
+                    <span>Chave (PEM) - opcional</span>
+                    <input type="text" name="pix_cert_key_path" id="pix-cert_key_path" placeholder="C:\\caminho\\key.pem">
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div class="field">
+                    <span>CA (cadeia) - opcional</span>
+                    <input type="text" name="pix_cert_ca_path" id="pix-cert_ca_path" placeholder="C:\\caminho\\ca.pem">
+                  </div>
+                  <div class="field"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <button type="button" class="btn btn-primary" id="btn-pix-salvar">Salvar Integração PIX</button>
+            </div>
+
+            <div class="card" style="margin-top:8px; background: rgba(255,255,255,0.03);">
+              <h4>Preferências do PDV para espera do PIX (local)</h4>
+              <div class="form-grid">
+                <div class="form-row">
+                  <div class="field">
+                    <span>Tempo máximo de espera</span>
+                    <div class="input-group">
+                      <input type="number" id="pix-timeout-min" min="1" step="1" placeholder="10">
+                      <span style="align-self:center; color: var(--muted);">minutos</span>
+                    </div>
+                    <small style="color: var(--muted);">Padrão: 10 min</small>
+                    <small id="pix-timeout-effective" style="color: var(--muted); display:block;">Efetivo: 600000 ms</small>
+                  </div>
+                  <div class="field">
+                    <span>Intervalo de consulta</span>
+                    <div class="input-group">
+                      <input type="number" id="pix-poll-sec" min="1" step="1" placeholder="3">
+                      <span style="align-self:center; color: var(--muted);">segundos</span>
+                    </div>
+                    <small style="color: var(--muted);">Padrão: 3 s</small>
+                    <small id="pix-poll-effective" style="color: var(--muted); display:block;">Efetivo: 3000 ms</small>
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div class="field">
+                    <span>Atualização da barra de progresso</span>
+                    <div class="input-group">
+                      <input type="number" id="pix-progress-ms" min="50" step="50" placeholder="500">
+                      <span style="align-self:center; color: var(--muted);">ms</span>
+                    </div>
+                    <small style="color: var(--muted);">Padrão: 500 ms</small>
+                  </div>
+                  <div class="field"></div>
+                </div>
+                <div class="form-actions" style="justify-content:flex-start; gap:8px;">
+                  <button type="button" class="btn btn-secondary" id="btn-pix-preferencias-salvar">Salvar Preferências (local)</button>
+                  <button type="button" class="btn btn-secondary" id="btn-pix-preferencias-reset">Restaurar Padrões</button>
+                </div>
+                <small style="color: var(--muted);">Estas preferências são salvas apenas no navegador (localStorage) e afetam o PDV nesta máquina.</small>
+                <small style="color: var(--muted); display:block;">Atualização da barra de progresso: <span id="pix-progress-effective">500 ms</span> (opcional via localStorage: pix_progress_ms)</small>
+              </div>
+            </div>
+
+            <div class="card" style="margin-top:8px; background: rgba(255,255,255,0.03);">
+              <h4>Console de Debug do PIX</h4>
+              <div class="form-grid">
+                <div class="form-row">
+                  <div class="field">
+                    <span>Filtro de Tag</span>
+                    <select id="pix-log-tag">
+                      <option value="ALL">Todas</option>
+                      <option value="SICOOB">Sicoob</option>
+                      <option value="BB">Banco do Brasil</option>
+                    </select>
+                  </div>
+                  <div class="field">
+                    <span>Quantidade</span>
+                    <div class="input-group">
+                      <input type="number" id="pix-log-limit" min="10" max="1000" step="10" value="200">
+                      <span style="align-self:center; color: var(--muted);">itens</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="form-actions" style="justify-content:flex-start; gap:8px;">
+                  <button type="button" class="btn btn-secondary" id="btn-pix-logs-atualizar">Atualizar Logs</button>
+                  <button type="button" class="btn btn-secondary" id="btn-pix-logs-limpar" style="background:#ef4444; color:#fff;">Limpar Logs</button>
+                </div>
+                <div class="table-container" style="max-height: 320px; overflow:auto;">
+                  <table id="pix-logs-table">
+                    <thead>
+                      <tr>
+                        <th>Hora</th>
+                        <th>Nível</th>
+                        <th>Tag</th>
+                        <th>Mensagem</th>
+                        <th>Dados</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr><td colspan="5" style="color: var(--muted);">Sem logs para exibir</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+                <small style="color: var(--muted); display:block;">Dica: habilite a opção "Habilitar logs de debug do PIX" acima para registrar mais detalhes do fluxo. Desative em produção.</small>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h4>Arquivos Fiscais</h4>
+          <div class="form-grid">
+            <div class="form-row">
+              <div class="field">
+                <span>Logo da Empresa</span>
+                <input id="fiscal-input-logo" type="file" accept="image/*" />
+              </div>
+              <div class="field" style="align-self:end;">
+                <button class="btn btn-secondary" id="btn-fiscal-logo" type="button">Enviar Logo</button>
+                <button class="btn btn-secondary" id="btn-fiscal-remover-logo" type="button" style="margin-left:8px; background:#ef4444; color:#fff;">Remover Logo</button>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="field">
+                <span>Certificado A1 (.pfx)</span>
+                <input id="fiscal-input-cert" type="file" accept=".pfx" />
+              </div>
+              <div class="field">
+                <span>Senha do Certificado</span>
+                <input id="fiscal-input-senha" type="password" placeholder="Senha" />
+              </div>
+            </div>
+            <div class="form-actions">
+              <button class="btn btn-secondary" id="btn-fiscal-cert" type="button">Enviar Certificado</button>
+              <button class="btn btn-secondary" id="btn-fiscal-remover-cert" type="button" style="margin-left:8px; background:#ef4444; color:#fff;">Remover Certificado</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h4>Preferência de Emissão no PDV</h4>
+          <div class="form-grid">
+            <div class="form-row">
+              <label><input type="radio" name="fiscal-emissao_padrao" value="nao_fiscal" checked> Não Fiscal (recomendado)</label>
+              <label><input type="radio" name="fiscal-emissao_padrao" value="fiscal"> Fiscal (SEFAZ)</label>
+            </div>
+            <div class="form-actions">
+              <button class="btn btn-secondary" id="btn-fiscal-salvar-pref" type="button">Salvar Preferência</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Modal de Entrega -->
+  <div id="modal-entrega" class="modal">
+    <div class="modal-content" style="max-width: 900px;">
+      <div class="modal-header">
+        <h3 class="modal-title">Registrar Entrega</h3>
+        <button class="close-btn" onclick="document.getElementById('modal-entrega').classList.remove('active')">&times;</button>
+      </div>
+
+      <form id="form-entrega" class="form-grid" onsubmit="salvarEntrega(event)">
+        <!-- Dados do Cliente -->
+        <div class="card">
+          <h4>Dados do Cliente</h4>
+          <div class="form-grid">
+            <div class="field">
+              <span>Cliente</span>
+              <strong id="entrega-cliente"></strong>
+            </div>
+            
+            <div class="form-row">
+              <div class="field">
+                <span>Telefone para Contato</span>
+                <input type="text" name="telefone_contato" id="entrega-telefone">
+              </div>
+              <div class="field">
+                <span>Previsão de Entrega</span>
+                <input type="date" name="previsao_entrega" required>
+              </div>
+            </div>
+            
+            <div class="field">
+              <span>Endereço de Entrega</span>
+              <input type="text" name="endereco_entrega" id="entrega-endereco" required>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tipo de Entrega -->
+        <div class="card">
+          <h4>Tipo de Entrega</h4>
+          <div class="form-grid">
+            <div class="form-row">
+              <div class="field">
+                <label>
+                  <input type="radio" name="tipo_entrega" value="TOTAL" checked onchange="alternarTipoEntrega('TOTAL')">
+                  Entrega Total
+                </label>
+              </div>
+              <div class="field">
+                <label>
+                  <input type="radio" name="tipo_entrega" value="PARCIAL" onchange="alternarTipoEntrega('PARCIAL')">
+                  Entrega Parcial
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Itens para Entrega -->
+        <div class="card">
+          <h4>Itens para Entrega</h4>
+          <div class="table-container">
+            <table id="itens-entrega-table">
+              <thead>
+                <tr>
+                  <th>Código</th>
+                  <th>Produto</th>
+                  <th>Qtd. Total</th>
+                  <th>Qtd. Entregar</th>
+                  <th>Unidade</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- Itens carregados dinamicamente -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Dados do Transporte -->
+        <div class="card">
+          <h4>Dados do Transporte</h4>
+          <div class="form-grid">
+            <div class="form-row">
+              <div class="field">
+                <span>Motorista</span>
+                <input type="text" name="motorista">
+              </div>
+              <div class="field">
+                <span>Placa do Veículo</span>
+                <input type="text" name="placa_veiculo">
+              </div>
+            </div>
+            
+            <div class="field">
+              <span>Observações</span>
+              <textarea name="observacoes" rows="3"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary" onclick="document.getElementById('modal-entrega').classList.remove('active')">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Registrar Entrega</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Carregar scripts -->
+  <script src="js/config.js"></script>
+  <script src="admin.js"></script>
+  <script src="js/tributacao.js"></script>
+  <script src="js/vendas-ui.js"></script>
+  <script src="js/vendas.js"></script>
+  <script src="js/configuracoes.js"></script>
+  <script src="js/entregas.js"></script>
+
+  <!-- Modal Produto -->
+  <!-- Modal Produto Profissional com Abas -->
+  <div id="modal-produto" class="modal">
+    <div class="modal-content" style="max-width: 900px;">
+      <div class="modal-header">
+        <h3 class="modal-title">Novo Produto</h3>
+        <button class="close-btn" onclick="fecharModal('modal-produto')">&times;</button>
+      </div>
+
+      <!-- Tabs Navigation -->
+      <div class="tabs-nav" style="display: flex; border-bottom: 2px solid #e2e8f0; margin-bottom: 20px;">
+        <button type="button" class="tab-btn active" onclick="trocarAbaProduto(1)">
+          📦 Dados Básicos
+        </button>
+        <button type="button" class="tab-btn" onclick="trocarAbaProduto(2)">
+          💰 Preços & Estoque
+        </button>
+        <button type="button" class="tab-btn" onclick="trocarAbaProduto(3)">
+          📋 Dados Fiscais
+        </button>
+        <button type="button" class="tab-btn" onclick="trocarAbaProduto(4)">
+          ℹ️ Informações Adicionais
+        </button>
+      </div>
+
+      <form id="form-produto" class="form-grid">
+        
+        <!-- ABA 1: Dados Básicos -->
+        <div id="produto-aba-1" class="produto-aba" style="display: block;">
+          <h4 style="margin-bottom: 16px; color: #667eea;">📦 Informações Básicas do Produto</h4>
+          
+          <div class="form-row">
+            <div class="field">
+              <span>Código Principal *</span>
+              <input type="text" name="codigo_principal" id="prod-codigo" required>
+              <small style="color: #718096;">Código interno do sistema</small>
+            </div>
+            <div class="field">
+              <span>Código de Barras (EAN/GTIN)</span>
+              <input type="text" name="gtin" id="prod-gtin" maxlength="14">
+              <small style="color: #718096;">13 ou 14 dígitos</small>
+            </div>
+            <div class="field">
+              <span>Status</span>
+              <select name="ativo" id="prod-ativo">
+                <option value="1">✅ Ativo</option>
+                <option value="0">🚫 Inativo</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="field">
+            <span>Descrição do Produto *</span>
+            <input type="text" name="descricao" id="prod-descricao" required maxlength="120">
+            <small style="color: #718096;">Máximo 120 caracteres</small>
+          </div>
+
+          <div class="field">
+            <span>Descrição Completa</span>
+            <textarea name="descricao_completa" id="prod-descricao-completa" rows="3"></textarea>
+            <small style="color: #718096;">Descrição detalhada para relatórios e e-commerce</small>
+          </div>
+
+          <div class="form-row">
+            <div class="field">
+              <span>Departamento</span>
+              <select id="prod-departamento" onchange="carregarSecoesDoFormulario()">
+                <option value="">Selecione...</option>
+              </select>
+              <small style="color: #718096;">Opcional - filtra as seções abaixo</small>
+            </div>
+            <div class="field">
+              <span>Seção (Categoria) *</span>
+              <select id="prod-categoria" name="categoria_id" required>
+                <option value="">Selecione um departamento ou escolha abaixo...</option>
+              </select>
+              <button type="button" onclick="abrirGerenciarCategorias()" style="margin-top: 5px; padding: 4px 8px; font-size: 12px; background: #667eea; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                ➕ Gerenciar Seções
+              </button>
+            </div>
+            <div class="field">
+              <span>Tipo de Produto</span>
+              <select name="tipo_produto" id="prod-tipo">
+                <option value="REVENDA">🛒 Revenda</option>
+                <option value="INDUSTRIALIZACAO">🏭 Industrialização</option>
+                <option value="SERVICO">🔧 Serviço</option>
+                <option value="CONSUMO">📦 Consumo</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="field">
+              <span>Unidade de Medida *</span>
+              <select name="unidade" id="prod-unidade" required>
+                <option value="UN">UN - Unidade</option>
+                <option value="KG">KG - Quilograma</option>
+                <option value="LT">LT - Litro</option>
+                <option value="M">M - Metro</option>
+                <option value="M2">M² - Metro Quadrado</option>
+                <option value="M3">M³ - Metro Cúbico</option>
+                <option value="CX">CX - Caixa</option>
+                <option value="PCT">PCT - Pacote</option>
+                <option value="FD">FD - Fardo</option>
+                <option value="SC">SC - Saco</option>
+              </select>
+            </div>
+            <div class="field">
+              <span>Fornecedor Principal</span>
+              <select name="fornecedor_id" id="prod-fornecedor">
+                <option value="">Nenhum</option>
+              </select>
+            </div>
+            <div class="field">
+              <span>Código no Fornecedor</span>
+              <input type="text" name="codigo_fornecedor" id="prod-cod-fornecedor">
+            </div>
+          </div>
+
+          <div class="field">
+            <span>🌐 URL da Foto do Produto</span>
+            <input type="url" name="foto_url" id="prod-foto" placeholder="https://exemplo.com/foto.jpg">
+            <small style="color: #718096;">Link para imagem do produto (opcional)</small>
+          </div>
+        </div>
+
+        <!-- ABA 2: Preços & Estoque -->
+        <div id="produto-aba-2" class="produto-aba" style="display: none;">
+          <h4 style="margin-bottom: 16px; color: #667eea;">💰 Precificação e Controle de Estoque</h4>
+          
+          <div class="form-row">
+            <div class="field">
+              <span>💵 Preço de Custo (R$)</span>
+              <input type="number" name="preco_custo" id="prod-preco-custo" step="0.01" min="0" onchange="calcularMargemLucro()">
+            </div>
+            <div class="field">
+              <span>💰 Preço de Venda (R$) *</span>
+              <input type="number" name="preco_venda" id="prod-preco-venda" step="0.01" min="0" required onchange="calcularMargemLucro()">
+            </div>
+            <div class="field">
+              <span>📊 Margem de Lucro (%)</span>
+              <input type="number" name="margem_lucro" id="prod-margem" step="0.01" readonly style="background: #c6f6d5; font-weight: 600; color: #22543d;">
+              <small style="color: #48bb78;" id="margem-info">Calculado automaticamente</small>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="field">
+              <span>💼 Comissão Vendedor (%)</span>
+              <input type="number" name="comissao_vendedor" id="prod-comissao" step="0.01" min="0" max="100" value="0">
+            </div>
+            <div class="field">
+              <span>🎁 Produto em Destaque?</span>
+              <select name="destaque" id="prod-destaque">
+                <option value="0">Não</option>
+                <option value="1">✨ Sim</option>
+              </select>
+            </div>
+          </div>
+
+          <hr style="margin: 20px 0; border: none; border-top: 2px solid #e2e8f0;">
+          
+          <h4 style="margin-bottom: 16px; color: #667eea;">📦 Controle de Estoque</h4>
+          
+          <div class="form-row">
+            <div class="field">
+              <span>📊 Estoque Atual</span>
+              <input type="number" name="estoque_atual" id="prod-estoque-atual" step="0.001" value="0">
+              <small style="color: #718096;">Quantidade disponível</small>
+            </div>
+            <div class="field">
+              <span>⚠️ Estoque Mínimo</span>
+              <input type="number" name="estoque_minimo" id="prod-estoque-min" step="0.001" value="0">
+              <small style="color: #f56565;">Alerta de reposição</small>
+            </div>
+            <div class="field">
+              <span>📈 Estoque Máximo</span>
+              <input type="number" name="estoque_maximo" id="prod-estoque-max" step="0.001" value="0">
+              <small style="color: #718096;">Limite do estoque</small>
+            </div>
+          </div>
+
+          <div class="field">
+            <span>📍 Localização Física</span>
+            <input type="text" name="localizacao" id="prod-localizacao" placeholder="Ex: Prateleira A3, Corredor 2">
+            <small style="color: #718096;">Localização no depósito/loja</small>
+          </div>
+
+          <hr style="margin: 20px 0; border: none; border-top: 2px solid #e2e8f0;">
+          
+          <h4 style="margin-bottom: 16px; color: #667eea;">📏 Medidas e Peso</h4>
+          
+          <div class="form-row">
+            <div class="field">
+              <span>⚖️ Peso Líquido (kg)</span>
+              <input type="number" name="peso_liquido" id="prod-peso-liq" step="0.001" min="0">
+            </div>
+            <div class="field">
+              <span>⚖️ Peso Bruto (kg)</span>
+              <input type="number" name="peso_bruto" id="prod-peso-bruto" step="0.001" min="0">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="field">
+              <span>📐 Largura (cm)</span>
+              <input type="number" name="largura" id="prod-largura" step="0.01" min="0">
+            </div>
+            <div class="field">
+              <span>📐 Altura (cm)</span>
+              <input type="number" name="altura" id="prod-altura" step="0.01" min="0">
+            </div>
+            <div class="field">
+              <span>📐 Profundidade (cm)</span>
+              <input type="number" name="profundidade" id="prod-prof" step="0.01" min="0">
+            </div>
+          </div>
+        </div>
+
+        <!-- ABA 3: Dados Fiscais -->
+        <div id="produto-aba-3" class="produto-aba" style="display: none;">
+          <h4 style="margin-bottom: 16px; color: #667eea;">📋 Informações Fiscais e Tributárias</h4>
+          
+          <div class="form-row">
+            <div class="field">
+              <span>NCM *</span>
+              <input type="text" name="ncm" id="prod-ncm" maxlength="10" required>
+              <small style="color: #718096;">Nomenclatura Comum do Mercosul (8 dígitos)</small>
+            </div>
+            <div class="field">
+              <span>CEST</span>
+              <input type="text" name="cest" id="prod-cest" maxlength="10">
+              <small style="color: #718096;">Código de Substituição Tributária (7 dígitos)</small>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="field">
+              <span>CFOP Padrão (Saída)</span>
+              <input type="text" name="cfop_padrao" id="prod-cfop" maxlength="5" placeholder="5102">
+              <small style="color: #718096;">Ex: 5102, 5405, 5949</small>
+            </div>
+            <div class="field">
+              <span>CST/CSOSN</span>
+              <input type="text" name="cst_csosn" id="prod-cst" maxlength="4" placeholder="0102">
+              <small style="color: #718096;">Situação Tributária (3 ou 4 dígitos)</small>
+            </div>
+            <div class="field">
+              <span>Origem da Mercadoria</span>
+              <select name="origem" id="prod-origem">
+                <option value="0">0 - Nacional</option>
+                <option value="1">1 - Estrangeira (Importação Direta)</option>
+                <option value="2">2 - Estrangeira (Adquirida no Mercado Interno)</option>
+                <option value="3">3 - Nacional com mais de 40% de conteúdo estrangeiro</option>
+                <option value="4">4 - Nacional conforme Res. Camex 3/11</option>
+                <option value="5">5 - Nacional com menos de 40% de conteúdo estrangeiro</option>
+                <option value="6">6 - Estrangeira (Importação Direta) sem similar nacional</option>
+                <option value="7">7 - Estrangeira (Mercado Interno) sem similar nacional</option>
+                <option value="8">8 - Nacional com mais de 70% de conteúdo estrangeiro</option>
+              </select>
+            </div>
+          </div>
+
+          <hr style="margin: 20px 0; border: none; border-top: 2px solid #e2e8f0;">
+          
+          <h4 style="margin-bottom: 16px; color: #667eea;">💸 Alíquotas Tributárias</h4>
+          
+          <div class="form-row">
+            <div class="field">
+              <span>% ICMS</span>
+              <input type="number" name="aliquota_icms" id="prod-aliq-icms" step="0.01" min="0" max="100" value="0">
+            </div>
+            <div class="field">
+              <span>% IPI</span>
+              <input type="number" name="aliquota_ipi" id="prod-aliq-ipi" step="0.01" min="0" max="100" value="0">
+            </div>
+            <div class="field">
+              <span>% PIS</span>
+              <input type="number" name="aliquota_pis" id="prod-aliq-pis" step="0.01" min="0" max="100" value="0">
+            </div>
+            <div class="field">
+              <span>% COFINS</span>
+              <input type="number" name="aliquota_cofins" id="prod-aliq-cofins" step="0.01" min="0" max="100" value="0">
+            </div>
+          </div>
+
+          <div class="field">
+            <span>📝 Observações Fiscais (para NF-e/NFC-e)</span>
+            <textarea name="observacoes_fiscais" id="prod-obs-fiscal" rows="3" placeholder="Informações adicionais que aparecerão na nota fiscal"></textarea>
+            <small style="color: #718096;">Essas observações serão impressas nas notas fiscais</small>
+          </div>
+        </div>
+
+        <!-- ABA 4: Informações Adicionais -->
+        <div id="produto-aba-4" class="produto-aba" style="display: none;">
+          <h4 style="margin-bottom: 16px; color: #667eea;">ℹ️ Informações Complementares</h4>
+          
+          <div class="field">
+            <span>📄 Observações Internas</span>
+            <textarea name="observacoes" id="prod-obs" rows="4" placeholder="Observações internas, características especiais, instruções de manuseio, etc."></textarea>
+            <small style="color: #718096;">Visível apenas internamente</small>
+          </div>
+
+          <hr style="margin: 20px 0; border: none; border-top: 2px solid #e2e8f0;">
+
+          <div style="background: #f7fafc; padding: 16px; border-radius: 8px; border-left: 4px solid #667eea;">
+            <h4 style="margin-bottom: 8px; color: #667eea;">📊 Resumo do Cadastro</h4>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 14px;">
+              <div>
+                <strong>Código:</strong> <span id="resumo-codigo">-</span>
+              </div>
+              <div>
+                <strong>Status:</strong> <span id="resumo-status">-</span>
+              </div>
+              <div>
+                <strong>Preço de Venda:</strong> <span id="resumo-preco">-</span>
+              </div>
+              <div>
+                <strong>Margem:</strong> <span id="resumo-margem">-</span>
+              </div>
+              <div>
+                <strong>NCM:</strong> <span id="resumo-ncm">-</span>
+              </div>
+              <div>
+                <strong>Estoque:</strong> <span id="resumo-estoque">-</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Botões de ação -->
+        <div class="form-actions" style="margin-top: 24px; padding-top: 20px; border-top: 2px solid #e2e8f0;">
+          <button type="button" class="btn btn-secondary" onclick="fecharModal('modal-produto')">
+            ❌ Cancelar
+          </button>
+          <button type="button" class="btn btn-secondary" onclick="validarAntesDeSalvar()">
+            🔍 Validar Dados
+          </button>
+          <button type="submit" class="btn btn-primary">
+            ✅ Salvar Produto
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <style>
+    .tabs-nav {
+      overflow-x: auto;
+    }
+    
+    .tab-btn {
+      padding: 12px 20px;
+      border: none;
+      background: none;
+      color: #718096;
+      font-weight: 500;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      transition: all 0.3s;
+      white-space: nowrap;
+    }
+    
+    .tab-btn:hover {
+      color: #667eea;
+      background: #f7fafc;
+    }
+    
+    .tab-btn.active {
+      color: #667eea;
+      border-bottom-color: #667eea;
+      font-weight: 600;
+    }
+    
+    .produto-aba {
+      animation: fadeIn 0.3s;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .modal-content {
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    small {
+      display: block;
+      margin-top: 4px;
+      font-size: 12px;
+    }
+  </style>
+
+  <script>
+    // Variável global para armazenar a aba atual
+    let abaAtualProduto = 1;
+
+    // Função para trocar de aba
+    function trocarAbaProduto(numeroAba) {
+      // Esconder todas as abas
+      for (let i = 1; i <= 4; i++) {
+        const aba = document.getElementById(`produto-aba-${i}`);
+        if (aba) aba.style.display = 'none';
+      }
+      
+      // Remover classe active de todos os botões
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      
+      // Mostrar aba selecionada
+      const abaDestino = document.getElementById(`produto-aba-${numeroAba}`);
+      if (abaDestino) abaDestino.style.display = 'block';
+      
+      // Adicionar classe active ao botão correspondente
+      const botoes = document.querySelectorAll('.tab-btn');
+      if (botoes[numeroAba - 1]) botoes[numeroAba - 1].classList.add('active');
+      
+      abaAtualProduto = numeroAba;
+      
+      // Se for a aba 4 (resumo), atualizar informações
+      if (numeroAba === 4) {
+        atualizarResumo();
+      }
+    }
+
+    // Calcular margem de lucro automaticamente
+    function calcularMargemLucro() {
+      const custo = parseFloat(document.getElementById('prod-preco-custo').value) || 0;
+      const venda = parseFloat(document.getElementById('prod-preco-venda').value) || 0;
+      
+      if (custo > 0 && venda > 0) {
+        const margem = ((venda - custo) / custo * 100).toFixed(2);
+        document.getElementById('prod-margem').value = margem;
+        
+        const info = document.getElementById('margem-info');
+        if (margem < 0) {
+          info.textContent = '⚠️ Margem negativa! Prejuízo';
+          info.style.color = '#f56565';
+        } else if (margem < 10) {
+          info.textContent = '⚠️ Margem baixa';
+          info.style.color = '#ed8936';
+        } else {
+          info.textContent = '✅ Margem calculada';
+          info.style.color = '#48bb78';
+        }
+      } else {
+        document.getElementById('prod-margem').value = '';
+        document.getElementById('margem-info').textContent = 'Informe custo e venda';
+        document.getElementById('margem-info').style.color = '#718096';
+      }
+    }
+
+    // Atualizar resumo na aba 4
+    function atualizarResumo() {
+      document.getElementById('resumo-codigo').textContent = document.getElementById('prod-codigo').value || '-';
+      document.getElementById('resumo-status').textContent = document.getElementById('prod-ativo').value == '1' ? '✅ Ativo' : '🚫 Inativo';
+      
+      const precoVenda = parseFloat(document.getElementById('prod-preco-venda').value) || 0;
+      document.getElementById('resumo-preco').textContent = precoVenda > 0 ? `R$ ${precoVenda.toFixed(2)}` : '-';
+      
+      const margem = document.getElementById('prod-margem').value;
+      document.getElementById('resumo-margem').textContent = margem ? `${margem}%` : '-';
+      
+      document.getElementById('resumo-ncm').textContent = document.getElementById('prod-ncm').value || '-';
+      
+      const estoque = parseFloat(document.getElementById('prod-estoque-atual').value) || 0;
+      document.getElementById('resumo-estoque').textContent = estoque > 0 ? estoque.toFixed(3) : '0';
+    }
+
+    // Validar dados antes de salvar
+    function validarAntesDeSalvar() {
+      let erros = [];
+      
+      // Validações básicas
+      if (!document.getElementById('prod-codigo').value) erros.push('- Código do produto é obrigatório');
+      if (!document.getElementById('prod-descricao').value) erros.push('- Descrição do produto é obrigatória');
+      if (!document.getElementById('prod-ncm').value) erros.push('- NCM é obrigatório');
+      
+      const precoVenda = parseFloat(document.getElementById('prod-preco-venda').value);
+      if (!precoVenda || precoVenda <= 0) erros.push('- Preço de venda deve ser maior que zero');
+      
+      // Validação de NCM (deve ter 8 dígitos)
+      const ncm = document.getElementById('prod-ncm').value;
+      if (ncm && !/^\d{8}$/.test(ncm)) {
+        erros.push('- NCM deve conter exatamente 8 dígitos numéricos');
+      }
+      
+      // Validação de GTIN/EAN (se preenchido, deve ter 13 ou 14 dígitos)
+      const gtin = document.getElementById('prod-gtin').value;
+      if (gtin && !/^\d{13,14}$/.test(gtin)) {
+        erros.push('- Código de Barras deve conter 13 ou 14 dígitos');
+      }
+      
+      if (erros.length > 0) {
+        alert('⚠️ Erros encontrados:\n\n' + erros.join('\n'));
+        return false;
+      }
+      
+      alert('✅ Validação concluída! Todos os dados estão corretos.\n\nClique em "Salvar Produto" para confirmar.');
+      return true;
+    }
+
+    // Carregar fornecedores no select
+    async function carregarFornecedoresSelect() {
+      try {
+        const token = localStorage.getItem('token');
+        const res = await fetch('/api/fornecedores', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (res.ok) {
+          const fornecedores = await res.json();
+          const select = document.getElementById('prod-fornecedor');
+          select.innerHTML = '<option value="">Nenhum</option>';
+          fornecedores.forEach(f => {
+            select.innerHTML += `<option value="${f.id}">${f.razao_social || f.nome_fantasia}</option>`;
+          });
+        }
+      } catch (err) {
+        console.error('Erro ao carregar fornecedores:', err);
+      }
+    }
+
+    // Carregar categorias no select
+    async function carregarCategoriasSelect() {
+      try {
+        const token = localStorage.getItem('token');
+        const res = await fetch('/api/categorias', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (res.ok) {
+          const categorias = await res.json();
+          const select = document.getElementById('prod-categoria');
+          select.innerHTML = '<option value="">Selecione...</option>';
+          categorias.forEach(c => {
+            select.innerHTML += `<option value="${c.id}">${c.nome}</option>`;
+          });
+        }
+      } catch (err) {
+        console.error('Erro ao carregar categorias:', err);
+      }
+    }
+
+    // Ao abrir o modal, carregar fornecedores e categorias
+    const abrirModalProdutoOriginal = window.abrirModalProduto;
+    window.abrirModalProduto = function() {
+      abrirModalProdutoOriginal();
+      trocarAbaProduto(1); // Sempre começar na primeira aba
+      carregarFornecedoresSelect();
+      carregarCategoriasSelect();
+    };
+  </script>
+
+  <!-- Modal Cliente PROFISSIONAL -->
+  <div id="modal-cliente" class="modal">
+    <div class="modal-content" style="max-width: 900px;">
+      <div class="modal-header">
+        <h3 class="modal-title">Novo Cliente</h3>
+        <button class="close-btn" onclick="fecharModal('modal-cliente')">&times;</button>
+      </div>
+
+      <!-- Sistema de Abas -->
+      <div class="tabs-nav" style="display: flex; gap: 8px; margin-bottom: 20px; border-bottom: 2px solid #e2e8f0; overflow-x: auto;">
+        <button type="button" class="tab-btn active" onclick="trocarAbaCliente(1)" id="tab-cliente-1" style="padding: 12px 20px; background: none; border: none; border-bottom: 3px solid transparent; color: #718096; font-weight: 500; cursor: pointer; transition: all 0.3s; white-space: nowrap;">
+          📋 Dados Básicos
+        </button>
+        <button type="button" class="tab-btn" onclick="trocarAbaCliente(2)" id="tab-cliente-2" style="padding: 12px 20px; background: none; border: none; border-bottom: 3px solid transparent; color: #718096; font-weight: 500; cursor: pointer; transition: all 0.3s; white-space: nowrap;">
+          📍 Endereço
+        </button>
+        <button type="button" class="tab-btn" onclick="trocarAbaCliente(3)" id="tab-cliente-3" style="padding: 12px 20px; background: none; border: none; border-bottom: 3px solid transparent; color: #718096; font-weight: 500; cursor: pointer; transition: all 0.3s; white-space: nowrap;">
+          📱 Contatos
+        </button>
+        <button type="button" class="tab-btn" onclick="trocarAbaCliente(4)" id="tab-cliente-4" style="padding: 12px 20px; background: none; border: none; border-bottom: 3px solid transparent; color: #718096; font-weight: 500; cursor: pointer; transition: all 0.3s; white-space: nowrap;">
+          💰 Financeiro
+        </button>
+        <button type="button" class="tab-btn" onclick="trocarAbaCliente(5)" id="tab-cliente-5" style="padding: 12px 20px; background: none; border: none; border-bottom: 3px solid transparent; color: #718096; font-weight: 500; cursor: pointer; transition: all 0.3s; white-space: nowrap;">
+          📝 Observações
+        </button>
+      </div>
+
+      <style>
+        .tab-btn.active {
+          color: #667eea !important;
+          border-bottom-color: #667eea !important;
+        }
+        .tab-btn:hover {
+          color: #667eea;
+          background: #f7fafc;
+        }
+        .cliente-aba {
+          animation: fadeIn 0.3s;
+        }
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .tabs-nav::-webkit-scrollbar {
+          height: 4px;
+        }
+        .tabs-nav::-webkit-scrollbar-thumb {
+          background: #cbd5e0;
+          border-radius: 4px;
+        }
+      </style>
+
+      <form id="form-cliente" class="form-grid">
+        
+        <!-- ABA 1: Dados Básicos -->
+        <div id="cliente-aba-1" class="cliente-aba">
+          <h4 style="margin-bottom: 16px; color: #667eea;">📋 Informações Básicas do Cliente</h4>
+          
+          <div class="form-row">
+            <div class="field">
+              <span>Tipo de Pessoa *</span>
+              <select name="tipo" id="cliente-tipo" required onchange="toggleCamposPessoaCliente()">
+                <option value="">Selecione...</option>
+                <option value="PF">👤 Pessoa Física</option>
+                <option value="PJ">🏢 Pessoa Jurídica</option>
+              </select>
+            </div>
+            <div class="field">
+              <span>Status *</span>
+              <select name="ativo" id="cliente-status">
+                <option value="1">✅ Ativo</option>
+                <option value="0">❌ Inativo</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="field">
+            <span id="label-cliente-nome">Nome/Razão Social *</span>
+            <input type="text" name="nome_razao_social" id="cliente-nome" required placeholder="Nome completo ou Razão Social">
+            <small style="color: #718096;">Nome completo (PF) ou Razão Social (PJ)</small>
+          </div>
+
+          <div class="field" id="campo-nome-fantasia" style="display: none;">
+            <span>Nome Fantasia</span>
+            <input type="text" name="nome_fantasia" id="cliente-fantasia" placeholder="Nome comercial">
+            <small style="color: #718096;">Nome comercial da empresa</small>
+          </div>
+
+          <div class="form-row">
+            <div class="field">
+              <span id="label-cliente-doc">CPF/CNPJ *</span>
+              <input type="text" name="cpf_cnpj" id="cliente-doc" required placeholder="000.000.000-00">
+            </div>
+            <div class="field" id="campo-rg" style="display: none;">
+              <span>RG</span>
+              <input type="text" name="rg" id="cliente-rg" placeholder="0000000-0">
+              <small style="color: #718096;">Apenas para Pessoa Física</small>
+            </div>
+            <div class="field" id="campo-ie">
+              <span>Inscrição Estadual</span>
+              <input type="text" name="inscricao_estadual" id="cliente-ie" placeholder="000.000.000.000">
+              <small style="color: #718096;">Apenas para PJ contribuinte ICMS</small>
+            </div>
+          </div>
+
+          <div class="form-row" id="campos-pf" style="display: none;">
+            <div class="field">
+              <span>Data de Nascimento</span>
+              <input type="date" name="data_nascimento" id="cliente-nascimento">
+            </div>
+            <div class="field">
+              <span>Sexo</span>
+              <select name="sexo" id="cliente-sexo">
+                <option value="">Não informar</option>
+                <option value="M">Masculino</option>
+                <option value="F">Feminino</option>
+                <option value="O">Outro</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="field">
+            <span>Vendedor Responsável</span>
+            <select name="vendedor_id" id="cliente-vendedor">
+              <option value="">Nenhum</option>
+            </select>
+            <small style="color: #718096;">Vendedor responsável pela conta</small>
+          </div>
+        </div>
+
+        <!-- ABA 2: Endereço -->
+        <div id="cliente-aba-2" class="cliente-aba" style="display: none;">
+          <h4 style="margin-bottom: 16px; color: #667eea;">📍 Endereço Completo</h4>
+          
+          <div class="form-row">
+            <div class="field" style="flex: 0 0 200px;">
+              <span>CEP</span>
+              <input type="text" name="cep" id="cliente-cep" placeholder="00000-000" onblur="buscarCEPCliente()">
+              <small style="color: #48bb78;" id="cep-status-cliente">Busca automática ao preencher</small>
+            </div>
+          </div>
+
+          <div class="field">
+            <span>Logradouro (Rua/Avenida) *</span>
+            <input type="text" name="endereco" id="cliente-endereco" required placeholder="Rua, Avenida, etc.">
+          </div>
+
+          <div class="form-row">
+            <div class="field" style="flex: 0 0 120px;">
+              <span>Número *</span>
+              <input type="text" name="numero" id="cliente-numero" required placeholder="123">
+            </div>
+            <div class="field">
+              <span>Complemento</span>
+              <input type="text" name="complemento" id="cliente-complemento" placeholder="Apto, Sala, Bloco, etc.">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="field">
+              <span>Bairro *</span>
+              <input type="text" name="bairro" id="cliente-bairro" required placeholder="Nome do bairro">
+            </div>
+            <div class="field">
+              <span>Cidade *</span>
+              <input type="text" name="cidade" id="cliente-cidade" required placeholder="Nome da cidade">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="field" style="flex: 0 0 200px;">
+              <span>Estado *</span>
+              <select name="estado" id="cliente-estado" required>
+                <option value="">Selecione...</option>
+                <option value="AC">Acre</option>
+                <option value="AL">Alagoas</option>
+                <option value="AP">Amapá</option>
+                <option value="AM">Amazonas</option>
+                <option value="BA">Bahia</option>
+                <option value="CE">Ceará</option>
+                <option value="DF">Distrito Federal</option>
+                <option value="ES">Espírito Santo</option>
+                <option value="GO">Goiás</option>
+                <option value="MA">Maranhão</option>
+                <option value="MT">Mato Grosso</option>
+                <option value="MS">Mato Grosso do Sul</option>
+                <option value="MG">Minas Gerais</option>
+                <option value="PA">Pará</option>
+                <option value="PB">Paraíba</option>
+                <option value="PR">Paraná</option>
+                <option value="PE">Pernambuco</option>
+                <option value="PI">Piauí</option>
+                <option value="RJ">Rio de Janeiro</option>
+                <option value="RN">Rio Grande do Norte</option>
+                <option value="RS">Rio Grande do Sul</option>
+                <option value="RO">Rondônia</option>
+                <option value="RR">Roraima</option>
+                <option value="SC">Santa Catarina</option>
+                <option value="SP">São Paulo</option>
+                <option value="SE">Sergipe</option>
+                <option value="TO">Tocantins</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="field">
+            <span>Ponto de Referência</span>
+            <input type="text" name="ponto_referencia" id="cliente-referencia" placeholder="Ex: Próximo ao supermercado">
+            <small style="color: #718096;">Facilita localização para entregas</small>
+          </div>
+        </div>
+
+        <!-- ABA 3: Contatos -->
+        <div id="cliente-aba-3" class="cliente-aba" style="display: none;">
+          <h4 style="margin-bottom: 16px; color: #667eea;">📱 Informações de Contato</h4>
+          
+          <div class="form-row">
+            <div class="field">
+              <span>Telefone Fixo</span>
+              <input type="text" name="telefone" id="cliente-telefone" placeholder="(00) 0000-0000">
+            </div>
+            <div class="field">
+              <span>Celular *</span>
+              <input type="text" name="celular" id="cliente-celular" required placeholder="(00) 00000-0000">
+              <small style="color: #718096;">Principal meio de contato</small>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="field">
+              <span>WhatsApp</span>
+              <input type="text" name="whatsapp" id="cliente-whatsapp" placeholder="(00) 00000-0000">
+              <small style="color: #48bb78;">Número para WhatsApp</small>
+            </div>
+            <div class="field">
+              <span>Telefone Comercial</span>
+              <input type="text" name="telefone_comercial" id="cliente-tel-comercial" placeholder="(00) 0000-0000">
+            </div>
+          </div>
+
+          <div class="field">
+            <span>E-mail</span>
+            <input type="email" name="email" id="cliente-email" placeholder="cliente@exemplo.com">
+          </div>
+
+          <hr style="margin: 20px 0; border: none; border-top: 2px solid #e2e8f0;">
+          
+          <h4 style="margin-bottom: 16px; color: #667eea;">👤 Pessoa de Contato</h4>
+          
+          <div class="form-row">
+            <div class="field">
+              <span>Nome do Contato</span>
+              <input type="text" name="contato_nome" id="cliente-contato-nome" placeholder="Nome da pessoa">
+              <small style="color: #718096;">Pessoa responsável para contato</small>
+            </div>
+            <div class="field">
+              <span>Cargo do Contato</span>
+              <input type="text" name="contato_cargo" id="cliente-contato-cargo" placeholder="Ex: Gerente, Comprador">
+            </div>
+          </div>
+        </div>
+
+        <!-- ABA 4: Financeiro -->
+        <div id="cliente-aba-4" class="cliente-aba" style="display: none;">
+          <h4 style="margin-bottom: 16px; color: #667eea;">💰 Informações Financeiras</h4>
+          
+          <div class="form-row">
+            <div class="field">
+              <span>Limite de Crédito (R$)</span>
+              <input type="number" name="limite_credito" id="cliente-limite" step="0.01" min="0" value="0">
+              <small style="color: #718096;">Limite máximo para compras a prazo</small>
+            </div>
+            <div class="field">
+              <span>Desconto Padrão (%)</span>
+              <input type="number" name="desconto_padrao" id="cliente-desconto" step="0.01" min="0" max="100" value="0">
+              <small style="color: #718096;">Desconto automático nas vendas</small>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="field">
+              <span>Condição de Pagamento Padrão</span>
+              <input type="text" name="condicao_pagamento_padrao" id="cliente-condicao-pgto" placeholder="Ex: 30 dias, 30/60 dias">
+            </div>
+            <div class="field">
+              <span>Dia Vencimento Preferencial</span>
+              <input type="number" name="dia_vencimento_preferencial" id="cliente-dia-venc" min="1" max="31" placeholder="1-31">
+              <small style="color: #718096;">Dia do mês preferido para vencimento</small>
+            </div>
+          </div>
+
+          <div class="field">
+            <span style="color: #f56565;">🚫 Bloqueado por Crédito?</span>
+            <select name="bloqueado_por_credito" id="cliente-bloqueado">
+              <option value="0">✅ Não - Cliente pode comprar</option>
+              <option value="1">❌ Sim - Cliente bloqueado</option>
+            </select>
+            <small style="color: #f56565;">Cliente bloqueado não pode fazer novos pedidos</small>
+          </div>
+
+          <hr style="margin: 20px 0; border: none; border-top: 2px solid #e2e8f0;">
+          
+          <h4 style="margin-bottom: 16px; color: #667eea;">🏦 Dados Bancários para Devolução</h4>
+          
+          <div class="form-row">
+            <div class="field">
+              <span>Banco</span>
+              <input type="text" name="banco" id="cliente-banco" placeholder="Ex: Banco do Brasil, Itaú">
+            </div>
+            <div class="field">
+              <span>Agência</span>
+              <input type="text" name="agencia" id="cliente-agencia" placeholder="0000">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="field">
+              <span>Conta Corrente</span>
+              <input type="text" name="conta" id="cliente-conta" placeholder="00000-0">
+            </div>
+            <div class="field">
+              <span>Chave PIX</span>
+              <input type="text" name="pix" id="cliente-pix" placeholder="CPF, CNPJ, Email ou Celular">
+            </div>
+          </div>
+        </div>
+
+        <!-- ABA 5: Observações -->
+        <div id="cliente-aba-5" class="cliente-aba" style="display: none;">
+          <h4 style="margin-bottom: 16px; color: #667eea;">📝 Observações e Resumo</h4>
+          
+          <div class="field">
+            <span>Observações Gerais</span>
+            <textarea name="observacoes" id="cliente-obs" rows="3" placeholder="Informações adicionais sobre o cliente (visível para todos)"></textarea>
+            <small style="color: #718096;">Observações visíveis em relatórios e documentos</small>
+          </div>
+
+          <div class="field">
+            <span>Observações Internas 🔒</span>
+            <textarea name="observacoes_internas" id="cliente-obs-internas" rows="3" placeholder="Informações confidenciais (apenas para uso interno)"></textarea>
+            <small style="color: #f56565;">⚠️ Uso exclusivo interno - não aparece em documentos para cliente</small>
+          </div>
+
+          <hr style="margin: 20px 0; border: none; border-top: 2px solid #e2e8f0;">
+          
+          <h4 style="margin-bottom: 16px; color: #667eea;">📊 Resumo do Cadastro</h4>
+          
+          <div style="background: #f7fafc; padding: 16px; border-radius: 8px; border-left: 4px solid #667eea;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 14px;">
+              <div>
+                <strong>Tipo:</strong> <span id="resumo-tipo">-</span>
+              </div>
+              <div>
+                <strong>Documento:</strong> <span id="resumo-doc">-</span>
+              </div>
+              <div>
+                <strong>Telefone:</strong> <span id="resumo-tel">-</span>
+              </div>
+              <div>
+                <strong>Cidade/UF:</strong> <span id="resumo-cidade">-</span>
+              </div>
+              <div>
+                <strong>Limite Crédito:</strong> <span id="resumo-limite" style="color: #48bb78; font-weight: 600;">R$ 0,00</span>
+              </div>
+              <div>
+                <strong>Status:</strong> <span id="resumo-status">-</span>
+              </div>
+            </div>
+          </div>
+
+          <div style="margin-top: 16px; text-align: center;">
+            <button type="button" class="btn btn-secondary" onclick="validarClienteAntesDeSalvar()" style="margin-right: 8px;">
+              🔍 Validar Dados
+            </button>
+          </div>
+        </div>
+
+        <!-- Botões de Ação -->
+        <div class="form-actions" style="margin-top: 24px; padding-top: 20px; border-top: 2px solid #e2e8f0;">
+          <button type="button" class="btn btn-secondary" onclick="fecharModal('modal-cliente')">Cancelar</button>
+          <button type="submit" class="btn btn-primary">💾 Salvar Cliente</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    let abaAtualCliente = 1;
+
+    // Trocar entre abas
+    function trocarAbaCliente(numeroAba) {
+      // Esconder todas as abas
+      for (let i = 1; i <= 5; i++) {
+        document.getElementById(`cliente-aba-${i}`).style.display = 'none';
+        document.getElementById(`tab-cliente-${i}`).classList.remove('active');
+      }
+      
+      // Mostrar aba selecionada
+      document.getElementById(`cliente-aba-${numeroAba}`).style.display = 'block';
+      document.getElementById(`tab-cliente-${numeroAba}`).classList.add('active');
+      abaAtualCliente = numeroAba;
+
+      // Se for a aba 5 (resumo), atualizar dados
+      if (numeroAba === 5) {
+        atualizarResumoCliente();
+      }
+    }
+
+    // Toggle campos PF/PJ
+    function toggleCamposPessoaCliente() {
+      const tipo = document.getElementById('cliente-tipo').value;
+      const isPF = tipo === 'PF';
+      
+      // Mostrar/ocultar campos específicos
+      document.getElementById('campo-rg').style.display = isPF ? 'block' : 'none';
+      document.getElementById('campos-pf').style.display = isPF ? 'flex' : 'none';
+      document.getElementById('campo-nome-fantasia').style.display = isPF ? 'none' : 'block';
+      
+      // Atualizar labels
+      document.getElementById('label-cliente-nome').textContent = isPF ? 'Nome Completo *' : 'Razão Social *';
+      document.getElementById('label-cliente-doc').textContent = isPF ? 'CPF *' : 'CNPJ *';
+      document.getElementById('cliente-nome').placeholder = isPF ? 'Nome completo' : 'Razão Social da empresa';
+      document.getElementById('cliente-doc').placeholder = isPF ? '000.000.000-00' : '00.000.000/0000-00';
+    }
+
+    // Buscar CEP
+    async function buscarCEPCliente() {
+      const cep = document.getElementById('cliente-cep').value.replace(/\D/g, '');
+      const status = document.getElementById('cep-status-cliente');
+      
+      if (cep.length !== 8) return;
+      
+      status.textContent = '🔍 Buscando...';
+      status.style.color = '#ed8936';
+      
+      try {
+        const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+        const data = await response.json();
+        
+        if (data.erro) {
+          status.textContent = '❌ CEP não encontrado';
+          status.style.color = '#f56565';
+          return;
+        }
+        
+        document.getElementById('cliente-endereco').value = data.logradouro || '';
+        document.getElementById('cliente-bairro').value = data.bairro || '';
+        document.getElementById('cliente-cidade').value = data.localidade || '';
+        document.getElementById('cliente-estado').value = data.uf || '';
+        
+        status.textContent = '✅ CEP encontrado!';
+        status.style.color = '#48bb78';
+        
+        // Focar no campo número
+        document.getElementById('cliente-numero').focus();
+        
+      } catch (error) {
+        status.textContent = '⚠️ Erro ao buscar CEP';
+        status.style.color = '#f56565';
+      }
+    }
+
+    // Atualizar resumo
+    function atualizarResumoCliente() {
+      const tipo = document.getElementById('cliente-tipo').value;
+      const doc = document.getElementById('cliente-doc').value;
+      const tel = document.getElementById('cliente-celular').value || document.getElementById('cliente-telefone').value;
+      const cidade = document.getElementById('cliente-cidade').value;
+      const estado = document.getElementById('cliente-estado').value;
+      const limite = parseFloat(document.getElementById('cliente-limite').value) || 0;
+      const status = document.getElementById('cliente-status').value;
+      
+      document.getElementById('resumo-tipo').textContent = tipo === 'PF' ? '👤 Pessoa Física' : tipo === 'PJ' ? '🏢 Pessoa Jurídica' : '-';
+      document.getElementById('resumo-doc').textContent = doc || '-';
+      document.getElementById('resumo-tel').textContent = tel || '-';
+      document.getElementById('resumo-cidade').textContent = cidade && estado ? `${cidade}/${estado}` : '-';
+      document.getElementById('resumo-limite').textContent = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(limite);
+      document.getElementById('resumo-status').innerHTML = status === '1' ? '<span style="color: #48bb78;">✅ Ativo</span>' : '<span style="color: #f56565;">❌ Inativo</span>';
+    }
+
+    // Validar antes de salvar
+    function validarClienteAntesDeSalvar() {
+      let erros = [];
+      
+      if (!document.getElementById('cliente-tipo').value) 
+        erros.push('- Tipo de pessoa é obrigatório');
+      if (!document.getElementById('cliente-nome').value) 
+        erros.push('- Nome/Razão Social é obrigatório');
+      if (!document.getElementById('cliente-doc').value) 
+        erros.push('- CPF/CNPJ é obrigatório');
+      if (!document.getElementById('cliente-endereco').value) 
+        erros.push('- Endereço é obrigatório');
+      if (!document.getElementById('cliente-numero').value) 
+        erros.push('- Número do endereço é obrigatório');
+      if (!document.getElementById('cliente-bairro').value) 
+        erros.push('- Bairro é obrigatório');
+      if (!document.getElementById('cliente-cidade').value) 
+        erros.push('- Cidade é obrigatória');
+      if (!document.getElementById('cliente-estado').value) 
+        erros.push('- Estado é obrigatório');
+      if (!document.getElementById('cliente-celular').value) 
+        erros.push('- Celular é obrigatório');
+      
+      // Validação de CPF/CNPJ (básica)
+      const doc = document.getElementById('cliente-doc').value.replace(/\D/g, '');
+      const tipo = document.getElementById('cliente-tipo').value;
+      if (tipo === 'PF' && doc.length !== 11) {
+        erros.push('- CPF deve ter 11 dígitos');
+      }
+      if (tipo === 'PJ' && doc.length !== 14) {
+        erros.push('- CNPJ deve ter 14 dígitos');
+      }
+      
+      if (erros.length > 0) {
+        alert('⚠️ Erros encontrados:\n\n' + erros.join('\n'));
+        return false;
+      }
+      
+      alert('✅ Validação concluída! Todos os dados estão corretos.\n\nClique em "Salvar Cliente" para finalizar.');
+      return true;
+    }
+
+    // Carregar vendedores
+    async function carregarVendedoresSelectCliente() {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch('http://localhost:3000/api/vendedores', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (response.ok) {
+          const vendedores = await response.json();
+          const select = document.getElementById('cliente-vendedor');
+          select.innerHTML = '<option value="">Nenhum</option>';
+          vendedores.forEach(v => {
+            select.innerHTML += `<option value="${v.id}">${v.nome}</option>`;
+          });
+        }
+      } catch (error) {
+        console.error('Erro ao carregar vendedores:', error);
+      }
+    }
+
+    // Hook para quando abrir o modal
+    const abrirModalClienteOriginal = window.abrirModalCliente;
+    window.abrirModalCliente = function() {
+      if (abrirModalClienteOriginal) abrirModalClienteOriginal();
+      else document.getElementById('modal-cliente').style.display = 'flex';
+      
+      trocarAbaCliente(1);
+      carregarVendedoresSelectCliente();
+    };
+  </script>
+
+  <!-- Modal Fornecedor PROFISSIONAL -->
+  <div id="modal-fornecedor" class="modal">
+    <div class="modal-content" style="max-width: 900px;">
+      <div class="modal-header">
+        <h3 class="modal-title">Novo Fornecedor</h3>
+        <button class="close-btn" onclick="document.getElementById('modal-fornecedor').style.display = 'none';">&times;</button>
+      </div>
+
+      <!-- Sistema de Abas -->
+      <div class="tabs-nav" style="display: flex; gap: 8px; margin-bottom: 20px; border-bottom: 2px solid #e2e8f0; overflow-x: auto;">
+        <button type="button" class="tab-btn active" onclick="trocarAbaFornecedor(1)" id="tab-fornecedor-1" style="padding: 12px 20px; background: none; border: none; border-bottom: 3px solid transparent; color: #718096; font-weight: 500; cursor: pointer; transition: all 0.3s; white-space: nowrap;">
+          📋 Dados Básicos
+        </button>
+        <button type="button" class="tab-btn" onclick="trocarAbaFornecedor(2)" id="tab-fornecedor-2" style="padding: 12px 20px; background: none; border: none; border-bottom: 3px solid transparent; color: #718096; font-weight: 500; cursor: pointer; transition: all 0.3s; white-space: nowrap;">
+          📍 Endereço
+        </button>
+        <button type="button" class="tab-btn" onclick="trocarAbaFornecedor(3)" id="tab-fornecedor-3" style="padding: 12px 20px; background: none; border: none; border-bottom: 3px solid transparent; color: #718096; font-weight: 500; cursor: pointer; transition: all 0.3s; white-space: nowrap;">
+          📱 Contatos
+        </button>
+        <button type="button" class="tab-btn" onclick="trocarAbaFornecedor(4)" id="tab-fornecedor-4" style="padding: 12px 20px; background: none; border: none; border-bottom: 3px solid transparent; color: #718096; font-weight: 500; cursor: pointer; transition: all 0.3s; white-space: nowrap;">
+          🏦 Dados Bancários
+        </button>
+        <button type="button" class="tab-btn" onclick="trocarAbaFornecedor(5)" id="tab-fornecedor-5" style="padding: 12px 20px; background: none; border: none; border-bottom: 3px solid transparent; color: #718096; font-weight: 500; cursor: pointer; transition: all 0.3s; white-space: nowrap;">
+          💼 Condições Comerciais
+        </button>
+      </div>
+
+      <style>
+        .fornecedor-aba {
+          animation: fadeIn 0.3s;
+        }
+      </style>
+
+      <form id="form-fornecedor" class="form-grid">
+        
+        <!-- ABA 1: Dados Básicos -->
+        <div id="fornecedor-aba-1" class="fornecedor-aba">
+          <h4 style="margin-bottom: 16px; color: #667eea;">📋 Informações Básicas do Fornecedor</h4>
+          
+          <div class="form-row">
+            <div class="field">
+              <span>Razão Social *</span>
+              <input type="text" name="razao_social" id="forn-razao" required placeholder="Razão Social da empresa">
+            </div>
+            <div class="field">
+              <span>Nome Fantasia</span>
+              <input type="text" name="nome_fantasia" id="forn-fantasia" placeholder="Nome comercial">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="field">
+              <span>CNPJ *</span>
+              <input type="text" name="cnpj" id="forn-cnpj" required placeholder="00.000.000/0000-00">
+            </div>
+            <div class="field">
+              <span>Inscrição Estadual</span>
+              <input type="text" name="inscricao_estadual" id="forn-ie" placeholder="000.000.000.000">
+              <small style="color: #718096;">Se isento, deixar em branco</small>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="field">
+              <span>Tipo de Fornecedor *</span>
+              <select name="tipo_fornecedor" id="forn-tipo" required>
+                <option value="">Selecione...</option>
+                <option value="MERCADORIA">🛍️ Mercadoria (Revenda)</option>
+                <option value="MATERIA_PRIMA">🏭 Matéria Prima</option>
+                <option value="SERVICO">🔧 Serviço</option>
+                <option value="OUTROS">📦 Outros</option>
+              </select>
+            </div>
+            <div class="field">
+              <span>Categoria</span>
+              <input type="text" name="categoria_fornecedor" id="forn-categoria" placeholder="Ex: Eletrônicos, Alimentos">
+              <small style="color: #718096;">Categoria de produtos/serviços</small>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="field">
+              <span>Porte da Empresa</span>
+              <select name="porte_empresa" id="forn-porte">
+                <option value="">Não informado</option>
+                <option value="MEI">MEI - Microempreendedor Individual</option>
+                <option value="ME">ME - Microempresa</option>
+                <option value="EPP">EPP - Empresa de Pequeno Porte</option>
+                <option value="MEDIO">Médio Porte</option>
+                <option value="GRANDE">Grande Porte</option>
+              </select>
+            </div>
+            <div class="field">
+              <span>Status *</span>
+              <select name="ativo" id="ativo">
+                <option value="true">✅ Ativo</option>
+                <option value="false">❌ Inativo</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="field">
+            <span>Website</span>
+            <input type="url" name="site" id="forn-site" placeholder="https://www.exemplo.com.br">
+            <small style="color: #718096;">Site da empresa (opcional)</small>
+          </div>
+        </div>
+
+        <!-- ABA 2: Endereço -->
+        <div id="fornecedor-aba-2" class="fornecedor-aba" style="display: none;">
+          <h4 style="margin-bottom: 16px; color: #667eea;">📍 Endereço Completo</h4>
+          
+          <div class="form-row">
+            <div class="field" style="flex: 0 0 200px;">
+              <span>CEP</span>
+              <input type="text" name="cep" id="forn-cep" placeholder="00000-000" onblur="buscarCEPFornecedor()">
+              <small style="color: #48bb78;" id="cep-status-forn">Busca automática ao preencher</small>
+            </div>
+          </div>
+
+          <div class="field">
+            <span>Logradouro (Rua/Avenida) *</span>
+            <input type="text" name="endereco" id="forn-endereco" required placeholder="Rua, Avenida, etc.">
+          </div>
+
+          <div class="form-row">
+            <div class="field" style="flex: 0 0 120px;">
+              <span>Número *</span>
+              <input type="text" name="numero" id="forn-numero" required placeholder="123">
+            </div>
+            <div class="field">
+              <span>Complemento</span>
+              <input type="text" name="complemento" id="forn-complemento" placeholder="Sala, Galpão, etc.">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="field">
+              <span>Bairro *</span>
+              <input type="text" name="bairro" id="forn-bairro" required placeholder="Nome do bairro">
+            </div>
+            <div class="field">
+              <span>Cidade *</span>
+              <input type="text" name="cidade" id="forn-cidade" required placeholder="Nome da cidade">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="field" style="flex: 0 0 200px;">
+              <span>Estado *</span>
+              <select name="estado" id="forn-estado" required>
+                <option value="">Selecione...</option>
+                <option value="AC">Acre</option>
+                <option value="AL">Alagoas</option>
+                <option value="AP">Amapá</option>
+                <option value="AM">Amazonas</option>
+                <option value="BA">Bahia</option>
+                <option value="CE">Ceará</option>
+                <option value="DF">Distrito Federal</option>
+                <option value="ES">Espírito Santo</option>
+                <option value="GO">Goiás</option>
+                <option value="MA">Maranhão</option>
+                <option value="MT">Mato Grosso</option>
+                <option value="MS">Mato Grosso do Sul</option>
+                <option value="MG">Minas Gerais</option>
+                <option value="PA">Pará</option>
+                <option value="PB">Paraíba</option>
+                <option value="PR">Paraná</option>
+                <option value="PE">Pernambuco</option>
+                <option value="PI">Piauí</option>
+                <option value="RJ">Rio de Janeiro</option>
+                <option value="RN">Rio Grande do Norte</option>
+                <option value="RS">Rio Grande do Sul</option>
+                <option value="RO">Rondônia</option>
+                <option value="RR">Roraima</option>
+                <option value="SC">Santa Catarina</option>
+                <option value="SP">São Paulo</option>
+                <option value="SE">Sergipe</option>
+                <option value="TO">Tocantins</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- ABA 3: Contatos -->
+        <div id="fornecedor-aba-3" class="fornecedor-aba" style="display: none;">
+          <h4 style="margin-bottom: 16px; color: #667eea;">📱 Contatos Gerais</h4>
+          
+          <div class="form-row">
+            <div class="field">
+              <span>Telefone Principal *</span>
+              <input type="text" name="telefone" id="forn-telefone" required placeholder="(00) 0000-0000">
+            </div>
+            <div class="field">
+              <span>Celular</span>
+              <input type="text" name="celular" id="forn-celular" placeholder="(00) 00000-0000">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="field">
+              <span>WhatsApp</span>
+              <input type="text" name="whatsapp" id="forn-whatsapp" placeholder="(00) 00000-0000">
+              <small style="color: #48bb78;">Número para WhatsApp</small>
+            </div>
+            <div class="field">
+              <span>E-mail Geral</span>
+              <input type="email" name="email" id="forn-email" placeholder="contato@fornecedor.com">
+            </div>
+          </div>
+
+          <hr style="margin: 20px 0; border: none; border-top: 2px solid #e2e8f0;">
+          
+          <h4 style="margin-bottom: 16px; color: #667eea;">🛒 Contato - Departamento de Compras</h4>
+          
+          <div class="field">
+            <span>Nome do Contato (Compras)</span>
+            <input type="text" name="contato_compras_nome" id="forn-compras-nome" placeholder="Nome completo">
+            <small style="color: #718096;">Pessoa responsável por vendas/orçamentos</small>
+          </div>
+
+          <div class="form-row">
+            <div class="field">
+              <span>Telefone (Compras)</span>
+              <input type="text" name="contato_compras_telefone" id="forn-compras-tel" placeholder="(00) 00000-0000">
+            </div>
+            <div class="field">
+              <span>E-mail (Compras)</span>
+              <input type="email" name="contato_compras_email" id="forn-compras-email" placeholder="vendas@fornecedor.com">
+            </div>
+          </div>
+
+          <hr style="margin: 20px 0; border: none; border-top: 2px solid #e2e8f0;">
+          
+          <h4 style="margin-bottom: 16px; color: #667eea;">💰 Contato - Departamento Financeiro</h4>
+          
+          <div class="field">
+            <span>Nome do Contato (Financeiro)</span>
+            <input type="text" name="contato_financeiro_nome" id="forn-financeiro-nome" placeholder="Nome completo">
+            <small style="color: #718096;">Pessoa responsável por cobranças/pagamentos</small>
+          </div>
+
+          <div class="form-row">
+            <div class="field">
+              <span>Telefone (Financeiro)</span>
+              <input type="text" name="contato_financeiro_telefone" id="forn-financeiro-tel" placeholder="(00) 00000-0000">
+            </div>
+            <div class="field">
+              <span>E-mail (Financeiro)</span>
+              <input type="email" name="contato_financeiro_email" id="forn-financeiro-email" placeholder="financeiro@fornecedor.com">
+            </div>
+          </div>
+        </div>
+
+        <!-- ABA 4: Dados Bancários -->
+        <div id="fornecedor-aba-4" class="fornecedor-aba" style="display: none;">
+          <h4 style="margin-bottom: 16px; color: #667eea;">🏦 Informações Bancárias para Pagamento</h4>
+          
+          <div class="form-row">
+            <div class="field">
+              <span>Banco</span>
+              <input type="text" name="banco" id="forn-banco" placeholder="Ex: 001 - Banco do Brasil">
+              <small style="color: #718096;">Código e nome do banco</small>
+            </div>
+            <div class="field">
+              <span>Agência</span>
+              <input type="text" name="agencia" id="forn-agencia" placeholder="0000">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="field">
+              <span>Conta Corrente</span>
+              <input type="text" name="conta" id="forn-conta" placeholder="00000-0">
+            </div>
+            <div class="field">
+              <span>Favorecido</span>
+              <input type="text" name="favorecido" id="forn-favorecido" placeholder="Nome do favorecido">
+              <small style="color: #718096;">Nome do titular da conta</small>
+            </div>
+          </div>
+
+          <div class="field">
+            <span>Chave PIX</span>
+            <input type="text" name="pix" id="forn-pix" placeholder="CNPJ, Email, Celular ou Chave Aleatória">
+            <small style="color: #48bb78;">Chave PIX para pagamentos rápidos</small>
+          </div>
+
+          <div style="background: #fff5e6; padding: 16px; border-radius: 8px; border-left: 4px solid #ed8936; margin-top: 16px;">
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+              <span style="font-size: 20px;">⚠️</span>
+              <strong style="color: #744210;">Atenção:</strong>
+            </div>
+            <p style="margin: 0; font-size: 13px; color: #744210;">
+              Verifique os dados bancários antes de realizar pagamentos. Confirme com o fornecedor em caso de dúvidas.
+            </p>
+          </div>
+        </div>
+
+        <!-- ABA 5: Condições Comerciais -->
+        <div id="fornecedor-aba-5" class="fornecedor-aba" style="display: none;">
+          <h4 style="margin-bottom: 16px; color: #667eea;">💼 Condições Comerciais e Avaliação</h4>
+          
+          <div class="form-row">
+            <div class="field">
+              <span>Prazo de Pagamento Padrão</span>
+              <input type="text" name="prazo_pagamento_padrao" id="forn-prazo-pgto" placeholder="Ex: 30 dias, 30/60 dias">
+              <small style="color: #718096;">Condições de pagamento oferecidas</small>
+            </div>
+            <div class="field">
+              <span>Forma de Pagamento Preferencial</span>
+              <input type="text" name="forma_pagamento_preferencial" id="forn-forma-pgto" placeholder="Ex: Boleto, TED, PIX">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="field">
+              <span>Prazo de Entrega (dias)</span>
+              <input type="number" name="prazo_entrega_dias" id="forn-prazo-entrega" min="0" placeholder="0">
+              <small style="color: #718096;">Prazo médio de entrega em dias úteis</small>
+            </div>
+            <div class="field">
+              <span>Dias de Entrega</span>
+              <input type="text" name="dia_entrega" id="forn-dias-entrega" placeholder="Ex: Segunda e Quarta">
+              <small style="color: #718096;">Dias da semana que entrega</small>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="field">
+              <span>Pedido Mínimo (R$)</span>
+              <input type="number" name="pedido_minimo" id="forn-pedido-min" step="0.01" min="0" value="0" placeholder="0.00">
+              <small style="color: #718096;">Valor mínimo para pedido</small>
+            </div>
+            <div class="field">
+              <span>Desconto Máximo (%)</span>
+              <input type="number" name="desconto_maximo" id="forn-desconto-max" step="0.01" min="0" max="100" value="0" placeholder="0">
+              <small style="color: #718096;">% máximo de desconto negociável</small>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="field">
+              <span>Tipo de Frete</span>
+              <select name="frete_tipo" id="forn-frete">
+                <option value="CIF">CIF - Fornecedor paga o frete</option>
+                <option value="FOB">FOB - Comprador paga o frete</option>
+                <option value="ISENTO">Isento - Frete grátis</option>
+              </select>
+              <small style="color: #718096;">Quem paga o frete das entregas</small>
+            </div>
+            <div class="field">
+              <span>Avaliação do Fornecedor</span>
+              <select name="avaliacao" id="forn-avaliacao">
+                <option value="0">⭐ Sem avaliação</option>
+                <option value="1">⭐ 1 estrela - Ruim</option>
+                <option value="2">⭐⭐ 2 estrelas - Regular</option>
+                <option value="3">⭐⭐⭐ 3 estrelas - Bom</option>
+                <option value="4">⭐⭐⭐⭐ 4 estrelas - Muito Bom</option>
+                <option value="5">⭐⭐⭐⭐⭐ 5 estrelas - Excelente</option>
+              </select>
+            </div>
+          </div>
+
+          <hr style="margin: 20px 0; border: none; border-top: 2px solid #e2e8f0;">
+          
+          <h4 style="margin-bottom: 16px; color: #667eea;">📝 Informações Adicionais</h4>
+          
+          <div class="field">
+            <span>Produtos/Serviços Fornecidos</span>
+            <textarea name="produtos_fornecidos" id="forn-produtos" rows="2" placeholder="Liste os principais produtos ou serviços fornecidos"></textarea>
+            <small style="color: #718096;">Principais itens que este fornecedor oferece</small>
+          </div>
+
+          <div class="field">
+            <span>Observações Gerais</span>
+            <textarea name="observacoes" id="forn-obs" rows="3" placeholder="Informações adicionais sobre o fornecedor"></textarea>
+          </div>
+
+          <div class="field">
+            <span>Observações Internas 🔒</span>
+            <textarea name="observacoes_internas" id="forn-obs-internas" rows="2" placeholder="Informações confidenciais (apenas para uso interno)"></textarea>
+            <small style="color: #f56565;">⚠️ Uso exclusivo interno</small>
+          </div>
+
+          <hr style="margin: 20px 0; border: none; border-top: 2px solid #e2e8f0;">
+          
+          <div style="text-align: center;">
+            <button type="button" class="btn btn-secondary" onclick="validarFornecedorAntesDeSalvar()" style="margin-right: 8px;">
+              🔍 Validar Dados
+            </button>
+          </div>
+        </div>
+
+        <!-- Botões de Ação -->
+        <div class="form-actions" style="margin-top: 24px; padding-top: 20px; border-top: 2px solid #e2e8f0;">
+          <button type="button" class="btn btn-secondary" onclick="document.getElementById('modal-fornecedor').style.display = 'none';">Cancelar</button>
+          <button type="submit" class="btn btn-primary">💾 Salvar Fornecedor</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    let abaAtualFornecedor = 1;
+
+    // Trocar entre abas
+    function trocarAbaFornecedor(numeroAba) {
+      for (let i = 1; i <= 5; i++) {
+        document.getElementById(`fornecedor-aba-${i}`).style.display = 'none';
+        document.getElementById(`tab-fornecedor-${i}`).classList.remove('active');
+      }
+      
+      document.getElementById(`fornecedor-aba-${numeroAba}`).style.display = 'block';
+      document.getElementById(`tab-fornecedor-${numeroAba}`).classList.add('active');
+      abaAtualFornecedor = numeroAba;
+    }
+
+    // Buscar CEP
+    async function buscarCEPFornecedor() {
+      const cep = document.getElementById('forn-cep').value.replace(/\D/g, '');
+      const status = document.getElementById('cep-status-forn');
+      
+      if (cep.length !== 8) return;
+      
+      status.textContent = '🔍 Buscando...';
+      status.style.color = '#ed8936';
+      
+      try {
+        const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+        const data = await response.json();
+        
+        if (data.erro) {
+          status.textContent = '❌ CEP não encontrado';
+          status.style.color = '#f56565';
+          return;
+        }
+        
+        document.getElementById('forn-endereco').value = data.logradouro || '';
+        document.getElementById('forn-bairro').value = data.bairro || '';
+        document.getElementById('forn-cidade').value = data.localidade || '';
+        document.getElementById('forn-estado').value = data.uf || '';
+        
+        status.textContent = '✅ CEP encontrado!';
+        status.style.color = '#48bb78';
+        
+        document.getElementById('forn-numero').focus();
+        
+      } catch (error) {
+        status.textContent = '⚠️ Erro ao buscar CEP';
+        status.style.color = '#f56565';
+      }
+    }
+
+    // Validar antes de salvar
+    function validarFornecedorAntesDeSalvar() {
+      let erros = [];
+      
+      if (!document.getElementById('forn-razao').value) 
+        erros.push('- Razão Social é obrigatória');
+      if (!document.getElementById('forn-cnpj').value) 
+        erros.push('- CNPJ é obrigatório');
+      if (!document.getElementById('forn-tipo').value) 
+        erros.push('- Tipo de fornecedor é obrigatório');
+      if (!document.getElementById('forn-endereco').value) 
+        erros.push('- Endereço é obrigatório');
+      if (!document.getElementById('forn-numero').value) 
+        erros.push('- Número do endereço é obrigatório');
+      if (!document.getElementById('forn-bairro').value) 
+        erros.push('- Bairro é obrigatório');
+      if (!document.getElementById('forn-cidade').value) 
+        erros.push('- Cidade é obrigatória');
+      if (!document.getElementById('forn-estado').value) 
+        erros.push('- Estado é obrigatório');
+      if (!document.getElementById('forn-telefone').value) 
+        erros.push('- Telefone principal é obrigatório');
+      
+      // Validação de CNPJ (básica)
+      const cnpj = document.getElementById('forn-cnpj').value.replace(/\D/g, '');
+      if (cnpj.length !== 14) {
+        erros.push('- CNPJ deve ter 14 dígitos');
+      }
+      
+      if (erros.length > 0) {
+        alert('⚠️ Erros encontrados:\n\n' + erros.join('\n'));
+        return false;
+      }
+      
+      alert('✅ Validação concluída! Todos os dados estão corretos.\n\nClique em "Salvar Fornecedor" para finalizar.');
+      return true;
+    }
+
+    // Hook para quando abrir o modal
+    const abrirModalFornecedorOriginal = window.abrirModalFornecedor;
+    window.abrirModalFornecedor = function() {
+      if (abrirModalFornecedorOriginal) abrirModalFornecedorOriginal();
+      else document.getElementById('modal-fornecedor').style.display = 'flex';
+      
+      trocarAbaFornecedor(1);
+    };
+  </script>
+
+  <script>
+        // Dados de departamentos e categorias
+    //======================================================================
+    // INÍCIO DO SCRIPT CORRIGIDO - COLE ISTO DENTRO DA SUA TAG <SCRIPT>
+    //======================================================================
+
+    // --- Funções Utilitárias ---
+    // $ e $$ já são declarados em admin.js
+    
+    // --- Navegação ---
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('🔄 Inicializando navegação...');
+      
+      // Carregar estatísticas do dashboard
+      carregarEstatisticasDashboard();
+      
+      $$('.nav-link').forEach(link => {
+        console.log('📌 Adicionando listener para:', link.textContent.trim());
+        link.addEventListener('click', (e) => {
+          if (link.getAttribute('href') === '/pdv-novo.html') return;
+          e.preventDefault();
+          const pagina = link.dataset.page;
+          const scrollTarget = link.dataset.scroll;
+          if (!pagina) return;
+          
+          console.log('🔗 Navegando para:', pagina);
+          
+          $$('.nav-link').forEach(l => l.classList.remove('active'));
+          $$('.page').forEach(p => p.classList.remove('active'));
+          
+          link.classList.add('active');
+          const pageEl = $(`#${pagina}`);
+          if (pageEl) {
+            pageEl.classList.add('active');
+          } else {
+            console.error('❌ Página não encontrada:', pagina);
+          }
+          
+          if (scrollTarget) {
+            requestAnimationFrame(() => {
+              const el = document.querySelector(scrollTarget);
+              if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+          }
+        });
+      });
+      
+      console.log('✅ Navegação inicializada!');
+    });
+
+    // --- Funções de Carregamento Dinâmico (CORRIGIDAS) ---
+
+    // Carregar estatísticas do dashboard
+    async function carregarEstatisticasDashboard() {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch('/api/dashboard/estatisticas', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (!response.ok) throw new Error('Erro ao carregar estatísticas');
+        
+        const data = await response.json();
+        const stats = data.estatisticas;
+        
+        // Atualizar valores no dashboard
+        $('#stat-produtos').textContent = stats.totalProdutos || 0;
+        $('#stat-clientes').textContent = stats.totalClientes || 0;
+        $('#stat-vendas-hoje').textContent = stats.vendasHoje || 0;
+        $('#stat-estoque-baixo').textContent = stats.estoqueBaixo || 0;
+        
+        console.log('✅ Estatísticas carregadas:', stats);
+      } catch (error) {
+        console.error('❌ Erro ao carregar estatísticas:', error);
+        $('#stat-produtos').textContent = '0';
+        $('#stat-clientes').textContent = '0';
+        $('#stat-vendas-hoje').textContent = '0';
+        $('#stat-estoque-baixo').textContent = '0';
+      }
+    }
+
+    async function carregarDepartamentos() {
+      const select = $("#departamento");
+      select.innerHTML = '<option value="">Carregando...</option>';
+      
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch('/api/departamentos', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Erro ${response.status} ao buscar departamentos`);
+        }
+        
+        const departamentos = await response.json();
+        
+        select.innerHTML = '<option value="">Selecione...</option>';
+        departamentos.forEach(dep => {
+          const opt = document.createElement("option");
+          opt.value = dep.id;
+          opt.textContent = dep.nome;
+          select.appendChild(opt);
+        });
+
+      } catch (error) {
+        console.error('Falha em carregarDepartamentos:', error);
+        select.innerHTML = '<option value="">Erro ao carregar</option>';
+      }
+    }
+
+    async function carregarCategorias() {
+      const depId = $("#departamento").value;
+      const catSelect = $("#categoria");
+      catSelect.innerHTML = '<option value="">Aguardando departamento...</option>';
+      
+      if (!depId) {
+        catSelect.innerHTML = '<option value="">Selecione um departamento</option>';
+        return;
+      }
+
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`/api/categorias?departamento_id=${depId}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Erro ${response.status} ao buscar categorias`);
+        }
+
+        const categorias = await response.json();
+
+        catSelect.innerHTML = '<option value="">Selecione...</option>';
+        categorias.forEach(cat => {
+          const opt = document.createElement("option");
+          opt.value = cat.id;
+          opt.textContent = cat.nome;
+          catSelect.appendChild(opt);
+        });
+      
+      } catch(error) {
+        console.error('Falha em carregarCategorias:', error);
+        catSelect.innerHTML = '<option value="">Erro ao carregar</option>';
+      }
+    }
+
+    // --- Funções dos Modais ---
+
+    function abrirModalProduto() {
+      $('#form-produto').reset();
+      $('#modal-produto .modal-title').textContent = 'Novo Produto';
+      
+      // Carregar departamentos e todas as seções
+      carregarDepartamentosDoFormulario();
+      carregarTodasSecoes();
+      
+      $('#modal-produto').classList.add("active");
+    }
+    
+    // Função para carregar departamentos no formulário de produtos
+    async function carregarDepartamentosDoFormulario() {
+      const depSelect = $('#prod-departamento');
+      if (!depSelect) return;
+      
+      try {
+        const response = await fetch('/api/departamentos', { headers: apiHeaders });
+        if (!response.ok) throw new Error('Erro ao carregar departamentos');
+        
+        const departamentos = await response.json();
+        depSelect.innerHTML = '<option value="">Todos os departamentos</option>';
+        
+        departamentos.filter(d => d.ativo).forEach(dep => {
+          const opt = document.createElement('option');
+          opt.value = dep.id;
+          opt.textContent = dep.nome;
+          depSelect.appendChild(opt);
+        });
+      } catch (error) {
+        console.error('Erro ao carregar departamentos:', error);
+      }
+    }
+    
+    // Função para carregar seções filtradas por departamento
+    async function carregarSecoesDoFormulario() {
+      const depSelect = $('#prod-departamento');
+      const catSelect = $('#prod-categoria');
+      if (!catSelect) return;
+      
+      const departamentoId = depSelect ? depSelect.value : '';
+      
+      try {
+        const url = departamentoId 
+          ? `/api/secoes?departamento_id=${departamentoId}`
+          : '/api/secoes';
+        
+        const response = await fetch(url, { headers: apiHeaders });
+        if (!response.ok) throw new Error('Erro ao carregar seções');
+        
+        const secoes = await response.json();
+        const categoriaAtual = catSelect.value; // Preservar seleção
+        
+        catSelect.innerHTML = '<option value="">Selecione...</option>';
+        
+        secoes.forEach(sec => {
+          const opt = document.createElement('option');
+          opt.value = sec.id;
+          opt.textContent = sec.departamento_nome ? `${sec.nome} (${sec.departamento_nome})` : sec.nome;
+          catSelect.appendChild(opt);
+        });
+        
+        // Restaurar seleção se ainda existir
+        if (categoriaAtual && Array.from(catSelect.options).some(opt => opt.value === categoriaAtual)) {
+          catSelect.value = categoriaAtual;
+        }
+      } catch (error) {
+        console.error('Erro ao carregar seções:', error);
+      }
+    }
+    
+    // Função para abrir página de gerenciar categorias
+    function abrirGerenciarCategorias() {
+      window.open('categorias-produtos.html', '_blank');
+    }
+    
+    // Função para carregar todas as seções
+    async function carregarTodasSecoes() {
+      const catSelect = $('#prod-categoria');
+      if (!catSelect) return;
+      
+      try {
+        const response = await fetch('/api/secoes', { headers: apiHeaders });
+        if (!response.ok) throw new Error('Erro ao carregar seções');
+        
+        const secoes = await response.json();
+        catSelect.innerHTML = '<option value="">Selecione...</option>';
+        
+        secoes.forEach(sec => {
+          const opt = document.createElement('option');
+          opt.value = sec.id;
+          opt.textContent = sec.departamento_nome ? `${sec.nome} (${sec.departamento_nome})` : sec.nome;
+          catSelect.appendChild(opt);
+        });
+      } catch (error) {
+        console.error('Erro ao carregar seções:', error);
+      }
+    }
+
+    function fecharModal(id) {
+      $(`#${id}`).classList.remove("active");
+    }
+
+    // Fecha modal ao clicar fora
+    $$('.modal').forEach(modal => {
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) fecharModal(modal.id);
+      });
+    });
+
+
+    // --- Lógica de Submissão do Formulário (CORRIGIDA) ---
+
+    $('#form-produto').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      // Validação manual dos campos obrigatórios
+      const codigo = $('#form-produto [name="codigo_principal"]').value.trim();
+      const descricao = $('#form-produto [name="descricao"]').value.trim();
+      const categoria = $('#prod-categoria').value;
+      
+      if (!codigo || !descricao || !categoria) {
+        alert('Erro ao salvar: Código, Descrição e Categoria são obrigatórios.');
+        return;
+      }
+
+      const formData = new FormData(e.target);
+      const produto = Object.fromEntries(formData.entries());
+
+      // Converte valores que precisam ser numéricos
+      produto.preco_custo = parseFloat(produto.preco_custo) || 0;
+      produto.preco_venda = parseFloat(produto.preco_venda) || 0;
+      produto.estoque_minimo = parseFloat(produto.estoque_minimo) || 0;
+      produto.estoque_atual = parseFloat(produto.estoque_atual) || 0;
+      produto.estoque_maximo = parseFloat(produto.estoque_maximo) || 0;
+      
+      // Verificar se é edição ou criação
+      const editingId = e.target.getAttribute('data-editing-id');
+      
+      const token = localStorage.getItem('token');
+      const apiHeaders = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      };
+
+      try {
+        const url = editingId ? `/api/produtos/${editingId}` : '/api/produtos';
+        const method = editingId ? 'PUT' : 'POST';
+        
+        const response = await fetch(url, {
+          method: method,
+          headers: apiHeaders,
+          body: JSON.stringify(produto)
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Ocorreu um erro no servidor');
+        }
+
+        alert(editingId ? 'Produto atualizado com sucesso!' : 'Produto salvo com sucesso!');
+        fecharModal('modal-produto');
+        
+        // Recarregar lista de produtos
+        if (typeof loadProdutos === 'function') {
+          loadProdutos();
+        }
+        
+      } catch (error) {
+        console.error('Erro ao salvar produto:', error);
+        alert(`Erro ao salvar: ${error.message}`);
+      }
+    });
+
+    // Funções dos botões + (ainda não implementadas com API, como na sugestão anterior)
+    function adicionarDepartamento() { alert('Função não conectada à API ainda.'); }
+    function adicionarCategoria() { alert('Função não conectada à API ainda.'); }
+
+    //======================================================================
+    // FIM DO SCRIPT CORRIGIDO
+//======================================================================
+
+    // ============================
+    // Configurações Fiscais (NFC-e)
+    // ============================
+    async function carregarConfigFiscal() {
+      try {
+        const token = localStorage.getItem('token');
+        const res = await fetch('/api/config-fiscal', { headers: { 'Authorization': `Bearer ${token}` } });
+        if (!res.ok) return; // silencioso
+        const cfg = await res.json();
+        const map = {
+          'fiscal-razao_social': 'razao_social',
+          'fiscal-nome_fantasia': 'nome_fantasia',
+          'fiscal-cnpj': 'cnpj',
+          'fiscal-inscricao_estadual': 'inscricao_estadual',
+          'fiscal-logradouro': 'logradouro',
+          'fiscal-numero': 'numero',
+          'fiscal-complemento': 'complemento',
+          'fiscal-bairro': 'bairro',
+          'fiscal-municipio': 'municipio',
+          'fiscal-uf': 'uf',
+          'fiscal-cep': 'cep',
+          'fiscal-codigo_municipio': 'codigo_municipio',
+          'fiscal-telefone': 'telefone',
+          'fiscal-email': 'email',
+          'fiscal-ambiente_nfce': 'ambiente_nfce',
+          'fiscal-serie_nfce': 'serie_nfce',
+          'fiscal-proximo_numero': 'proximo_numero',
+          'fiscal-observacoes_padrao': 'observacoes_padrao',
+          'fiscal-csc_id': 'csc_id',
+          'fiscal-csc_token': 'csc_token',
+          // PIX
+          'pix-provider': 'pix_provider',
+          'pix-ambiente': 'pix_ambiente',
+          'pix-base_url': 'pix_base_url',
+          'pix-client_id': 'pix_client_id',
+          'pix-client_secret': 'pix_client_secret',
+          'pix-webhook_url': 'pix_webhook_url',
+          'pix-webhook_token': 'pix_webhook_token',
+          'pix-ispb': 'pix_ispb',
+          'pix-agencia': 'pix_agencia',
+          'pix-conta': 'pix_conta',
+          'pix-tipo_conta': 'pix_tipo_conta',
+          'pix-chave': 'pix_chave',
+          // TLS
+          'pix-cert_pfx_path': 'pix_cert_pfx_path',
+          'pix-cert_pfx_password': 'pix_cert_pfx_password',
+          'pix-cert_cert_path': 'pix_cert_cert_path',
+          'pix-cert_key_path': 'pix_cert_key_path',
+          'pix-cert_ca_path': 'pix_cert_ca_path',
+          // Debug
+          'pix-debug': 'pix_debug'
+        };
+        Object.entries(map).forEach(([id, key]) => {
+          const el = document.getElementById(id);
+          if (!el) return;
+          if (el.type === 'checkbox') {
+            el.checked = !!cfg[key];
+          } else {
+            if (cfg[key] !== undefined && cfg[key] !== null) el.value = cfg[key];
+          }
+        });
+        // Ajuste automático de base URL para BB/Sicoob se vazio
+        try {
+          const provSel = document.getElementById('pix-provider');
+          const ambSel = document.getElementById('pix-ambiente');
+          const baseEl = document.getElementById('pix-base_url');
+          if (provSel && ambSel && baseEl) {
+            const prov = (provSel.value || '').toUpperCase();
+            const amb = (ambSel.value || '').toUpperCase();
+            if (prov === 'BANCO_DO_BRASIL' && (!baseEl.value || baseEl.value.trim() === '')) {
+              baseEl.value = amb === 'HOMOLOGACAO' ? 'https://api.hm.bb.com.br/pix/v1' : 'https://api.bb.com.br/pix/v1';
+            } else if (prov === 'SICOOB' && (!baseEl.value || baseEl.value.trim() === '')) {
+              // Mantemos a base raiz; os conectores acrescentam "/pix/..." automaticamente
+              baseEl.value = 'https://api.sicoob.com.br';
+            }
+          }
+        } catch {}
+        // Não exibir segredos: client_secret e senha PFX nunca são preenchidos; mostrar estado mascarado
+        const clientSecretInput = document.getElementById('pix-client_secret');
+        if (clientSecretInput) clientSecretInput.value = '';
+        const clientSecretMasked = document.getElementById('pix-client_secret_masked');
+        if (clientSecretMasked) clientSecretMasked.textContent = cfg['pix_client_secret_set'] ? 'Client Secret cadastrado: ••••••••' : 'Nenhum Client Secret cadastrado.';
+
+        const pfxPassInput = document.getElementById('pix-cert_pfx_password');
+        if (pfxPassInput) pfxPassInput.value = '';
+        const pfxPassMasked = document.getElementById('pix-cert_pfx_password_masked');
+        if (pfxPassMasked) pfxPassMasked.textContent = cfg['pix_cert_pfx_password_set'] ? 'Senha do PFX/P12 cadastrada: ••••••••' : 'Nenhuma senha PFX cadastrada.';
+        // Não exibir o token atual no input; mostrar apenas de forma mascarada
+        const tokenInput = document.getElementById('pix-webhook_token');
+        if (tokenInput) tokenInput.value = '';
+        const tokenMasked = document.getElementById('pix-webhook_token_masked');
+        if (tokenMasked && cfg['pix_webhook_token']) {
+          tokenMasked.textContent = 'Token cadastrado: ' + maskToken(cfg['pix_webhook_token']);
+        } else if (tokenMasked) {
+          tokenMasked.textContent = 'Nenhum token cadastrado.';
+        }
+        // Indicador visual do webhook (homologação/produção + bypass)
+        const indic = document.getElementById('pix-webhook-indicator');
+        if (indic) {
+          const amb = cfg['ambiente_nfce'] || cfg['pix_ambiente'] || 'HOMOLOGACAO';
+          const bypass = !!cfg['pix_webhook_bypass_ativo'];
+          indic.classList.remove('alert-warning','alert-info');
+          if (amb === 'HOMOLOGACAO' && bypass) {
+            indic.textContent = 'Homologação: Webhook aceitando sem token (PIX_WEBHOOK_ALLOW_NO_TOKEN=true). Não use em produção.';
+            indic.classList.add('alert','alert-warning');
+            indic.style.display = 'block';
+          } else if (amb === 'HOMOLOGACAO' && !bypass) {
+            indic.textContent = 'Homologação: token do webhook será validado. Você pode habilitar o bypass temporário via PIX_WEBHOOK_ALLOW_NO_TOKEN=true.';
+            indic.classList.add('alert','alert-info');
+            indic.style.display = 'block';
+          } else {
+            indic.textContent = 'Produção: token do webhook é obrigatório e sempre validado.';
+            indic.classList.add('alert','alert-info');
+            indic.style.display = 'block';
+          }
+        }
+        // Preferência local do PDV
+        const pref = localStorage.getItem('preferencia_emissao') || 'nao_fiscal';
+        document.querySelectorAll('input[name="fiscal-emissao_padrao"]').forEach(r => r.checked = (r.value === pref));
+      } catch (e) {
+        console.warn('Falha ao carregar config fiscal:', e);
+      }
+    }
+
+    // ============================
+    // Console de Debug do PIX
+    // ============================
+    async function carregarPixLogs() {
+      try {
+        const token = localStorage.getItem('token');
+        const tagSel = document.getElementById('pix-log-tag');
+        const limEl = document.getElementById('pix-log-limit');
+        const tabela = document.querySelector('#pix-logs-table tbody');
+        if (!tabela) return;
+        const tag = tagSel ? tagSel.value : 'ALL';
+        const limit = limEl ? parseInt(limEl.value || '200', 10) : 200;
+        const res = await fetch(`/api/pagamentos/pix/logs?limit=${encodeURIComponent(limit)}&tag=${encodeURIComponent(tag)}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!res.ok) {
+          tabela.innerHTML = '<tr><td colspan="5">Falha ao carregar logs</td></tr>';
+          return;
+        }
+        const data = await res.json();
+        const logs = Array.isArray(data.logs) ? data.logs : [];
+        if (!logs.length) {
+          tabela.innerHTML = '<tr><td colspan="5" style="color: var(--muted);">Sem logs para exibir</td></tr>';
+          return;
+        }
+        tabela.innerHTML = '';
+        logs.forEach(l => {
+          const tr = document.createElement('tr');
+          const dados = (l.data !== undefined && l.data !== null) ? (typeof l.data === 'object' ? JSON.stringify(l.data) : String(l.data)) : '';
+          tr.innerHTML = `
+            <td>${(new Date(l.ts)).toLocaleTimeString()}</td>
+            <td>${l.level || ''}</td>
+            <td>${l.tag || ''}</td>
+            <td>${l.message || ''}</td>
+            <td><code style="white-space: pre-wrap;">${escapeHtml(dados)}</code></td>
+          `;
+          tabela.appendChild(tr);
+        });
+      } catch (e) {
+        const tabela = document.querySelector('#pix-logs-table tbody');
+        if (tabela) tabela.innerHTML = '<tr><td colspan="5">Erro ao renderizar logs</td></tr>';
+      }
+    }
+
+    async function limparPixLogs() {
+      try {
+        const token = localStorage.getItem('token');
+        const res = await fetch('/api/pagamentos/pix/logs', {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!res.ok) return;
+        await carregarPixLogs();
+      } catch {}
+    }
+
+    function escapeHtml(unsafe) {
+      if (unsafe === null || unsafe === undefined) return '';
+      return String(unsafe)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    // Bind dos botões do console
+    document.addEventListener('DOMContentLoaded', () => {
+      const btnUpd = document.getElementById('btn-pix-logs-atualizar');
+      const btnClr = document.getElementById('btn-pix-logs-limpar');
+      if (btnUpd) btnUpd.addEventListener('click', carregarPixLogs);
+      if (btnClr) btnClr.addEventListener('click', limparPixLogs);
+      const tagSel = document.getElementById('pix-log-tag');
+      const limEl = document.getElementById('pix-log-limit');
+      if (tagSel) tagSel.addEventListener('change', carregarPixLogs);
+      if (limEl) limEl.addEventListener('change', carregarPixLogs);
+      // carrega inicial
+      setTimeout(carregarPixLogs, 300);
+    });
+
+  function maskToken(t) {
+      if (!t) return '';
+      const len = t.length;
+      if (len <= 4) return '****';
+      const masked = '•'.repeat(Math.max(4, len - 4)) + t.slice(-4);
+      return masked;
+    }
+
+  async function salvarConfigFiscal() {
+      try {
+        const token = localStorage.getItem('token');
+        const headers = { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
+        const ids = [
+          'fiscal-razao_social','fiscal-nome_fantasia','fiscal-cnpj','fiscal-inscricao_estadual','fiscal-logradouro','fiscal-numero','fiscal-complemento','fiscal-bairro','fiscal-municipio','fiscal-uf','fiscal-cep','fiscal-codigo_municipio','fiscal-telefone','fiscal-email','fiscal-ambiente_nfce','fiscal-serie_nfce','fiscal-proximo_numero','fiscal-observacoes_padrao','fiscal-csc_id','fiscal-csc_token'
+        ];
+        // Também incluir os campos PIX
+        const idsPix = [
+          'pix-provider','pix-ambiente','pix-base_url','pix-client_id','pix-client_secret','pix-webhook_url','pix-webhook_token','pix-ispb','pix-agencia','pix-conta','pix-tipo_conta','pix-chave',
+          // TLS
+          'pix-cert_pfx_path','pix-cert_pfx_password','pix-cert_cert_path','pix-cert_key_path','pix-cert_ca_path',
+          // Debug
+          'pix-debug'
+        ];
+        const allIds = ids.concat(idsPix);
+        const data = {};
+        allIds.forEach(id => {
+          const el = document.getElementById(id);
+          if (!el) return;
+          const name = el.getAttribute('name');
+          if (!name) return;
+          if (el.type === 'checkbox') {
+            data[name] = el.checked ? 1 : 0;
+          } else {
+            data[name] = el.value;
+          }
+        });
+  // Não sobrescrever segredos se os campos estiverem vazios
+  if (data.pix_webhook_token === '') delete data.pix_webhook_token;
+  if (data.pix_client_secret === '') delete data.pix_client_secret;
+  if (data.pix_cert_pfx_password === '') delete data.pix_cert_pfx_password;
+        const res = await fetch('/api/config-fiscal', { method:'PUT', headers, body: JSON.stringify(data) });
+        if (!res.ok) { const t = await res.text(); throw new Error(t || 'Erro ao salvar'); }
+        alert('Configurações fiscais e PIX salvas.');
+      } catch (e) {
+        alert('Erro: ' + e.message);
+      }
+    }
+
+    function computeDefaultPixBase(provider, ambiente) {
+      const prov = (provider || '').toUpperCase();
+      const amb = (ambiente || '').toUpperCase();
+      if (prov === 'BANCO_DO_BRASIL') {
+        return amb === 'HOMOLOGACAO' ? 'https://api.hm.bb.com.br/pix/v1' : 'https://api.bb.com.br/pix/v1';
+      }
+      if (prov === 'SICOOB') {
+        // Mantemos a base raiz; os conectores acrescentam "/pix/..." automaticamente
+        return 'https://api.sicoob.com.br';
+      }
+      return '';
+    }
+
+    function maybeSetPixBaseDefault() {
+      const provSel = document.getElementById('pix-provider');
+      const ambSel = document.getElementById('pix-ambiente');
+      const baseEl = document.getElementById('pix-base_url');
+      if (!provSel || !ambSel || !baseEl) return;
+      const current = (baseEl.value || '').trim();
+      const def = computeDefaultPixBase(provSel.value, ambSel.value);
+      if (!def) return;
+      // Define apenas se vazio ou se já era um dos defaults conhecidos
+      const knownDefaults = [
+        'https://api.bb.com.br/pix/v1',
+        'https://api.hm.bb.com.br/pix/v1',
+        'https://api.sicoob.com.br'
+      ];
+      if (!current || knownDefaults.includes(current)) {
+        baseEl.value = def;
+      }
+    }
+
+    async function enviarLogoFiscal() {
+      const f = document.getElementById('fiscal-input-logo').files[0];
+      if (!f) return alert('Selecione uma imagem');
+      const token = localStorage.getItem('token');
+      const fd = new FormData(); fd.append('logo', f);
+      const res = await fetch('/api/config-fiscal/logo', { method:'POST', headers: { 'Authorization': `Bearer ${token}` }, body: fd });
+      if (!res.ok) { const t = await res.text(); return alert('Erro: ' + t); }
+      alert('Logo enviada.');
+    }
+
+    async function removerLogoFiscal() {
+      const token = localStorage.getItem('token');
+      const res = await fetch('/api/config-fiscal/logo', { method:'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+      if (!res.ok) { const t = await res.text(); return alert('Erro: ' + t); }
+      alert('Logo removida.');
+    }
+
+    async function enviarCertFiscal() {
+      const f = document.getElementById('fiscal-input-cert').files[0];
+      const senha = document.getElementById('fiscal-input-senha').value;
+      if (!f || !senha) return alert('Selecione o .pfx e informe a senha');
+      const token = localStorage.getItem('token');
+      const fd = new FormData(); fd.append('certificado', f); fd.append('senha', senha);
+      const res = await fetch('/api/config-fiscal/certificado', { method:'POST', headers: { 'Authorization': `Bearer ${token}` }, body: fd });
+      if (!res.ok) { const t = await res.text(); return alert('Erro: ' + t); }
+      alert('Certificado enviado.');
+    }
+
+    async function limparWebhookToken() {
+      if (!confirm('Tem certeza que deseja remover o token do webhook? Esta ação não pode ser desfeita.')) return;
+      const senha = prompt('Por favor, confirme com sua senha de acesso:');
+      if (!senha) return;
+      try {
+        const token = localStorage.getItem('token');
+        const res = await fetch('/api/config-fiscal/webhook-token', { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ confirm_password: senha }) });
+        if (!res.ok) { const t = await res.text(); throw new Error(t || 'Erro ao remover token'); }
+        alert('Token do webhook removido.');
+        const masked = document.getElementById('pix-webhook_token_masked');
+        if (masked) masked.textContent = 'Nenhum token cadastrado.';
+        const input = document.getElementById('pix-webhook_token');
+        if (input) input.value = '';
+      } catch (e) {
+        alert('Erro: ' + e.message);
+      }
+    }
+
+    function carregarPixPreferenciasUI() {
+      try {
+        const toMs = Number(localStorage.getItem('pix_timeout_ms')) || 600000;
+        const pollMs = Number(localStorage.getItem('pix_poll_ms')) || 3000;
+        const progMs = Number(localStorage.getItem('pix_progress_ms')) || 500;
+        const toMinEl = document.getElementById('pix-timeout-min');
+        const pollSecEl = document.getElementById('pix-poll-sec');
+        const progMsEl = document.getElementById('pix-progress-ms');
+        if (toMinEl) toMinEl.value = Math.max(1, Math.round(toMs / 60000));
+        if (pollSecEl) pollSecEl.value = Math.max(1, Math.round(pollMs / 1000));
+        if (progMsEl) progMsEl.value = Math.max(50, Math.round(progMs));
+        const effTimeout = document.getElementById('pix-timeout-effective');
+        const effPoll = document.getElementById('pix-poll-effective');
+        const effProg = document.getElementById('pix-progress-effective');
+        if (effTimeout) effTimeout.textContent = `Efetivo: ${toMs} ms`;
+        if (effPoll) effPoll.textContent = `Efetivo: ${pollMs} ms`;
+        if (effProg) effProg.textContent = `${progMs} ms`;
+      } catch {}
+    }
+
+    function updatePixEffectiveFromInputs() {
+      try {
+        const toMin = Math.max(1, parseInt(document.getElementById('pix-timeout-min')?.value || '10', 10));
+        const pollSec = Math.max(1, parseInt(document.getElementById('pix-poll-sec')?.value || '3', 10));
+        const progMs = Math.max(50, parseInt(document.getElementById('pix-progress-ms')?.value || '500', 10));
+        const effTimeout = document.getElementById('pix-timeout-effective');
+        const effPoll = document.getElementById('pix-poll-effective');
+        const effProg = document.getElementById('pix-progress-effective');
+        if (effTimeout) effTimeout.textContent = `Efetivo: ${toMin * 60000} ms`;
+        if (effPoll) effPoll.textContent = `Efetivo: ${pollSec * 1000} ms`;
+        if (effProg) effProg.textContent = `${progMs} ms`;
+      } catch {}
+    }
+
+    function salvarPixPreferenciasUI() {
+      try {
+        const toMin = Math.max(1, parseInt(document.getElementById('pix-timeout-min')?.value || '10', 10));
+        const pollSec = Math.max(1, parseInt(document.getElementById('pix-poll-sec')?.value || '3', 10));
+        const progMs = Math.max(50, parseInt(document.getElementById('pix-progress-ms')?.value || '500', 10));
+        localStorage.setItem('pix_timeout_ms', String(toMin * 60000));
+        localStorage.setItem('pix_poll_ms', String(pollSec * 1000));
+        localStorage.setItem('pix_progress_ms', String(progMs));
+        alert('Preferências de espera do PIX salvas neste navegador.');
+        carregarPixPreferenciasUI();
+      } catch (e) {
+        alert('Erro ao salvar preferências locais: ' + e.message);
+      }
+    }
+
+    function resetPixPreferenciasUI() {
+      try {
+        localStorage.removeItem('pix_timeout_ms');
+        localStorage.removeItem('pix_poll_ms');
+        localStorage.removeItem('pix_progress_ms');
+        carregarPixPreferenciasUI();
+        alert('Preferências locais restauradas para os padrões.');
+      } catch (e) {
+        alert('Erro ao restaurar preferências: ' + e.message);
+      }
+    }
+
+    function base64UrlFromBytes(bytes) {
+      let bin = '';
+      for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+      const b64 = btoa(bin);
+      return b64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/,'');
+    }
+
+    function gerarWebhookToken() {
+      try {
+        const arr = new Uint8Array(32); // 256 bits
+        (window.crypto || window.msCrypto).getRandomValues(arr);
+        const token = base64UrlFromBytes(arr);
+        const input = document.getElementById('pix-webhook_token');
+        if (input) input.value = token;
+        const masked = document.getElementById('pix-webhook_token_masked');
+        if (masked) masked.textContent = 'Token novo (não salvo): ' + maskToken(token);
+      } catch (e) {
+        alert('Falha ao gerar token de forma segura no navegador. Você pode digitar um segredo manualmente.');
+      }
+    }
+
+    async function removerCertFiscal() {
+      const token = localStorage.getItem('token');
+      const res = await fetch('/api/config-fiscal/certificado', { method:'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+      if (!res.ok) { const t = await res.text(); return alert('Erro: ' + t); }
+      alert('Certificado removido.');
+    }
+
+    function salvarPreferenciaEmissaoFiscal() {
+      const v = document.querySelector('input[name="fiscal-emissao_padrao"]:checked')?.value || 'nao_fiscal';
+      localStorage.setItem('preferencia_emissao', v);
+      alert('Preferência de emissão salva como ' + (v === 'nao_fiscal' ? 'Não Fiscal' : 'Fiscal'));
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // Se veio com hash para uma seção específica, ex.: #sec-config-fiscal
+      const hash = window.location.hash;
+      if (hash === '#sec-config-fiscal') {
+        $$('.nav-link').forEach(l => l.classList.remove('active'));
+        $$('.page').forEach(p => p.classList.remove('active'));
+        const linkCfg = document.querySelector('.nav-link[data-page="configuracoes"]');
+        if (linkCfg) linkCfg.classList.add('active');
+        const pageEl = document.getElementById('configuracoes');
+        if (pageEl) {
+          pageEl.classList.add('active');
+          requestAnimationFrame(() => {
+            const el = document.querySelector('#sec-config-fiscal');
+            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          });
+        }
+      }
+      // Carregar ao abrir a página admin
+      carregarConfigFiscal();
+  carregarPixPreferenciasUI();
+  // Atualização em tempo real dos efetivos conforme digita
+  const toMinEl = document.getElementById('pix-timeout-min');
+  const pollSecEl = document.getElementById('pix-poll-sec');
+  const progMsEl = document.getElementById('pix-progress-ms');
+  if (toMinEl) toMinEl.addEventListener('input', updatePixEffectiveFromInputs);
+  if (pollSecEl) pollSecEl.addEventListener('input', updatePixEffectiveFromInputs);
+  if (progMsEl) progMsEl.addEventListener('input', updatePixEffectiveFromInputs);
+      
+      // Função para abrir o Estoque com token
+      window.abrirEstoque = function() {
+        const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+        if (token) {
+          // Garantir que o token está em ambos os storages
+          localStorage.setItem('token', token);
+          sessionStorage.setItem('token', token);
+          console.log('✅ Token sincronizado para o Estoque');
+          window.open('/views/estoque/dashboard.html', '_blank');
+        } else {
+          alert('Você precisa estar logado para acessar o Estoque!');
+        }
+      };
+      
+      // Bind botões
+      const bind = (id, fn) => { const el = document.getElementById(id); if (el) el.onclick = fn; };
+  bind('btn-fiscal-salvar', salvarConfigFiscal);
+  bind('btn-pix-salvar', salvarConfigFiscal);
+  bind('btn-pix-webhook-gerar', gerarWebhookToken);
+  bind('btn-pix-webhook-limpar', limparWebhookToken);
+  bind('btn-pix-preferencias-salvar', salvarPixPreferenciasUI);
+  bind('btn-pix-preferencias-reset', resetPixPreferenciasUI);
+    // Atualizar base padrão quando trocar provedor/ambiente
+    const provSel = document.getElementById('pix-provider');
+    const ambSel = document.getElementById('pix-ambiente');
+    if (provSel) provSel.addEventListener('change', maybeSetPixBaseDefault);
+    if (ambSel) ambSel.addEventListener('change', maybeSetPixBaseDefault);
+      bind('btn-fiscal-logo', enviarLogoFiscal);
+      bind('btn-fiscal-remover-logo', removerLogoFiscal);
+      bind('btn-fiscal-cert', enviarCertFiscal);
+      bind('btn-fiscal-remover-cert', removerCertFiscal);
+      bind('btn-fiscal-salvar-pref', salvarPreferenciaEmissaoFiscal);
+      bind('btn-fiscal-voltar', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+    });
+  </script>
+</body>
+</html>
+

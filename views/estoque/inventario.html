@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventário de Estoque - Nexus Gestão</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        body { background-color: #f8f9fa; }
+        .navbar { background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%); }
+        .card { border: none; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+        .badge-status { padding: 8px 15px; border-radius: 20px; font-weight: 500; }
+        .item-contagem { border: 1px solid #dee2e6; border-radius: 8px; padding: 15px; margin-bottom: 10px; }
+        .item-divergencia { background-color: #fff3cd; border-color: #ffc107; }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand fw-bold" href="/admin.html">
+                <i class="bi bi-box-seam me-2"></i>Nexus Gestão - Estoque
+            </a>
+            <div class="collapse navbar-collapse">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="dashboard.html">Dashboard</a></li>
+                    <li class="nav-item"><a class="nav-link" href="movimentacoes.html">Movimentações</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="#">Inventário</a></li>
+                    <li class="nav-item"><a class="nav-link" href="ajustes.html">Ajustes</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid py-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="bi bi-clipboard-check me-2"></i>Inventário de Estoque</h2>
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalNovoInventario">
+                <i class="bi bi-plus-circle me-2"></i>Novo Inventário
+            </button>
+        </div>
+
+        <!-- Lista de Inventários -->
+        <div class="card mb-4">
+            <div class="card-header bg-white">
+                <ul class="nav nav-tabs card-header-tabs" role="tablist">
+                    <li class="nav-item">
+                        <a class="nav-link active" data-bs-toggle="tab" href="#abertos">Abertos</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-bs-toggle="tab" href="#concluidos">Concluídos</a>
+                    </li>
+                </ul>
+            </div>
+            <div class="card-body">
+                <div class="tab-content">
+                    <div class="tab-pane fade show active" id="abertos">
+                        <div id="inventariosAbertos">
+                            <div class="text-center py-4">
+                                <div class="spinner-border text-primary" role="status"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="concluidos">
+                        <div id="inventariosConcluidos">
+                            <div class="text-center py-4">
+                                <div class="spinner-border text-primary" role="status"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Novo Inventário -->
+    <div class="modal fade" id="modalNovoInventario" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Criar Novo Inventário</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formNovoInventario">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Descrição *</label>
+                            <input type="text" class="form-control" id="descricao" required
+                                   placeholder="Ex: Inventário Mensal - Janeiro 2024">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Tipo de Inventário *</label>
+                            <select class="form-select" id="tipo" required onchange="verificarTipo()">
+                                <option value="">Selecione...</option>
+                                <option value="TOTAL">Total (Todos os produtos)</option>
+                                <option value="PARCIAL">Parcial (Produtos selecionados)</option>
+                                <option value="CICLICO">Cíclico (Por categoria)</option>
+                            </select>
+                        </div>
+                        <div id="selecaoProdutos" class="mb-3 d-none">
+                            <label class="form-label">Produtos a Inventariar</label>
+                            <select class="form-select" id="produtos_selecionados" multiple>
+                            </select>
+                            <small class="text-muted">Segure Ctrl para selecionar múltiplos produtos</small>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="criarInventario()">
+                        <i class="bi bi-check-circle me-1"></i>Criar Inventário
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Realizar Contagem -->
+    <div class="modal fade" id="modalContagem" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="tituloInventario">Realizar Contagem</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle me-2"></i>
+                        <strong>Instruções:</strong> Conte o estoque físico de cada produto e informe a quantidade encontrada.
+                    </div>
+                    
+                    <div class="mb-3">
+                        <input type="text" class="form-control" id="buscarProduto" 
+                               placeholder="🔍 Buscar produto...">
+                    </div>
+
+                    <div id="listaItensInventario">
+                        <div class="text-center py-4">
+                            <div class="spinner-border text-primary" role="status"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                    <button type="button" class="btn btn-success" onclick="concluirInventario()">
+                        <i class="bi bi-check-circle-fill me-1"></i>Concluir e Ajustar Estoques
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Verificar autenticação - tentar localStorage e sessionStorage
+        let token = localStorage.getItem('token') || sessionStorage.getItem('token');
+        if (!token) {
+            alert('Você precisa fazer login para acessar esta página.');
+            window.location.href = '/login.html';
+        }
+
+        let inventarioAtual = null;
+
+        function verificarTipo() {
+            const tipo = document.getElementById('tipo').value;
+            const div = document.getElementById('selecaoProdutos');
+            
+            if (tipo === 'PARCIAL') {
+                div.classList.remove('d-none');
+                carregarProdutosParaSelecao();
+            } else {
+                div.classList.add('d-none');
+            }
+        }
+
+        async function carregarProdutosParaSelecao() {
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch('/api/estoque/produtos', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!response.ok) throw new Error('Erro ao carregar produtos');
+
+                const produtos = await response.json();
+                const select = document.getElementById('produtos_selecionados');
+                
+                select.innerHTML = produtos.map(p => 
+                    `<option value="${p.id}">${p.codigo_principal} - ${p.descricao}</option>`
+                ).join('');
+
+            } catch (error) {
+                console.error('Erro:', error);
+            }
+        }
+
+        async function criarInventario() {
+            try {
+                const descricao = document.getElementById('descricao').value;
+                const tipo = document.getElementById('tipo').value;
+
+                if (!descricao || !tipo) {
+                    alert('Preencha todos os campos obrigatórios');
+                    return;
+                }
+
+                const dados = { descricao, tipo };
+
+                if (tipo === 'PARCIAL') {
+                    const select = document.getElementById('produtos_selecionados');
+                    dados.produtos_selecionados = Array.from(select.selectedOptions).map(opt => opt.value);
+                    
+                    if (dados.produtos_selecionados.length === 0) {
+                        alert('Selecione pelo menos um produto');
+                        return;
+                    }
+                }
+
+                const token = localStorage.getItem('token');
+                const response = await fetch('/api/estoque/inventario', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(dados)
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(result.message || 'Erro ao criar inventário');
+                }
+
+                alert(`✓ ${result.message}\nNúmero: ${result.numero}`);
+                bootstrap.Modal.getInstance(document.getElementById('modalNovoInventario')).hide();
+                document.getElementById('formNovoInventario').reset();
+                carregarInventarios('ABERTO');
+
+            } catch (error) {
+                console.error('Erro:', error);
+                alert('Erro: ' + error.message);
+            }
+        }
+
+        async function carregarInventarios(status) {
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch(`/api/estoque/inventario?status=${status}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!response.ok) throw new Error('Erro ao carregar inventários');
+
+                const inventarios = await response.json();
+                const container = status === 'ABERTO' || status === 'EM_CONTAGEM'
+                    ? 'inventariosAbertos' 
+                    : 'inventariosConcluidos';
+
+                mostrarInventarios(inventarios, container);
+
+            } catch (error) {
+                console.error('Erro:', error);
+            }
+        }
+
+        function mostrarInventarios(inventarios, containerId) {
+            const container = document.getElementById(containerId);
+            
+            if (inventarios.length === 0) {
+                container.innerHTML = '<div class="text-center text-muted py-4">Nenhum inventário encontrado</div>';
+                return;
+            }
+
+            container.innerHTML = inventarios.map(inv => `
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <h5>${inv.descricao}</h5>
+                                <p class="mb-2">
+                                    <strong>Número:</strong> ${inv.numero_inventario} | 
+                                    <strong>Tipo:</strong> ${inv.tipo} |
+                                    <strong>Criado por:</strong> ${inv.criado_por}
+                                </p>
+                                <p class="mb-0">
+                                    <strong>Iniciado em:</strong> ${new Date(inv.data_inicio).toLocaleString('pt-BR')}
+                                    ${inv.data_conclusao ? ` | <strong>Concluído em:</strong> ${new Date(inv.data_conclusao).toLocaleString('pt-BR')}` : ''}
+                                </p>
+                            </div>
+                            <div class="col-md-4 text-end">
+                                <span class="badge-status bg-${getStatusCor(inv.status)} d-block mb-2">
+                                    ${inv.status}
+                                </span>
+                                <p class="mb-2">
+                                    <strong>${inv.itens_contados}/${inv.total_itens}</strong> itens contados
+                                </p>
+                                ${inv.total_divergencias > 0 ? `
+                                    <p class="text-warning mb-2">
+                                        <i class="bi bi-exclamation-triangle"></i>
+                                        ${inv.total_divergencias} divergências
+                                    </p>
+                                ` : ''}
+                                ${inv.status === 'ABERTO' || inv.status === 'EM_CONTAGEM' ? `
+                                    <button class="btn btn-primary btn-sm" onclick="abrirContagem(${inv.id})">
+                                        <i class="bi bi-pencil-square me-1"></i>Contar
+                                    </button>
+                                ` : ''}
+                                <button class="btn btn-info btn-sm" onclick="verDetalhesInventario(${inv.id})">
+                                    <i class="bi bi-eye me-1"></i>Detalhes
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function abrirContagem(inventarioId) {
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch(`/api/estoque/inventario/${inventarioId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!response.ok) throw new Error('Erro ao carregar inventário');
+
+                const data = await response.json();
+                inventarioAtual = data;
+
+                document.getElementById('tituloInventario').textContent = 
+                    `Inventário: ${data.inventario.descricao}`;
+
+                mostrarItensParaContagem(data.itens);
+
+                new bootstrap.Modal(document.getElementById('modalContagem')).show();
+
+            } catch (error) {
+                console.error('Erro:', error);
+                alert('Erro ao carregar inventário');
+            }
+        }
+
+        function mostrarItensParaContagem(itens) {
+            const container = document.getElementById('listaItensInventario');
+            
+            container.innerHTML = itens.map(item => `
+                <div class="item-contagem ${item.divergencia !== 0 && item.status === 'CONTADO' ? 'item-divergencia' : ''}" 
+                     id="item-${item.id}">
+                    <div class="row align-items-center">
+                        <div class="col-md-5">
+                            <h6 class="mb-1">${item.produto_descricao}</h6>
+                            <small class="text-muted">${item.codigo_principal}</small>
+                        </div>
+                        <div class="col-md-2 text-center">
+                            <strong>Sistema:</strong><br>
+                            <span class="h5">${parseFloat(item.estoque_sistema).toFixed(2)}</span>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label mb-1">Estoque Contado:</label>
+                            <input type="number" class="form-control" 
+                                   id="contado-${item.id}" 
+                                   value="${item.estoque_contado || ''}"
+                                   step="0.01"
+                                   ${item.status === 'AJUSTADO' ? 'disabled' : ''}>
+                        </div>
+                        <div class="col-md-2 text-end">
+                            ${item.status === 'AJUSTADO' ? `
+                                <span class="badge bg-success">Ajustado</span>
+                            ` : `
+                                <button class="btn btn-sm btn-success" 
+                                        onclick="salvarContagem(${inventarioAtual.inventario.id}, ${item.id})">
+                                    <i class="bi bi-check"></i> Salvar
+                                </button>
+                            `}
+                        </div>
+                    </div>
+                    ${item.status === 'CONTADO' && item.divergencia !== 0 ? `
+                        <div class="alert alert-warning mt-2 mb-0">
+                            <strong>Divergência:</strong> ${item.divergencia > 0 ? '+' : ''}${parseFloat(item.divergencia).toFixed(2)} unidades
+                            (R$ ${parseFloat(item.valor_divergencia).toFixed(2)})
+                        </div>
+                    ` : ''}
+                </div>
+            `).join('');
+        }
+
+        async function salvarContagem(inventarioId, itemId) {
+            try {
+                const input = document.getElementById(`contado-${itemId}`);
+                const estoqueContado = input.value;
+
+                if (!estoqueContado) {
+                    alert('Informe a quantidade contada');
+                    return;
+                }
+
+                const token = localStorage.getItem('token');
+                const response = await fetch(`/api/estoque/inventario/${inventarioId}/contagem`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        item_id: itemId,
+                        estoque_contado: parseFloat(estoqueContado)
+                    })
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(result.message || 'Erro ao salvar contagem');
+                }
+
+                // Recarregar itens
+                abrirContagem(inventarioId);
+
+            } catch (error) {
+                console.error('Erro:', error);
+                alert('Erro: ' + error.message);
+            }
+        }
+
+        async function concluirInventario() {
+            if (!inventarioAtual) return;
+
+            if (!confirm('Confirma a conclusão do inventário? Os estoques serão ajustados automaticamente.')) {
+                return;
+            }
+
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch(`/api/estoque/inventario/${inventarioAtual.inventario.id}/concluir`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(result.message || 'Erro ao concluir inventário');
+                }
+
+                alert(`✓ ${result.message}\n${result.itens_ajustados} itens ajustados.`);
+                bootstrap.Modal.getInstance(document.getElementById('modalContagem')).hide();
+                carregarInventarios('ABERTO');
+                carregarInventarios('CONCLUIDO');
+
+            } catch (error) {
+                console.error('Erro:', error);
+                alert('Erro: ' + error.message);
+            }
+        }
+
+        function getStatusCor(status) {
+            const cores = {
+                'ABERTO': 'primary',
+                'EM_CONTAGEM': 'warning',
+                'CONCLUIDO': 'success',
+                'CANCELADO': 'danger'
+            };
+            return cores[status] || 'secondary';
+        }
+
+        // Busca de produtos no inventário
+        document.getElementById('buscarProduto')?.addEventListener('input', function(e) {
+            const busca = e.target.value.toLowerCase();
+            const itens = document.querySelectorAll('.item-contagem');
+            
+            itens.forEach(item => {
+                const texto = item.textContent.toLowerCase();
+                item.style.display = texto.includes(busca) ? '' : 'none';
+            });
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            carregarInventarios('ABERTO');
+            carregarInventarios('CONCLUIDO');
+        });
+    </script>
+</body>
+</html>

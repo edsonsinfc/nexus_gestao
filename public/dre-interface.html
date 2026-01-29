@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DRE - Demonstração do Resultado do Exercício</title>
+  <link rel="stylesheet" href="/styles.css">
+  <style>
+    body {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 16px;
+      padding: 30px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    h1 {
+      color: #667eea;
+      margin-bottom: 30px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+    .form-section {
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 30px;
+    }
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+    }
+    label {
+      font-weight: 600;
+      margin-bottom: 5px;
+      color: #333;
+    }
+    input[type="date"] {
+      padding: 10px;
+      border: 2px solid #e2e8f0;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+    .btn {
+      padding: 12px 30px;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+    .dre-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    .dre-table th {
+      background: #667eea;
+      color: white;
+      padding: 12px;
+      text-align: left;
+      font-weight: 600;
+    }
+    .dre-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .dre-table tr:hover {
+      background: #f7fafc;
+    }
+    .nivel-1 {
+      font-weight: 700;
+      background: #edf2f7;
+      color: #2d3748;
+      font-size: 16px;
+    }
+    .nivel-2 {
+      font-weight: 600;
+      background: #f7fafc;
+      color: #4a5568;
+    }
+    .nivel-3 {
+      padding-left: 30px;
+      color: #718096;
+    }
+    .valor-positivo {
+      color: #48bb78;
+      font-weight: 600;
+    }
+    .valor-negativo {
+      color: #f56565;
+      font-weight: 600;
+    }
+    .resultado-final {
+      background: #667eea !important;
+      color: white !important;
+      font-size: 18px;
+      font-weight: 700;
+    }
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: #667eea;
+    }
+    .error {
+      background: #fed7d7;
+      color: #c53030;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+    .margem-card {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 20px;
+      border-radius: 8px;
+      margin: 10px 0;
+    }
+    .margem-label {
+      font-size: 14px;
+      opacity: 0.9;
+    }
+    .margem-valor {
+      font-size: 32px;
+      font-weight: 700;
+      margin-top: 5px;
+    }
+    .margens-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>💼 DRE - Demonstração do Resultado do Exercício</h1>
+    
+    <div class="form-section">
+      <h3>📅 Selecione o Período</h3>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Data Início:</label>
+          <input type="date" id="dataInicio" value="2025-01-01">
+        </div>
+        <div class="form-group">
+          <label>Data Fim:</label>
+          <input type="date" id="dataFim" value="2025-01-31">
+        </div>
+        <div class="form-group" style="align-self: flex-end;">
+          <button class="btn btn-primary" onclick="carregarDRE()">
+            🔍 Gerar DRE
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div id="loading" class="loading" style="display: none;">
+      ⏳ Carregando dados...
+    </div>
+
+    <div id="error" class="error" style="display: none;"></div>
+
+    <div id="margens" style="display: none;">
+      <h3>📊 Indicadores de Desempenho</h3>
+      <div class="margens-grid">
+        <div class="margem-card">
+          <div class="margem-label">Margem Bruta</div>
+          <div class="margem-valor" id="margemBruta">0%</div>
+        </div>
+        <div class="margem-card">
+          <div class="margem-label">Margem Operacional</div>
+          <div class="margem-valor" id="margemOperacional">0%</div>
+        </div>
+        <div class="margem-card">
+          <div class="margem-label">Margem Líquida</div>
+          <div class="margem-valor" id="margemLiquida">0%</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="resultado" style="display: none;">
+      <h3>📈 Demonstração do Resultado</h3>
+      <table class="dre-table">
+        <thead>
+          <tr>
+            <th>Descrição</th>
+            <th style="text-align: right; width: 200px;">Valor (R$)</th>
+          </tr>
+        </thead>
+        <tbody id="dreBody">
+        </tbody>
+      </table>
+    </div>
+
+    <div style="margin-top: 30px;">
+      <a href="admin.html" class="btn btn-primary">← Voltar ao Dashboard</a>
+    </div>
+  </div>
+
+  <script>
+    async function carregarDRE() {
+      const dataInicio = document.getElementById('dataInicio').value;
+      const dataFim = document.getElementById('dataFim').value;
+      
+      if (!dataInicio || !dataFim) {
+        mostrarErro('Por favor, selecione as datas de início e fim.');
+        return;
+      }
+
+      document.getElementById('loading').style.display = 'block';
+      document.getElementById('error').style.display = 'none';
+      document.getElementById('resultado').style.display = 'none';
+      document.getElementById('margens').style.display = 'none';
+
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`/api/dre?data_inicio=${dataInicio}&data_fim=${dataFim}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error('Erro ao carregar dados do DRE');
+        }
+
+        const data = await response.json();
+        exibirDRE(data.dre);
+        exibirMargens(data.dre);
+        
+      } catch (error) {
+        mostrarErro('Erro ao carregar DRE: ' + error.message);
+      } finally {
+        document.getElementById('loading').style.display = 'none';
+      }
+    }
+
+    function exibirDRE(dre) {
+      const tbody = document.getElementById('dreBody');
+      tbody.innerHTML = '';
+
+      // Receita Bruta
+      adicionarLinha('RECEITA BRUTA', dre.receita_bruta.valor, 'nivel-1 valor-positivo');
+      
+      // Deduções
+      adicionarLinha('(-) DEDUÇÕES DA RECEITA', dre.deducoes.valor, 'nivel-2 valor-negativo');
+      
+      // Receita Líquida
+      adicionarLinha('(=) RECEITA LÍQUIDA', dre.receita_liquida.valor, 'nivel-1 valor-positivo');
+      
+      // CMV
+      adicionarLinha('(-) CUSTO DA MERCADORIA VENDIDA (CMV)', dre.cmv.valor, 'nivel-2 valor-negativo');
+      
+      // Lucro Bruto
+      adicionarLinha('(=) LUCRO BRUTO', dre.lucro_bruto.valor, 'nivel-1 ' + (dre.lucro_bruto.valor >= 0 ? 'valor-positivo' : 'valor-negativo'));
+      
+      // Despesas Operacionais
+      adicionarLinha('(-) DESPESAS OPERACIONAIS', dre.despesas_operacionais.total, 'nivel-2 valor-negativo');
+      
+      // Lucro Operacional
+      adicionarLinha('(=) LUCRO OPERACIONAL', dre.lucro_operacional.valor, 'nivel-1 ' + (dre.lucro_operacional.valor >= 0 ? 'valor-positivo' : 'valor-negativo'));
+      
+      // Receitas Financeiras
+      adicionarLinha('(+) RECEITAS FINANCEIRAS', dre.resultado_financeiro.receitas, 'nivel-2 valor-positivo');
+      
+      // Despesas Financeiras
+      adicionarLinha('(-) DESPESAS FINANCEIRAS', dre.resultado_financeiro.despesas, 'nivel-2 valor-negativo');
+      
+      // Resultado Financeiro
+      adicionarLinha('(=) RESULTADO FINANCEIRO', dre.resultado_financeiro.resultado, 'nivel-2 ' + (dre.resultado_financeiro.resultado >= 0 ? 'valor-positivo' : 'valor-negativo'));
+      
+      // Resultado Antes dos Impostos (Lucro Operacional + Resultado Financeiro)
+      const resultadoAntesImpostos = dre.lucro_operacional.valor + dre.resultado_financeiro.resultado;
+      adicionarLinha('(=) RESULTADO ANTES DOS IMPOSTOS', resultadoAntesImpostos, 'nivel-1 ' + (resultadoAntesImpostos >= 0 ? 'valor-positivo' : 'valor-negativo'));
+      
+      // Impostos sobre Lucro (não temos dados ainda)
+      adicionarLinha('(-) IMPOSTOS SOBRE O LUCRO', 0, 'nivel-2 valor-negativo');
+      
+      // Resultado Líquido
+      adicionarLinha('(=) RESULTADO LÍQUIDO', dre.resultado_liquido.valor, 'resultado-final');
+
+      document.getElementById('resultado').style.display = 'block';
+    }
+
+    function adicionarLinha(descricao, valor, classe) {
+      const tbody = document.getElementById('dreBody');
+      const tr = document.createElement('tr');
+      tr.className = classe;
+      
+      tr.innerHTML = `
+        <td>${descricao}</td>
+        <td style="text-align: right;">${formatarMoeda(valor)}</td>
+      `;
+      
+      tbody.appendChild(tr);
+    }
+
+    function exibirMargens(dre) {
+      document.getElementById('margemBruta').textContent = formatarPorcentagem(dre.indicadores.margem_bruta);
+      document.getElementById('margemOperacional').textContent = formatarPorcentagem(dre.indicadores.margem_operacional);
+      document.getElementById('margemLiquida').textContent = formatarPorcentagem(dre.indicadores.margem_liquida);
+      document.getElementById('margens').style.display = 'block';
+    }
+
+    function formatarMoeda(valor) {
+      return new Intl.NumberFormat('pt-BR', {
+        style: 'currency',
+        currency: 'BRL'
+      }).format(valor);
+    }
+
+    function formatarPorcentagem(valor) {
+      return (valor || 0).toFixed(2) + '%';
+    }
+
+    function mostrarErro(mensagem) {
+      const errorDiv = document.getElementById('error');
+      errorDiv.textContent = mensagem;
+      errorDiv.style.display = 'block';
+    }
+
+    // Carregar DRE do mês atual ao abrir a página
+    window.addEventListener('load', () => {
+      const hoje = new Date();
+      const primeiroDia = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+      const ultimoDia = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0);
+      
+      document.getElementById('dataInicio').value = primeiroDia.toISOString().split('T')[0];
+      document.getElementById('dataFim').value = ultimoDia.toISOString().split('T')[0];
+      
+      carregarDRE();
+    });
+  </script>
+</body>
+</html>

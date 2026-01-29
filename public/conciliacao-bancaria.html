@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conciliação Bancária</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container { max-width: 1600px; margin: 0 auto; }
+        .header {
+            background: white;
+            padding: 20px 30px;
+            border-radius: 16px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 {
+            font-size: 28px;
+            color: #2d3748;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .header-actions { display: flex; gap: 12px; }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        .btn-primary { background: #667eea; color: white; }
+        .btn-primary:hover { background: #5568d3; transform: translateY(-2px); }
+        .btn-outline { background: white; color: #667eea; border: 2px solid #667eea; }
+        .btn-outline:hover { background: #667eea; color: white; }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        .stat-label { font-size: 14px; color: #718096; margin-bottom: 8px; }
+        .stat-value { font-size: 32px; font-weight: 700; color: #2d3748; }
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            margin-bottom: 25px;
+        }
+        .card-title { font-size: 18px; font-weight: 700; color: #2d3748; margin-bottom: 20px; }
+        .loading { text-align: center; padding: 40px; color: #a0aec0; }
+        .spinner {
+            border: 3px solid #f3f4f6;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .empty-state { text-align: center; padding: 60px 20px; color: #a0aec0; }
+        .empty-state-icon { font-size: 64px; margin-bottom: 16px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><span>🏦</span> Conciliação Bancária</h1>
+            <div class="header-actions">
+                <button class="btn btn-outline" onclick="window.location.href='/admin.html'">← Voltar</button>
+            </div>
+        </div>
+        
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">Lançamentos Conciliados</div>
+                <div class="stat-value" id="stat-conciliados">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Pendentes de Conciliação</div>
+                <div class="stat-value" id="stat-pendentes">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Divergências</div>
+                <div class="stat-value" id="stat-divergencias">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Saldo Total</div>
+                <div class="stat-value" id="stat-saldo">R$ 0,00</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">Contas Bancárias</div>
+            <div id="accounts-container">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <div>Carregando contas...</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-title">Histórico de Conciliações</div>
+            <div id="conciliacoes-list">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <div>Carregando histórico...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:3000/api';
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                window.location.href = '/login.html';
+                return;
+            }
+            carregarDados();
+        });
+
+        async function carregarDados() {
+            try {
+                await Promise.all([
+                    carregarContas(),
+                    carregarConciliacoes()
+                ]);
+            } catch (error) {
+                console.error('Erro ao carregar dados:', error);
+            }
+        }
+
+        async function carregarContas() {
+            try {
+                const response = await fetch(API_URL + '/configuracoes-financeiras/contas-bancarias', {
+                    headers: { 'Authorization': 'Bearer ' + localStorage.getItem('token') }
+                });
+                
+                if (!response.ok) throw new Error('Erro ao carregar contas');
+                const data = await response.json();
+                const container = document.getElementById('accounts-container');
+                
+                if (!data.contas || data.contas.length === 0) {
+                    container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🏦</div><div>Nenhuma conta cadastrada</div></div>';
+                    return;
+                }
+
+                container.innerHTML = data.contas.map(conta => 
+                    '<div style="padding: 15px; border-bottom: 1px solid #e2e8f0;">' +
+                    '<div style="font-weight: 600; color: #2d3748;">' + conta.banco_nome + '</div>' +
+                    '<div style="font-size: 13px; color: #718096;">Ag: ' + conta.agencia + ' | Conta: ' + conta.conta + '</div>' +
+                    '<div style="font-size: 18px; font-weight: 700; color: #667eea; margin-top: 8px;">' + 
+                    formatarMoeda(conta.saldo_atual || 0) + '</div>' +
+                    '</div>'
+                ).join('');
+
+                const saldoTotal = data.contas.reduce((sum, c) => sum + (parseFloat(c.saldo_atual) || 0), 0);
+                document.getElementById('stat-saldo').textContent = formatarMoeda(saldoTotal);
+                
+            } catch (error) {
+                console.error('Erro:', error);
+                document.getElementById('accounts-container').innerHTML = 
+                    '<div class="empty-state"><div class="empty-state-icon">⚠️</div><div>Erro ao carregar contas</div></div>';
+            }
+        }
+
+        async function carregarConciliacoes() {
+            try {
+                const response = await fetch(API_URL + '/conciliacao-bancaria', {
+                    headers: { 'Authorization': 'Bearer ' + localStorage.getItem('token') }
+                });
+                
+                if (!response.ok) throw new Error('Erro ao carregar conciliações');
+                const data = await response.json();
+                const container = document.getElementById('conciliacoes-list');
+                
+                if (!data.conciliacoes || data.conciliacoes.length === 0) {
+                    container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📊</div><div>Nenhuma conciliação realizada</div></div>';
+                    return;
+                }
+
+                container.innerHTML = data.conciliacoes.map(c => 
+                    '<div style="padding: 15px; border-bottom: 1px solid #e2e8f0;">' +
+                    '<div style="font-size: 13px; color: #a0aec0;">' + formatarData(c.periodo_inicio) + ' até ' + formatarData(c.periodo_fim) + '</div>' +
+                    '<div style="font-weight: 600; color: #2d3748;">' + c.banco_nome + ' - Ag: ' + c.agencia + ' | Conta: ' + c.conta + '</div>' +
+                    '<div style="margin-top: 8px;"><span style="padding: 4px 12px; border-radius: 20px; font-size: 12px; background: #c6f6d5; color: #22543d;">' + 
+                    (c.status || 'Em Andamento') + '</span></div>' +
+                    '</div>'
+                ).join('');
+                
+            } catch (error) {
+                console.error('Erro:', error);
+                document.getElementById('conciliacoes-list').innerHTML = 
+                    '<div class="empty-state"><div class="empty-state-icon">⚠️</div><div>Erro ao carregar histórico</div></div>';
+            }
+        }
+
+        function formatarMoeda(valor) {
+            return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valor);
+        }
+
+        function formatarData(data) {
+            if (!data) return '-';
+            return new Date(data).toLocaleDateString('pt-BR');
+        }
+    </script>
+</body>
+</html>

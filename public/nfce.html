@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciar NFC-e - Nexus Gestão</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/styles.css">
+    <style>
+        .nfce-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header-section {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .page-title {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: var(--text);
+        }
+
+        .page-subtitle {
+            color: var(--muted);
+            font-size: 16px;
+        }
+
+        .filters-section {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 24px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .filters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .filter-group label {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text);
+        }
+
+        .filter-group input,
+        .filter-group select {
+            padding: 10px 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.05);
+            color: var(--text);
+            font-size: 14px;
+        }
+
+        .actions-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 10px 16px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: #0b1020;
+        }
+
+        .btn-secondary {
+            background: rgba(255,255,255,0.1);
+            color: var(--text);
+        }
+
+        .btn:hover {
+            opacity: 0.8;
+            transform: translateY(-1px);
+        }
+
+        .nfce-table {
+            background: var(--card);
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.1);
+            overflow: hidden;
+        }
+
+        .table-header {
+            padding: 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .table-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .table-content {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        th {
+            background: rgba(255,255,255,0.02);
+            font-weight: 600;
+            color: var(--muted);
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            font-size: 14px;
+            color: var(--text);
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-emitida {
+            background: rgba(101,243,184,0.2);
+            color: #65f3b8;
+        }
+
+        .status-cancelada {
+            background: rgba(255,122,122,0.2);
+            color: #ff7a7a;
+        }
+
+        .status-pendente {
+            background: rgba(255,193,7,0.2);
+            color: #ffc107;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-sm {
+            padding: 6px 10px;
+            font-size: 12px;
+            border-radius: 6px;
+        }
+
+        .btn-print {
+            background: #6366f1;
+            color: white;
+        }
+
+        .btn-view {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-cancel {
+            background: #ef4444;
+            color: white;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            padding: 20px;
+            background: var(--card);
+            border-radius: 12px;
+            margin-top: 16px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .pagination button {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 6px;
+            background: rgba(255,255,255,0.1);
+            color: var(--text);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .pagination button:hover:not(:disabled) {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .pagination button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .pagination .current {
+            background: var(--primary);
+            color: #0b1020;
+            font-weight: 600;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: var(--muted);
+        }
+
+        .loading::after {
+            content: '';
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--muted);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--muted);
+        }
+
+        .empty-state h3 {
+            font-size: 18px;
+            margin-bottom: 8px;
+            color: var(--text);
+        }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+        }
+
+        .modal-content {
+            background-color: var(--card);
+            margin: 5% auto;
+            padding: 24px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--muted);
+            padding: 4px;
+        }
+
+        .close:hover {
+            color: var(--text);
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--text);
+        }
+
+        .form-group textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.05);
+            color: var(--text);
+            font-size: 14px;
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-top: 24px;
+        }
+    </style>
+</head>
+<body>
+    <div class="nfce-container">
+        <!-- Cabeçalho -->
+                <div class="header-section">
+                        <div style="display:flex; justify-content:space-between; align-items:center; gap:16px;">
+                            <div>
+                                <h1 class="page-title">🧾 Gerenciar NFC-e</h1>
+                                <p class="page-subtitle">Consulte, imprima e gerencie suas Notas Fiscais de Consumidor Eletrônicas</p>
+                            </div>
+                                            <div>
+                                                <a href="/admin.html#sec-config-fiscal" class="btn btn-secondary" target="_blank" rel="noopener">⚙️ Configurar Emissão</a>
+                                            </div>
+                        </div>
+                </div>
+
+        <!-- Filtros -->
+        <div class="filters-section">
+            <div class="filters-grid">
+                <div class="filter-group">
+                    <label for="filtro-status">Status</label>
+                    <select id="filtro-status">
+                        <option value="">Todos</option>
+                        <option value="EMITIDA">Emitida</option>
+                        <option value="CANCELADA">Cancelada</option>
+                        <option value="PENDENTE">Pendente</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label for="filtro-data-inicio">Data Início</label>
+                    <input type="date" id="filtro-data-inicio">
+                </div>
+                
+                <div class="filter-group">
+                    <label for="filtro-data-fim">Data Fim</label>
+                    <input type="date" id="filtro-data-fim">
+                </div>
+                
+                <div class="filter-group">
+                    <label for="filtro-numero">Número NFC-e</label>
+                    <input type="text" id="filtro-numero" placeholder="Digite o número...">
+                </div>
+            </div>
+            
+            <div class="actions-bar">
+                <div>
+                    <button class="btn btn-primary" onclick="filtrarNFCes()">
+                        🔍 Filtrar
+                    </button>
+                    <button class="btn btn-secondary" onclick="limparFiltros()">
+                        🔄 Limpar
+                    </button>
+                </div>
+                
+                <div>
+                    <button class="btn btn-secondary" onclick="exportarRelatorio()">
+                        📊 Exportar
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabela de NFC-es -->
+        <div class="nfce-table">
+            <div class="table-header">
+                <h2 class="table-title">Lista de NFC-es</h2>
+                <div id="total-registros" class="text-muted"></div>
+            </div>
+            
+            <div class="table-content">
+                <div id="loading" class="loading" style="display: none;">
+                    Carregando NFC-es...
+                </div>
+                
+                <div id="empty-state" class="empty-state" style="display: none;">
+                    <h3>📄 Nenhuma NFC-e encontrada</h3>
+                    <p>Não foram encontradas NFC-es com os filtros aplicados.</p>
+                </div>
+                
+                <table id="tabela-nfces" style="display: none;">
+                    <thead>
+                        <tr>
+                            <th>Número</th>
+                            <th>Série</th>
+                            <th>Data/Hora</th>
+                            <th>Cliente</th>
+                            <th>Valor</th>
+                            <th>Status</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Paginação -->
+        <div id="paginacao" class="pagination" style="display: none;"></div>
+    </div>
+
+    <!-- Modal de Cancelamento -->
+    <div id="modal-cancelar" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Cancelar NFC-e</h3>
+                <button class="close" onclick="fecharModalCancelar()">&times;</button>
+            </div>
+            
+            <form id="form-cancelar">
+                <div class="form-group">
+                    <label for="motivo-cancelamento">Motivo do Cancelamento *</label>
+                    <textarea 
+                        id="motivo-cancelamento" 
+                        name="motivo" 
+                        required 
+                        placeholder="Informe o motivo do cancelamento da NFC-e..."
+                    ></textarea>
+                </div>
+                
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="fecharModalCancelar()">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-cancel">
+                        Confirmar Cancelamento
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/js/config.js"></script>
+    <script>
+        let currentPage = 1;
+        let totalPages = 1;
+        let nfceParaCancelar = null;
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', () => {
+            // Definir data padrão (últimos 30 dias)
+            const hoje = new Date();
+            const trintaDiasAtras = new Date(hoje.setDate(hoje.getDate() - 30));
+            
+            document.getElementById('filtro-data-inicio').value = trintaDiasAtras.toISOString().split('T')[0];
+            document.getElementById('filtro-data-fim').value = new Date().toISOString().split('T')[0];
+            
+            // Carregar NFC-es
+            carregarNFCes();
+            
+            // Event listeners
+            document.getElementById('form-cancelar').addEventListener('submit', confirmarCancelamento);
+        });
+
+        // Carregar lista de NFC-es
+        async function carregarNFCes(page = 1) {
+            const loading = document.getElementById('loading');
+            const emptyState = document.getElementById('empty-state');
+            const tabela = document.getElementById('tabela-nfces');
+            const paginacao = document.getElementById('paginacao');
+            
+            loading.style.display = 'block';
+            emptyState.style.display = 'none';
+            tabela.style.display = 'none';
+            paginacao.style.display = 'none';
+            
+            try {
+                const params = new URLSearchParams({
+                    page: page,
+                    limit: 20
+                });
+                
+                // Adicionar filtros
+                const status = document.getElementById('filtro-status').value;
+                const dataInicio = document.getElementById('filtro-data-inicio').value;
+                const dataFim = document.getElementById('filtro-data-fim').value;
+                const numero = document.getElementById('filtro-numero').value;
+                
+                if (status) params.append('status', status);
+                if (dataInicio) params.append('data_inicio', dataInicio);
+                if (dataFim) params.append('data_fim', dataFim);
+                if (numero) params.append('numero', numero);
+                
+                const response = await fetch(`/api/nfce?${params}`, {
+                    headers: apiHeaders
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Erro ao carregar NFC-es');
+                }
+                
+                const data = await response.json();
+                
+                loading.style.display = 'none';
+                
+                if (data.nfces.length === 0) {
+                    emptyState.style.display = 'block';
+                    document.getElementById('total-registros').textContent = '';
+                } else {
+                    renderizarTabela(data.nfces);
+                    renderizarPaginacao(data.pagination);
+                    tabela.style.display = 'table';
+                    paginacao.style.display = 'flex';
+                    
+                    document.getElementById('total-registros').textContent = 
+                        `${data.pagination.total} registro(s) encontrado(s)`;
+                }
+                
+                currentPage = data.pagination.page;
+                totalPages = data.pagination.pages;
+                
+            } catch (error) {
+                console.error('Erro ao carregar NFC-es:', error);
+                loading.style.display = 'none';
+                showMessage('Erro ao carregar NFC-es: ' + error.message, 'error');
+            }
+        }
+
+        // Renderizar tabela
+        function renderizarTabela(nfces) {
+            const tbody = document.querySelector('#tabela-nfces tbody');
+            tbody.innerHTML = '';
+            
+            nfces.forEach(nfce => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${String(nfce.numero_sequencial).padStart(9, '0')}</td>
+                    <td>${nfce.serie}</td>
+                    <td>${new Date(nfce.created_at).toLocaleString('pt-BR')}</td>
+                    <td>${nfce.cliente_nome || 'CONSUMIDOR'}</td>
+                    <td>R$ ${parseFloat(nfce.valor_total || 0).toFixed(2)}</td>
+                    <td>
+                        <span class="status-badge status-${nfce.status.toLowerCase()}">
+                            ${nfce.status}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="btn btn-sm btn-print" onclick="imprimirCupom(${nfce.id})" title="Imprimir Cupom">
+                                🖨️
+                            </button>
+                            <button class="btn btn-sm btn-view" onclick="visualizarNFCe(${nfce.id})" title="Visualizar">
+                                👁️
+                            </button>
+                            ${nfce.status === 'EMITIDA' ? `
+                            <button class="btn btn-sm btn-cancel" onclick="abrirModalCancelar(${nfce.id})" title="Cancelar">
+                                ❌
+                            </button>
+                            ` : ''}
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // Renderizar paginação
+        function renderizarPaginacao(pagination) {
+            const paginacao = document.getElementById('paginacao');
+            paginacao.innerHTML = '';
+            
+            // Botão anterior
+            const btnAnterior = document.createElement('button');
+            btnAnterior.textContent = '« Anterior';
+            btnAnterior.disabled = pagination.page <= 1;
+            btnAnterior.onclick = () => carregarNFCes(pagination.page - 1);
+            paginacao.appendChild(btnAnterior);
+            
+            // Números das páginas
+            const startPage = Math.max(1, pagination.page - 2);
+            const endPage = Math.min(pagination.pages, pagination.page + 2);
+            
+            for (let i = startPage; i <= endPage; i++) {
+                const btnPage = document.createElement('button');
+                btnPage.textContent = i;
+                btnPage.className = i === pagination.page ? 'current' : '';
+                btnPage.onclick = () => carregarNFCes(i);
+                paginacao.appendChild(btnPage);
+            }
+            
+            // Botão próximo
+            const btnProximo = document.createElement('button');
+            btnProximo.textContent = 'Próximo »';
+            btnProximo.disabled = pagination.page >= pagination.pages;
+            btnProximo.onclick = () => carregarNFCes(pagination.page + 1);
+            paginacao.appendChild(btnProximo);
+        }
+
+        // Filtrar NFC-es
+        function filtrarNFCes() {
+            currentPage = 1;
+            carregarNFCes();
+        }
+
+        // Limpar filtros
+        function limparFiltros() {
+            document.getElementById('filtro-status').value = '';
+            document.getElementById('filtro-numero').value = '';
+            
+            // Redefinir datas para últimos 30 dias
+            const hoje = new Date();
+            const trintaDiasAtras = new Date(hoje.setDate(hoje.getDate() - 30));
+            
+            document.getElementById('filtro-data-inicio').value = trintaDiasAtras.toISOString().split('T')[0];
+            document.getElementById('filtro-data-fim').value = new Date().toISOString().split('T')[0];
+            
+            filtrarNFCes();
+        }
+
+        // Imprimir cupom
+        async function imprimirCupom(nfceId) {
+            try {
+                const response = await fetch(`/api/nfce/${nfceId}/cupom`, {
+                    headers: apiHeaders
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Erro ao gerar cupom');
+                }
+                
+                const data = await response.json();
+                
+                // Abrir janela para impressão
+                const janelaCupom = window.open('', '_blank', 'width=400,height=600,scrollbars=yes');
+                janelaCupom.document.write(data.cupom_html);
+                janelaCupom.document.close();
+                janelaCupom.focus();
+                
+            } catch (error) {
+                console.error('Erro ao imprimir cupom:', error);
+                showMessage('Erro ao imprimir cupom: ' + error.message, 'error');
+            }
+        }
+
+        // Visualizar NFC-e
+        async function visualizarNFCe(nfceId) {
+            try {
+                const response = await fetch(`/api/nfce/${nfceId}`, {
+                    headers: apiHeaders
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Erro ao buscar NFC-e');
+                }
+                
+                const nfce = await response.json();
+                
+                // Por enquanto, apenas imprime o cupom
+                // No futuro, pode ser uma modal com detalhes
+                await imprimirCupom(nfceId);
+                
+            } catch (error) {
+                console.error('Erro ao visualizar NFC-e:', error);
+                showMessage('Erro ao visualizar NFC-e: ' + error.message, 'error');
+            }
+        }
+
+        // Abrir modal de cancelamento
+        function abrirModalCancelar(nfceId) {
+            nfceParaCancelar = nfceId;
+            document.getElementById('modal-cancelar').style.display = 'block';
+            document.getElementById('motivo-cancelamento').focus();
+        }
+
+        // Fechar modal de cancelamento
+        function fecharModalCancelar() {
+            document.getElementById('modal-cancelar').style.display = 'none';
+            document.getElementById('form-cancelar').reset();
+            nfceParaCancelar = null;
+        }
+
+        // Confirmar cancelamento
+        async function confirmarCancelamento(e) {
+            e.preventDefault();
+            
+            if (!nfceParaCancelar) return;
+            
+            const motivo = e.target.motivo.value.trim();
+            if (!motivo) {
+                showMessage('Informe o motivo do cancelamento', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/nfce/${nfceParaCancelar}/cancelar`, {
+                    method: 'POST',
+                    headers: {
+                        ...apiHeaders,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ motivo })
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Erro ao cancelar NFC-e');
+                }
+                
+                showMessage('NFC-e cancelada com sucesso!', 'success');
+                fecharModalCancelar();
+                carregarNFCes(currentPage);
+                
+            } catch (error) {
+                console.error('Erro ao cancelar NFC-e:', error);
+                showMessage('Erro ao cancelar NFC-e: ' + error.message, 'error');
+            }
+        }
+
+        // Exportar relatório (placeholder)
+        function exportarRelatorio() {
+            showMessage('Funcionalidade de exportação será implementada em breve', 'info');
+        }
+
+        // Fechar modal quando clicar fora
+        window.onclick = function(event) {
+            const modal = document.getElementById('modal-cancelar');
+            if (event.target === modal) {
+                fecharModalCancelar();
+            }
+        }
+    </script>
+</body>
+</html>

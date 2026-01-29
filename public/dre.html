@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>DRE - Nexus Gestão</title>
+  <link rel="stylesheet" href="/styles.css">
+  <style>
+    body {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .container {
+      max-width: 800px;
+      background: white;
+      border-radius: 16px;
+      padding: 40px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    h1 {
+      color: #333;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+    .badge {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 5px 15px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .description {
+      color: #666;
+      line-height: 1.6;
+      margin-bottom: 30px;
+    }
+    .api-section {
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+    .api-section h3 {
+      color: #667eea;
+      margin-bottom: 15px;
+    }
+    .endpoint {
+      background: #2d3748;
+      color: #68d391;
+      padding: 10px 15px;
+      border-radius: 6px;
+      font-family: 'Courier New', monospace;
+      margin: 10px 0;
+      overflow-x: auto;
+      display: block;
+      white-space: nowrap;
+    }
+    pre {
+      margin: 0;
+      white-space: pre;
+      word-wrap: normal;
+    }
+    pre code {
+      display: block;
+      background: transparent;
+      color: inherit;
+      padding: 0;
+      border-radius: 0;
+    }
+    .method {
+      background: #48bb78;
+      color: white;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-weight: 600;
+      margin-right: 10px;
+      font-size: 12px;
+    }
+    .params {
+      color: #718096;
+      margin-top: 10px;
+      font-size: 14px;
+    }
+    .back-btn {
+      display: inline-block;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 12px 30px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 600;
+      margin-top: 20px;
+    }
+    .back-btn:hover {
+      opacity: 0.9;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>
+      💼 DRE 
+      <span class="badge">Módulo API</span>
+    </h1>
+    
+    <p class="description">
+      A <strong>Demonstração do Resultado do Exercício (DRE)</strong> é um relatório contábil que mostra o desempenho financeiro da empresa em um período específico, apresentando receitas, custos, despesas e o resultado líquido.
+    </p>
+
+    <div class="api-section">
+      <h3>📡 Endpoints Disponíveis</h3>
+      
+      <div>
+        <span class="method">GET</span>
+        <span class="endpoint">/api/dre?data_inicio=2025-01-01&amp;data_fim=2025-01-31</span>
+        <div class="params">
+          <strong>Parâmetros:</strong> data_inicio, data_fim<br>
+          <strong>Retorna:</strong> DRE completo com 12 seções (Receita Bruta, CMV, Lucro Bruto, etc.)
+        </div>
+      </div>
+
+      <div style="margin-top: 20px;">
+        <span class="method">GET</span>
+        <span class="endpoint">/api/dre/comparar?periodo1_inicio=...&amp;periodo1_fim=...&amp;periodo2_inicio=...&amp;periodo2_fim=...</span>
+        <div class="params">
+          <strong>Retorna:</strong> Comparação entre dois períodos com variações percentuais
+        </div>
+      </div>
+
+      <div style="margin-top: 20px;">
+        <span class="method">GET</span>
+        <span class="endpoint">/api/dre/categorias</span>
+        <div class="params">
+          <strong>Retorna:</strong> Lista de categorias financeiras disponíveis
+        </div>
+      </div>
+    </div>
+
+    <div class="api-section">
+      <h3>📊 Estrutura do DRE</h3>
+      <ul style="color: #4a5568; line-height: 2;">
+        <li>✅ Receita Bruta</li>
+        <li>✅ (-) Deduções da Receita</li>
+        <li>✅ (=) Receita Líquida</li>
+        <li>✅ (-) CMV (Custo da Mercadoria Vendida)</li>
+        <li>✅ (=) Lucro Bruto</li>
+        <li>✅ (-) Despesas Operacionais</li>
+        <li>✅ (=) Lucro Operacional</li>
+        <li>✅ (+/-) Resultado Financeiro</li>
+        <li>✅ (=) Resultado Antes dos Impostos</li>
+        <li>✅ (-) Impostos sobre o Lucro</li>
+        <li>✅ (=) Resultado Líquido</li>
+        <li>📈 Margens: Bruta, Operacional e Líquida</li>
+      </ul>
+    </div>
+
+    <div class="api-section">
+      <h3>🔧 Como Usar</h3>
+      <p style="color: #4a5568; margin-bottom: 10px;">Integre via JavaScript/Fetch API:</p>
+      <pre style="background: #2d3748; color: #68d391; padding: 15px; border-radius: 6px; overflow-x: auto; font-family: 'Courier New', monospace; font-size: 13px;">const token = localStorage.getItem('token');
+const response = await fetch('/api/dre?data_inicio=2025-01-01&amp;data_fim=2025-01-31', {
+  headers: { 'Authorization': 'Bearer ' + token }
+});
+const data = await response.json();
+console.log(data.dre);</pre>
+    </div>
+
+    <a href="admin.html" class="back-btn">← Voltar ao Dashboard</a>
+  </div>
+</body>
+</html>
+

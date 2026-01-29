@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Formas de Pagamento - Nexus Gestão</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      overflow: hidden;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .header h1 {
+      font-size: 28px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      transition: all 0.3s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-primary {
+      background: white;
+      color: #667eea;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+
+    .btn-success {
+      background: #10b981;
+      color: white;
+    }
+
+    .btn-danger {
+      background: #ef4444;
+      color: white;
+    }
+
+    .btn-secondary {
+      background: #6b7280;
+      color: white;
+    }
+
+    .btn:hover {
+      opacity: 0.9;
+    }
+
+    .toolbar {
+      padding: 20px 30px;
+      background: #f9fafb;
+      border-bottom: 1px solid #e5e7eb;
+      display: flex;
+      gap: 15px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .search-box {
+      flex: 1;
+      min-width: 250px;
+      position: relative;
+    }
+
+    .search-box input {
+      width: 100%;
+      padding: 10px 40px 10px 15px;
+      border: 2px solid #e5e7eb;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+
+    .search-box input:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    .filter-group {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .filter-group select {
+      padding: 10px 15px;
+      border: 2px solid #e5e7eb;
+      border-radius: 8px;
+      font-size: 14px;
+      background: white;
+    }
+
+    .content {
+      padding: 30px;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    .stat-card {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+
+    .stat-card h3 {
+      font-size: 14px;
+      opacity: 0.9;
+      margin-bottom: 8px;
+    }
+
+    .stat-card .value {
+      font-size: 32px;
+      font-weight: bold;
+    }
+
+    .table-container {
+      overflow-x: auto;
+      border-radius: 12px;
+      border: 1px solid #e5e7eb;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+    }
+
+    thead {
+      background: #f9fafb;
+    }
+
+    th {
+      padding: 15px;
+      text-align: left;
+      font-weight: 600;
+      color: #374151;
+      border-bottom: 2px solid #e5e7eb;
+      font-size: 14px;
+    }
+
+    td {
+      padding: 15px;
+      border-bottom: 1px solid #e5e7eb;
+      font-size: 14px;
+    }
+
+    tr:hover {
+      background: #f9fafb;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .badge-success {
+      background: #d1fae5;
+      color: #065f46;
+    }
+
+    .badge-danger {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .badge-info {
+      background: #dbeafe;
+      color: #1e40af;
+    }
+
+    .badge-warning {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-sm {
+      padding: 6px 12px;
+      font-size: 12px;
+    }
+
+    /* Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal.active {
+      display: flex;
+    }
+
+    .modal-content {
+      background: white;
+      border-radius: 16px;
+      width: 90%;
+      max-width: 800px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+
+    .modal-header {
+      padding: 25px 30px;
+      border-bottom: 1px solid #e5e7eb;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border-radius: 16px 16px 0 0;
+    }
+
+    .modal-header h2 {
+      font-size: 22px;
+    }
+
+    .modal-body {
+      padding: 30px;
+    }
+
+    .modal-footer {
+      padding: 20px 30px;
+      border-top: 1px solid #e5e7eb;
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      background: #f9fafb;
+    }
+
+    .close-modal {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 28px;
+      cursor: pointer;
+      padding: 0;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      transition: background 0.3s;
+    }
+
+    .close-modal:hover {
+      background: rgba(255,255,255,0.2);
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group.full-width {
+      grid-column: 1 / -1;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #374151;
+      font-size: 14px;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 10px 15px;
+      border: 2px solid #e5e7eb;
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: inherit;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    .checkbox-group {
+      display: flex;
+      gap: 20px;
+      align-items: center;
+      padding: 15px;
+      background: #f9fafb;
+      border-radius: 8px;
+    }
+
+    .checkbox-group label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      font-weight: 500;
+    }
+
+    .checkbox-group input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+    }
+
+    .info-box {
+      background: #dbeafe;
+      border-left: 4px solid #3b82f6;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      font-size: 14px;
+      color: #1e40af;
+    }
+
+    .tipo-icons {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .tipo-icon {
+      font-size: 24px;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #6b7280;
+    }
+
+    .empty-state-icon {
+      font-size: 64px;
+      margin-bottom: 20px;
+      opacity: 0.3;
+    }
+
+    @media (max-width: 768px) {
+      .header {
+        flex-direction: column;
+        gap: 15px;
+        align-items: flex-start;
+      }
+
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>💳 Formas de Pagamento / Cobrança</h1>
+      <button class="btn btn-primary" onclick="abrirModal()">
+        ➕ Nova Forma
+      </button>
+    </div>
+
+    <div class="toolbar">
+      <div class="search-box">
+        <input type="text" id="searchInput" placeholder="🔍 Buscar por nome, código ou tipo..." onkeyup="filtrarTabela()">
+      </div>
+      
+      <div class="filter-group">
+        <select id="filtroTipo" onchange="filtrarTabela()">
+          <option value="">Todos os Tipos</option>
+          <option value="DINHEIRO">💵 Dinheiro</option>
+          <option value="PIX">📱 PIX</option>
+          <option value="CARTAO_DEBITO">💳 Cartão Débito</option>
+          <option value="CARTAO_CREDITO">💳 Cartão Crédito</option>
+          <option value="BOLETO">📄 Boleto</option>
+          <option value="TRANSFERENCIA">🏦 Transferência</option>
+          <option value="CHEQUE">📝 Cheque</option>
+        </select>
+
+        <select id="filtroContexto" onchange="filtrarTabela()">
+          <option value="">Todos os Contextos</option>
+          <option value="vendas">🛒 Vendas</option>
+          <option value="compras">🛍️ Compras</option>
+        </select>
+
+        <select id="filtroStatus" onchange="filtrarTabela()">
+          <option value="">Todos os Status</option>
+          <option value="ativo">✅ Ativos</option>
+          <option value="inativo">❌ Inativos</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="content">
+      <div class="stats-grid">
+        <div class="stat-card">
+          <h3>Total de Formas</h3>
+          <div class="value" id="statTotal">0</div>
+        </div>
+        <div class="stat-card">
+          <h3>Formas Ativas</h3>
+          <div class="value" id="statAtivas">0</div>
+        </div>
+        <div class="stat-card">
+          <h3>Com Parcelamento</h3>
+          <div class="value" id="statParceladas">0</div>
+        </div>
+        <div class="stat-card">
+          <h3>Sem Taxa</h3>
+          <div class="value" id="statSemTaxa">0</div>
+        </div>
+      </div>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Tipo</th>
+              <th>Nome</th>
+              <th>Código</th>
+              <th>Parcelamento</th>
+              <th>Taxa</th>
+              <th>Compensação</th>
+              <th>Disponível Para</th>
+              <th>Status</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="tabelaFormas">
+            <tr>
+              <td colspan="9" class="empty-state">
+                <div class="empty-state-icon">💳</div>
+                <p>Carregando formas de pagamento...</p>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal -->
+  <div class="modal" id="modalForma">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="modalTitulo">Nova Forma de Pagamento</h2>
+        <button class="close-modal" onclick="fecharModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="info-box">
+          💡 <strong>Dica:</strong> As formas de pagamento definem <strong>COM O QUE</strong> o cliente/fornecedor vai pagar (Dinheiro, PIX, Cartão...). 
+          Já os <strong>Planos de Pagamento</strong> definem <strong>QUANDO/COMO</strong> será dividido (À Vista, 30 dias, 3x...).
+        </div>
+
+        <form id="formForma" onsubmit="salvarForma(event)">
+          <input type="hidden" id="formaId">
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Nome *</label>
+              <input type="text" id="nome" required placeholder="Ex: PIX, Cartão de Crédito">
+            </div>
+
+            <div class="form-group">
+              <label>Código</label>
+              <input type="text" id="codigo" placeholder="Ex: PIX, CCRED">
+            </div>
+
+            <div class="form-group">
+              <label>Tipo *</label>
+              <select id="tipo" required onchange="ajustarCamposPorTipo()">
+                <option value="">Selecione...</option>
+                <option value="DINHEIRO">💵 Dinheiro</option>
+                <option value="PIX">📱 PIX</option>
+                <option value="CARTAO_DEBITO">💳 Cartão de Débito</option>
+                <option value="CARTAO_CREDITO">💳 Cartão de Crédito</option>
+                <option value="BOLETO">📄 Boleto Bancário</option>
+                <option value="TRANSFERENCIA">🏦 Transferência</option>
+                <option value="CHEQUE">📝 Cheque</option>
+                <option value="OUTROS">❓ Outros</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>Dias para Compensação</label>
+              <input type="number" id="dias_compensacao" value="0" min="0">
+            </div>
+
+            <div class="form-group">
+              <label>Taxa Percentual (%)</label>
+              <input type="number" id="taxa_percentual" value="0" min="0" max="100" step="0.01">
+            </div>
+
+            <div class="form-group">
+              <label>Taxa Fixa (R$)</label>
+              <input type="number" id="taxa_fixa" value="0" min="0" step="0.01">
+            </div>
+          </div>
+
+          <div class="form-group full-width">
+            <label>
+              <input type="checkbox" id="permite_parcelamento"> 
+              Permite Parcelamento
+            </label>
+          </div>
+
+          <div class="form-group full-width">
+            <label style="margin-bottom: 10px;">Disponível para:</label>
+            <div class="checkbox-group">
+              <label>
+                <input type="checkbox" id="visivel_vendas" checked>
+                🛒 Vendas (PDV, Clientes, Contas a Receber)
+              </label>
+              <label>
+                <input type="checkbox" id="visivel_compras" checked>
+                🛍️ Compras (Fornecedores, Contas a Pagar)
+              </label>
+            </div>
+          </div>
+
+          <div class="form-group full-width">
+            <label>
+              <input type="checkbox" id="ativo" checked> 
+              Forma Ativa
+            </label>
+          </div>
+
+          <div class="form-group full-width">
+            <label>Observações</label>
+            <textarea id="observacoes" rows="3" placeholder="Informações adicionais sobre esta forma de pagamento..."></textarea>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="fecharModal()">Cancelar</button>
+        <button class="btn btn-success" onclick="document.getElementById('formForma').requestSubmit()">
+          💾 Salvar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_URL = '/api/formas-pagamento';
+    let formasData = [];
+
+    // Token de autenticação
+    const token = localStorage.getItem('token');
+    if (!token) {
+      window.location.href = '/login.html';
+    }
+
+    // Carregar dados ao iniciar
+    document.addEventListener('DOMContentLoaded', () => {
+      carregarFormas();
+    });
+
+    // Carregar formas
+    async function carregarFormas() {
+      try {
+        const response = await fetch(API_URL, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (!response.ok) throw new Error('Erro ao carregar formas');
+
+        formasData = await response.json();
+        renderizarTabela();
+        atualizarEstatisticas();
+      } catch (error) {
+        console.error('Erro:', error);
+        alert('Erro ao carregar formas de pagamento');
+      }
+    }
+
+    // Renderizar tabela
+    function renderizarTabela() {
+      const tbody = document.getElementById('tabelaFormas');
+      
+      if (formasData.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="9" class="empty-state">
+              <div class="empty-state-icon">💳</div>
+              <p>Nenhuma forma de pagamento cadastrada</p>
+              <button class="btn btn-primary" onclick="abrirModal()" style="margin-top: 15px;">
+                ➕ Cadastrar Primeira Forma
+              </button>
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = formasData.map(forma => {
+        const icone = getTipoIcone(forma.tipo);
+        const disponibilidade = [];
+        if (forma.visivel_vendas) disponibilidade.push('<span class="badge badge-info">🛒 Vendas</span>');
+        if (forma.visivel_compras) disponibilidade.push('<span class="badge badge-warning">🛍️ Compras</span>');
+
+        const taxa = forma.taxa_percentual > 0 || forma.taxa_fixa > 0
+          ? `${forma.taxa_percentual}% ${forma.taxa_fixa > 0 ? `+ R$ ${forma.taxa_fixa.toFixed(2)}` : ''}`
+          : 'Sem taxa';
+
+        return `
+          <tr>
+            <td><span class="tipo-icon">${icone}</span></td>
+            <td><strong>${forma.nome}</strong></td>
+            <td>${forma.codigo || '-'}</td>
+            <td>${forma.permite_parcelamento ? '<span class="badge badge-success">✓ Sim</span>' : '<span class="badge badge-danger">✗ Não</span>'}</td>
+            <td>${taxa}</td>
+            <td>${forma.dias_compensacao} dias</td>
+            <td>${disponibilidade.join(' ')}</td>
+            <td>${forma.ativo ? '<span class="badge badge-success">✅ Ativo</span>' : '<span class="badge badge-danger">❌ Inativo</span>'}</td>
+            <td class="actions">
+              <button class="btn btn-sm btn-primary" onclick="editarForma(${forma.id})">✏️</button>
+              <button class="btn btn-sm btn-danger" onclick="excluirForma(${forma.id})">🗑️</button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    // Ícones por tipo
+    function getTipoIcone(tipo) {
+      const icones = {
+        'DINHEIRO': '💵',
+        'PIX': '📱',
+        'CARTAO_DEBITO': '💳',
+        'CARTAO_CREDITO': '💳',
+        'BOLETO': '📄',
+        'TRANSFERENCIA': '🏦',
+        'CHEQUE': '📝',
+        'OUTROS': '❓'
+      };
+      return icones[tipo] || '💰';
+    }
+
+    // Atualizar estatísticas
+    function atualizarEstatisticas() {
+      document.getElementById('statTotal').textContent = formasData.length;
+      document.getElementById('statAtivas').textContent = formasData.filter(f => f.ativo).length;
+      document.getElementById('statParceladas').textContent = formasData.filter(f => f.permite_parcelamento).length;
+      document.getElementById('statSemTaxa').textContent = formasData.filter(f => f.taxa_percentual === 0 && f.taxa_fixa === 0).length;
+    }
+
+    // Filtrar tabela
+    function filtrarTabela() {
+      const search = document.getElementById('searchInput').value.toLowerCase();
+      const tipo = document.getElementById('filtroTipo').value;
+      const contexto = document.getElementById('filtroContexto').value;
+      const status = document.getElementById('filtroStatus').value;
+
+      const filtrados = formasData.filter(forma => {
+        const matchSearch = !search || 
+          forma.nome.toLowerCase().includes(search) || 
+          (forma.codigo && forma.codigo.toLowerCase().includes(search)) ||
+          forma.tipo.toLowerCase().includes(search);
+
+        const matchTipo = !tipo || forma.tipo === tipo;
+
+        const matchContexto = !contexto || 
+          (contexto === 'vendas' && forma.visivel_vendas) ||
+          (contexto === 'compras' && forma.visivel_compras);
+
+        const matchStatus = !status ||
+          (status === 'ativo' && forma.ativo) ||
+          (status === 'inativo' && !forma.ativo);
+
+        return matchSearch && matchTipo && matchContexto && matchStatus;
+      });
+
+      const tempData = formasData;
+      formasData = filtrados;
+      renderizarTabela();
+      formasData = tempData;
+    }
+
+    // Abrir modal
+    function abrirModal(id = null) {
+      document.getElementById('modalTitulo').textContent = id ? 'Editar Forma de Pagamento' : 'Nova Forma de Pagamento';
+      document.getElementById('formForma').reset();
+      document.getElementById('formaId').value = '';
+      document.getElementById('visivel_vendas').checked = true;
+      document.getElementById('visivel_compras').checked = true;
+      document.getElementById('ativo').checked = true;
+
+      if (id) {
+        carregarForma(id);
+      }
+
+      document.getElementById('modalForma').classList.add('active');
+    }
+
+    // Fechar modal
+    function fecharModal() {
+      document.getElementById('modalForma').classList.remove('active');
+    }
+
+    // Carregar forma para edição
+    async function carregarForma(id) {
+      try {
+        const response = await fetch(`${API_URL}/${id}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (!response.ok) throw new Error('Erro ao carregar forma');
+
+        const forma = await response.json();
+        
+        document.getElementById('formaId').value = forma.id;
+        document.getElementById('nome').value = forma.nome;
+        document.getElementById('codigo').value = forma.codigo || '';
+        document.getElementById('tipo').value = forma.tipo;
+        document.getElementById('dias_compensacao').value = forma.dias_compensacao;
+        document.getElementById('taxa_percentual').value = forma.taxa_percentual;
+        document.getElementById('taxa_fixa').value = forma.taxa_fixa;
+        document.getElementById('permite_parcelamento').checked = forma.permite_parcelamento;
+        document.getElementById('visivel_vendas').checked = forma.visivel_vendas;
+        document.getElementById('visivel_compras').checked = forma.visivel_compras;
+        document.getElementById('ativo').checked = forma.ativo;
+        document.getElementById('observacoes').value = forma.observacoes || '';
+      } catch (error) {
+        console.error('Erro:', error);
+        alert('Erro ao carregar dados da forma');
+      }
+    }
+
+    // Salvar forma
+    async function salvarForma(event) {
+      event.preventDefault();
+
+      const id = document.getElementById('formaId').value;
+      const visivelVendas = document.getElementById('visivel_vendas').checked;
+      const visivelCompras = document.getElementById('visivel_compras').checked;
+
+      if (!visivelVendas && !visivelCompras) {
+        alert('Selecione pelo menos uma opção de disponibilidade (Vendas ou Compras)!');
+        return;
+      }
+
+      const dados = {
+        nome: document.getElementById('nome').value,
+        codigo: document.getElementById('codigo').value,
+        tipo: document.getElementById('tipo').value,
+        dias_compensacao: parseInt(document.getElementById('dias_compensacao').value) || 0,
+        taxa_percentual: parseFloat(document.getElementById('taxa_percentual').value) || 0,
+        taxa_fixa: parseFloat(document.getElementById('taxa_fixa').value) || 0,
+        permite_parcelamento: document.getElementById('permite_parcelamento').checked,
+        visivel_vendas: visivelVendas,
+        visivel_compras: visivelCompras,
+        ativo: document.getElementById('ativo').checked,
+        observacoes: document.getElementById('observacoes').value
+      };
+
+      try {
+        const url = id ? `${API_URL}/${id}` : API_URL;
+        const method = id ? 'PUT' : 'POST';
+
+        const response = await fetch(url, {
+          method,
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify(dados)
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || 'Erro ao salvar');
+        }
+
+        alert(id ? 'Forma atualizada com sucesso!' : 'Forma cadastrada com sucesso!');
+        fecharModal();
+        carregarFormas();
+      } catch (error) {
+        console.error('Erro:', error);
+        alert(error.message);
+      }
+    }
+
+    // Editar forma
+    function editarForma(id) {
+      abrirModal(id);
+    }
+
+    // Excluir forma
+    async function excluirForma(id) {
+      if (!confirm('Tem certeza que deseja excluir esta forma de pagamento?')) {
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_URL}/${id}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || 'Erro ao excluir');
+        }
+
+        alert('Forma excluída com sucesso!');
+        carregarFormas();
+      } catch (error) {
+        console.error('Erro:', error);
+        alert(error.message);
+      }
+    }
+
+    // Ajustar campos por tipo
+    function ajustarCamposPorTipo() {
+      const tipo = document.getElementById('tipo').value;
+      
+      // Sugestões automáticas por tipo
+      const sugestoes = {
+        'DINHEIRO': { codigo: 'DIN', parcela: false, dias: 0, taxa_perc: 0, taxa_fixa: 0 },
+        'PIX': { codigo: 'PIX', parcela: false, dias: 0, taxa_perc: 0, taxa_fixa: 0 },
+        'CARTAO_DEBITO': { codigo: 'CDEB', parcela: false, dias: 1, taxa_perc: 2.5, taxa_fixa: 0 },
+        'CARTAO_CREDITO': { codigo: 'CCRED', parcela: true, dias: 30, taxa_perc: 3.5, taxa_fixa: 0 },
+        'BOLETO': { codigo: 'BOL', parcela: true, dias: 2, taxa_perc: 0, taxa_fixa: 3.50 },
+        'TRANSFERENCIA': { codigo: 'TRANSF', parcela: false, dias: 1, taxa_perc: 0, taxa_fixa: 0 },
+        'CHEQUE': { codigo: 'CHQ', parcela: true, dias: 3, taxa_perc: 0, taxa_fixa: 0 }
+      };
+
+      if (sugestoes[tipo] && !document.getElementById('formaId').value) {
+        const s = sugestoes[tipo];
+        document.getElementById('codigo').value = s.codigo;
+        document.getElementById('permite_parcelamento').checked = s.parcela;
+        document.getElementById('dias_compensacao').value = s.dias;
+        document.getElementById('taxa_percentual').value = s.taxa_perc;
+        document.getElementById('taxa_fixa').value = s.taxa_fixa;
+      }
+    }
+
+    // Fechar modal com ESC
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        fecharModal();
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Nexus Gestão - Login</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <main class="container">
+    <section class="card">
+      <div class="brand">
+        <div class="logo">NG</div>
+        <h1>Nexus Gestão</h1>
+        <p class="subtitle">Acesse sua conta para continuar</p>
+      </div>
+
+      <form id="loginForm" class="form">
+        <label class="field">
+          <span>Usuário</span>
+          <input id="login" name="login" autocomplete="username" placeholder="Seu usuário" required />
+        </label>
+
+        <label class="field">
+          <span>Senha</span>
+          <input id="senha" name="senha" type="password" autocomplete="current-password" placeholder="Sua senha" required />
+        </label>
+
+        <div class="actions">
+          <label class="remember">
+            <input type="checkbox" id="remember" />
+            <span>Lembrar de mim</span>
+          </label>
+          <button type="button" class="link" id="openRecover">Esqueci minha senha</button>
+        </div>
+
+        <button class="primary" type="submit">Entrar</button>
+      </form>
+
+      <div id="feedback" class="feedback" aria-live="polite"></div>
+    </section>
+  </main>
+
+  <dialog id="recoverDialog" class="dialog">
+    <form id="recoverForm" method="dialog" class="form">
+      <h2>Recuperar senha</h2>
+      <p class="muted">Informe seu e-mail cadastrado para enviarmos as instruções.</p>
+      <label class="field">
+        <span>E-mail</span>
+        <input id="recoverEmail" name="email" type="email" autocomplete="email" placeholder="seu@email.com" required />
+      </label>
+      <div class="dialog-actions">
+        <button type="button" class="ghost" id="closeRecover">Cancelar</button>
+        <button type="submit" class="primary">Enviar</button>
+      </div>
+      <div id="recoverFeedback" class="feedback" aria-live="polite"></div>
+    </form>
+  </dialog>
+
+  <script src="/app.js"></script>
+</body>
+</html> 

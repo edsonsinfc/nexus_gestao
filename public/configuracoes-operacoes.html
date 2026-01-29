@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mapeamento de Operações Financeiras - Nexus Gestão</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      overflow: hidden;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 30px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .header h1 {
+      font-size: 28px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-primary {
+      background: white;
+      color: #667eea;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(255,255,255,0.3);
+    }
+
+    .btn-success {
+      background: #48bb78;
+      color: white;
+    }
+
+    .btn-secondary {
+      background: #718096;
+      color: white;
+    }
+
+    .content {
+      padding: 40px;
+    }
+
+    .info-box {
+      background: #edf2f7;
+      border-left: 4px solid #667eea;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 30px;
+    }
+
+    .info-box h3 {
+      color: #2d3748;
+      margin-bottom: 10px;
+      font-size: 18px;
+    }
+
+    .info-box p {
+      color: #4a5568;
+      line-height: 1.6;
+    }
+
+    .alert {
+      padding: 15px 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      display: none;
+    }
+
+    .alert.success {
+      background: #c6f6d5;
+      color: #22543d;
+      border: 1px solid #9ae6b4;
+    }
+
+    .alert.error {
+      background: #fed7d7;
+      color: #742a2a;
+      border: 1px solid #fc8181;
+    }
+
+    .alert.active {
+      display: block;
+    }
+
+    .grupo-section {
+      margin-bottom: 40px;
+    }
+
+    .grupo-header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 15px 20px;
+      border-radius: 10px;
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .operacoes-grid {
+      display: grid;
+      gap: 15px;
+    }
+
+    .operacao-item {
+      background: #f7fafc;
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 20px;
+      display: grid;
+      grid-template-columns: 1fr 2fr auto;
+      gap: 20px;
+      align-items: center;
+      transition: all 0.3s;
+    }
+
+    .operacao-item:hover {
+      border-color: #667eea;
+      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.1);
+    }
+
+    .operacao-info {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .operacao-codigo {
+      font-size: 12px;
+      font-weight: 700;
+      color: #667eea;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .operacao-descricao {
+      font-size: 16px;
+      font-weight: 600;
+      color: #2d3748;
+    }
+
+    .categoria-select-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .categoria-select {
+      flex: 1;
+      padding: 12px 15px;
+      border: 2px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 14px;
+      transition: all 0.3s;
+      background: white;
+    }
+
+    .categoria-select:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    .categoria-select option[data-tipo="RECEITA"] {
+      background: #c6f6d5;
+    }
+
+    .categoria-select option[data-tipo="DESPESA"] {
+      background: #fed7d7;
+    }
+
+    .categoria-select option[data-tipo="CUSTO"] {
+      background: #feebc8;
+    }
+
+    .status-icon {
+      font-size: 24px;
+    }
+
+    .status-icon.configurado {
+      color: #48bb78;
+    }
+
+    .status-icon.pendente {
+      color: #ed8936;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 60px;
+      color: #667eea;
+      font-size: 18px;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    .stat-card {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+    }
+
+    .stat-card.success {
+      background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+    }
+
+    .stat-card.warning {
+      background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%);
+    }
+
+    .stat-label {
+      font-size: 13px;
+      opacity: 0.9;
+      margin-bottom: 8px;
+    }
+
+    .stat-value {
+      font-size: 32px;
+      font-weight: 700;
+    }
+
+    @media (max-width: 768px) {
+      .operacao-item {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>
+        <span>⚙️</span>
+        Mapeamento de Operações Financeiras
+      </h1>
+      <div style="display: flex; gap: 10px;">
+        <button class="btn btn-primary" onclick="inicializarConfigs()">
+          🔄 Inicializar Padrões
+        </button>
+        <a href="/admin.html" class="btn btn-secondary">← Voltar</a>
+      </div>
+    </div>
+
+    <div class="content">
+      <div id="alert" class="alert"></div>
+
+      <div class="info-box">
+        <h3>📌 Como funciona?</h3>
+        <p>
+          Configure qual categoria financeira será usada automaticamente para cada tipo de operação no sistema.
+          Por exemplo: ao finalizar uma entrada de mercadoria, o sistema criará automaticamente um lançamento financeiro
+          usando a categoria definida para "Compra de Mercadorias".
+        </p>
+      </div>
+
+      <div class="stats">
+        <div class="stat-card success">
+          <div class="stat-label">Operações Configuradas</div>
+          <div class="stat-value" id="totalConfiguradas">0</div>
+        </div>
+        <div class="stat-card warning">
+          <div class="stat-label">Aguardando Configuração</div>
+          <div class="stat-value" id="totalPendentes">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Total de Operações</div>
+          <div class="stat-value" id="totalOperacoes">0</div>
+        </div>
+      </div>
+
+      <div id="loading" class="loading" style="display: none;">
+        Carregando configurações...
+      </div>
+
+      <div id="grupos-container"></div>
+    </div>
+  </div>
+
+  <script>
+    let configuracoes = [];
+    let categorias = [];
+
+    document.addEventListener('DOMContentLoaded', () => {
+      carregarCategorias();
+      carregarConfiguracoes();
+    });
+
+    async function carregarCategorias() {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch('/api/categorias-financeiras', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (!response.ok) throw new Error('Erro ao carregar categorias');
+
+        const data = await response.json();
+        categorias = data.categorias;
+
+      } catch (error) {
+        console.error('Erro ao carregar categorias:', error);
+        mostrarAlerta('Erro ao carregar categorias: ' + error.message, 'error');
+      }
+    }
+
+    async function carregarConfiguracoes() {
+      document.getElementById('loading').style.display = 'block';
+
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch('/api/configuracoes-financeiras', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (!response.ok) throw new Error('Erro ao carregar configurações');
+
+        const data = await response.json();
+        configuracoes = data.configuracoes;
+
+        renderizar();
+
+      } catch (error) {
+        mostrarAlerta('Erro ao carregar configurações: ' + error.message, 'error');
+      } finally {
+        document.getElementById('loading').style.display = 'none';
+      }
+    }
+
+    function renderizar() {
+      // Agrupar por grupo
+      const grupos = {};
+      configuracoes.forEach(config => {
+        if (!grupos[config.grupo]) {
+          grupos[config.grupo] = [];
+        }
+        grupos[config.grupo].push(config);
+      });
+
+      // Atualizar estatísticas
+      const configuradas = configuracoes.filter(c => c.categoria_id).length;
+      const total = configuracoes.length;
+      const pendentes = total - configuradas;
+
+      document.getElementById('totalConfiguradas').textContent = configuradas;
+      document.getElementById('totalPendentes').textContent = pendentes;
+      document.getElementById('totalOperacoes').textContent = total;
+
+      // Renderizar grupos
+      const container = document.getElementById('grupos-container');
+      container.innerHTML = '';
+
+      const gruposOrdenados = Object.keys(grupos).sort();
+
+      gruposOrdenados.forEach(grupo => {
+        const section = document.createElement('div');
+        section.className = 'grupo-section';
+
+        const header = document.createElement('div');
+        header.className = 'grupo-header';
+        header.innerHTML = `
+          ${getIconeGrupo(grupo)} ${getNomeGrupo(grupo)}
+        `;
+
+        const grid = document.createElement('div');
+        grid.className = 'operacoes-grid';
+
+        grupos[grupo].forEach(config => {
+          const item = document.createElement('div');
+          item.className = 'operacao-item';
+
+          const configurado = config.categoria_id ? 'configurado' : 'pendente';
+          const icone = config.categoria_id ? '✅' : '⚠️';
+
+          item.innerHTML = `
+            <div class="operacao-info">
+              <div class="operacao-codigo">${config.operacao}</div>
+              <div class="operacao-descricao">${config.descricao}</div>
+            </div>
+            
+            <div class="categoria-select-wrapper">
+              <select 
+                class="categoria-select" 
+                data-operacao="${config.operacao}"
+                onchange="salvarConfiguracao('${config.operacao}', this.value)">
+                <option value="">Nenhuma categoria definida</option>
+                ${renderizarOpcoesCategoria(config.categoria_id)}
+              </select>
+            </div>
+            
+            <div class="status-icon ${configurado}">
+              ${icone}
+            </div>
+          `;
+
+          grid.appendChild(item);
+        });
+
+        section.appendChild(header);
+        section.appendChild(grid);
+        container.appendChild(section);
+      });
+    }
+
+    function renderizarOpcoesCategoria(categoriaIdSelecionada) {
+      return categorias.map(cat => {
+        const selected = cat.id == categoriaIdSelecionada ? 'selected' : '';
+        return `<option value="${cat.id}" ${selected} data-tipo="${cat.tipo}">
+          ${cat.codigo} - ${cat.nome} (${cat.tipo})
+        </option>`;
+      }).join('');
+    }
+
+    async function salvarConfiguracao(operacao, categoriaId) {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch('/api/configuracoes-financeiras', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            operacao: operacao,
+            categoria_id: categoriaId || null
+          })
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+          throw new Error(result.error || 'Erro ao salvar configuração');
+        }
+
+        mostrarAlerta('✅ Configuração salva com sucesso!', 'success');
+        
+        // Recarregar para atualizar estatísticas
+        setTimeout(() => carregarConfiguracoes(), 1000);
+
+      } catch (error) {
+        mostrarAlerta(error.message, 'error');
+      }
+    }
+
+    async function inicializarConfigs() {
+      if (!confirm('Deseja inicializar as configurações padrão?\n\nIsso criará todas as operações pré-configuradas do sistema.')) {
+        return;
+      }
+
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch('/api/configuracoes-financeiras/inicializar', {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+          throw new Error(result.error || 'Erro ao inicializar configurações');
+        }
+
+        mostrarAlerta(`✅ ${result.total} operações inicializadas com sucesso!`, 'success');
+        
+        setTimeout(() => {
+          carregarConfiguracoes();
+        }, 1500);
+
+      } catch (error) {
+        mostrarAlerta(error.message, 'error');
+      }
+    }
+
+    function getIconeGrupo(grupo) {
+      const icones = {
+        'COMPRAS': '🛒',
+        'VENDAS': '💰',
+        'PESSOAL': '👥',
+        'ADMINISTRATIVO': '📋',
+        'COMERCIAL': '📣',
+        'VEICULOS': '🚗',
+        'IMPOSTOS': '📊',
+        'SERVICOS': '⚙️',
+        'FINANCEIRO': '💳',
+        'OUTROS': '📦'
+      };
+      return icones[grupo] || '📌';
+    }
+
+    function getNomeGrupo(grupo) {
+      const nomes = {
+        'COMPRAS': 'Compras e Estoque',
+        'VENDAS': 'Vendas',
+        'PESSOAL': 'Pessoal e Encargos',
+        'ADMINISTRATIVO': 'Despesas Administrativas',
+        'COMERCIAL': 'Despesas Comerciais',
+        'VEICULOS': 'Veículos',
+        'IMPOSTOS': 'Impostos e Tributos',
+        'SERVICOS': 'Serviços Profissionais',
+        'FINANCEIRO': 'Receitas e Despesas Financeiras',
+        'OUTROS': 'Outros'
+      };
+      return nomes[grupo] || grupo;
+    }
+
+    function mostrarAlerta(mensagem, tipo) {
+      const alert = document.getElementById('alert');
+      alert.textContent = mensagem;
+      alert.className = `alert ${tipo} active`;
+      
+      setTimeout(() => {
+        alert.classList.remove('active');
+      }, 5000);
+    }
+  </script>
+</body>
+</html>

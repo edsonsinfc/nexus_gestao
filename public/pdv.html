@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Nexus Gestão - PDV</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <style>
+    /* Estilos base */
+    :root {
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --secondary: #475569;
+      --danger: #dc2626;
+      --success: #16a34a;
+      --warning: #d97706;
+      --info: #0891b2;
+      --background: #0f172a;
+      --surface: #1e293b;
+      --surface-light: #334155;
+      --text: #f8fafc;
+      --text-secondary: #94a3b8;
+      --border: rgba(148, 163, 184, 0.1);
+      --radius: 12px;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', sans-serif;
+      background: var(--background);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* Layout */
+    .pdv-container {
+      display: grid;
+      grid-template-columns: 1fr 400px;
+      min-height: 100vh;
+    }
+
+    /* Header */
+    .page-header {
+      padding: 24px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+      margin-bottom: 24px;
+    }
+
+    .page-title {
+      margin: 0;
+      font-size: 24px;
+      font-weight: 600;
+    }
+
+    .page-subtitle {
+      margin: 4px 0 0;
+      color: var(--text-secondary);
+      font-size: 14px;
+    }
+
+    /* Barra de busca */
+    .search-bar {
+      display: flex;
+      gap: 12px;
+      padding: 16px 24px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      align-items: center;
+    }
+
+    .search-wrapper {
+      flex: 1;
+      position: relative;
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-secondary);
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 12px 12px 12px 40px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: var(--surface-light);
+      color: var(--text);
+      font-size: 14px;
+    }
+
+    .search-input:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+
+    /* Botões */
+    .btn {
+      padding: 12px 24px;
+      border-radius: var(--radius);
+      border: none;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+
+    .btn i {
+      font-size: 16px;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-dark);
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: var(--secondary);
+      color: white;
+    }
+
+    /* Operações */
+    .operations-bar {
+      display: flex;
+      gap: 12px;
+      padding: 16px 24px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .operations-bar .btn {
+      flex: 1;
+    }
+
+    .btn-devolucao {
+      background: var(--warning);
+      color: white;
+    }
+
+    .btn-troca {
+      background: var(--info);
+      color: white;
+    }
+
+    .btn-cancelamento {
+      background: var(--danger);
+      color: white;
+    }
+
+    /* Grid de produtos */
+    .products-grid {
+      padding: 24px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 16px;
+      overflow-y: auto;
+    }
+
+    .product-card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 16px;
+      border: 1px solid var(--border);
+      transition: all 0.2s;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .instructions {
+      background: var(--surface);
+      padding: 20px;
+      border-radius: var(--radius);
+      margin-bottom: 20px;
+    }
+
+    .instructions h3 {
+      color: var(--primary);
+      margin-bottom: 12px;
+    }
+
+    .instructions ol {
+      padding-left: 20px;
+      color: var(--text-secondary);
+    }
+
+    .instructions li {
+      margin-bottom: 8px;
+    }
+
+    .product-highlight {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--background);
+      padding: 12px;
+      border-radius: 6px;
+    }
+
+    .product-card:hover {
+      border-color: var(--primary);
+      transform: translateY(-2px);
+    }
+
+    .product-info {
+      margin-bottom: 16px;
+    }
+
+    .product-code {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-bottom: 4px;
+    }
+
+    .product-name {
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .product-price {
+      color: var(--primary);
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .product-stock {
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .product-stock.in-stock {
+      color: var(--success);
+    }
+
+    .product-stock.out-of-stock {
+      color: var(--danger);
+    }
+
+    .btn-add-cart {
+      width: 100%;
+      padding: 8px;
+      border: none;
+      background: var(--primary);
+      color: white;
+      border-radius: var(--radius);
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    /* Carrinho */
+    .sidebar {
+      background: var(--surface);
+      border-left: 1px solid var(--border);
+    }
+
+    .cart {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .cart-header {
+      padding: 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .cart-items {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+    }
+
+    .cart-item {
+      background: var(--surface-light);
+      border-radius: var(--radius);
+      padding: 16px;
+      margin-bottom: 12px;
+    }
+
+    .item-info {
+      margin-bottom: 12px;
+    }
+
+    .item-name {
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .item-details {
+      display: flex;
+      justify-content: space-between;
+      color: var(--text-secondary);
+      font-size: 14px;
+    }
+
+    .item-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .qty-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .qty-input {
+      width: 60px;
+      text-align: center;
+      padding: 6px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+    }
+
+    .remove-btn {
+      color: var(--danger);
+    }
+
+    .cart-footer {
+      padding: 24px;
+      border-top: 1px solid var(--border);
+      background: var(--surface);
+    }
+
+    .cart-subtotal,
+    .cart-discount {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      color: var(--text-secondary);
+    }
+
+    .cart-total {
+      display: flex;
+      justify-content: space-between;
+      font-size: 20px;
+      font-weight: 700;
+      margin: 16px 0;
+    }
+
+    .cart-actions {
+      margin-top: 24px;
+    }
+
+    .btn-large {
+      width: 100%;
+      padding: 16px;
+    }
+
+    /* Produtos */
+    .product-image {
+      width: 100%;
+      height: 200px;
+      border-radius: var(--radius) var(--radius) 0 0;
+      overflow: hidden;
+      background: var(--surface-light);
+      margin-bottom: 16px;
+    }
+
+    .product-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.3s ease;
+    }
+
+    .product-card:hover .product-image img {
+      transform: scale(1.05);
+    }
+
+    .no-products {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 48px;
+      color: var(--text-secondary);
+    }
+
+    .no-products i {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+
+    /* Status bar */
+    .status-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      padding: 12px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+
+    .offline-indicator {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 8px 16px;
+      border-radius: 20px;
+      background: var(--danger);
+      color: white;
+      font-size: 14px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      z-index: 1000;
+    }
+
+    .offline-indicator.online {
+      background: var(--success);
+    }
+
+    /* Toast notifications */
+    .toast {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 16px 24px;
+      border-radius: var(--radius);
+      background: var(--surface);
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      transform: translateX(120%);
+      opacity: 0;
+      transition: all 0.3s ease;
+      z-index: 2000;
+    }
+
+    .toast.show {
+      transform: translateX(0);
+      opacity: 1;
+    }
+
+    .toast-content {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .toast i {
+      font-size: 20px;
+    }
+
+    .toast-success {
+      background: var(--success);
+      color: white;
+    }
+
+    .toast-error {
+      background: var(--danger);
+      color: white;
+    }
+
+    .toast-warning {
+      background: var(--warning);
+      color: white;
+    }
+
+    .toast-info {
+      background: var(--info);
+      color: white;
+    }
+
+    /* Estilos do Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+    }
+
+    .modal.active {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-content {
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 24px;
+      width: 90%;
+      max-width: 600px;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .modal-title {
+      font-size: 20px;
+      font-weight: 600;
+    }
+
+    .close-btn {
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      font-size: 24px;
+      cursor: pointer;
+    }
+
+    .form-grid {
+      display: grid;
+      gap: 16px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .field span {
+      color: var(--text-secondary);
+      font-size: 14px;
+    }
+
+    .field input,
+    .field select,
+    .field textarea {
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--background);
+      color: var(--text);
+    }
+
+    .form-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    /* Lista de Clientes */
+    .cliente-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px;
+      background: var(--background);
+      border-radius: 6px;
+      margin-bottom: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .cliente-item:hover {
+      background: var(--surface-light);
+    }
+
+    .cliente-info {
+      flex: 1;
+    }
+
+    .cliente-nome {
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+
+    .cliente-documento {
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+
+    .no-results {
+      text-align: center;
+      padding: 20px;
+      color: var(--text-secondary);
+    }
+  </style>
+</head>
+<body>
+  <!-- Indicador de status offline/online -->
+  <div id="offline-indicator" class="offline-indicator">
+    <i class="fas fa-wifi"></i>
+    <span id="connection-status">Online</span>
+  </div>
+
+  <div class="pdv-container">
+    <!-- Área principal -->
+    <main class="main-area">
+      <div class="page-header">
+        <h1 class="page-title">PDV - Ponto de Venda</h1>
+        <p class="page-subtitle">Sistema de vendas offline/online</p>
+      </div>
+
+      <!-- Barra de busca -->
+      <div class="search-bar">
+        <div class="search-wrapper">
+          <i class="fas fa-search search-icon"></i>
+          <input type="text" class="search-input" placeholder="Buscar produtos por nome ou código..." id="product-search">
+        </div>
+        <button class="btn btn-primary" onclick="abrirModalCliente()">
+          <i class="fas fa-user"></i>
+          <span>Cliente</span>
+        </button>
+        <button class="btn btn-secondary" onclick="abrirModalCaixa()">
+          <i class="fas fa-cash-register"></i>
+          <span>Caixa</span>
+        </button>
+      </div>
+
+      <!-- Barra de operações -->
+      <div class="operations-bar">
+        <button class="btn btn-devolucao" onclick="iniciarDevolucao()">
+          <i class="fas fa-undo-alt"></i>
+          <span>Devolução</span>
+        </button>
+        <button class="btn btn-troca" onclick="iniciarTroca()">
+          <i class="fas fa-exchange-alt"></i>
+          <span>Troca</span>
+        </button>
+        <button class="btn btn-cancelamento" onclick="iniciarCancelamento()">
+          <i class="fas fa-times"></i>
+          <span>Cancelar Venda</span>
+        </button>
+      </div>
+
+      <!-- Instruções -->
+      <div class="instructions">
+        <h3>Como usar o PDV:</h3>
+        <ol>
+          <li>Digite o nome ou código do produto na busca acima</li>
+          <li>Clique no produto desejado para adicionar ao carrinho</li>
+          <li>Ajuste a quantidade usando os botões + e - no carrinho</li>
+          <li>O preço total será calculado automaticamente</li>
+        </ol>
+      </div>
+
+      <!-- Grid de produtos -->
+      <div class="products-grid" id="products-grid">
+        <!-- Produtos serão carregados aqui -->
+      </div>
+    </main>
+
+    <!-- Sidebar do carrinho -->
+    <aside class="sidebar">
+      <div class="cart">
+        <div class="cart-header">
+          <div>
+            <h3 class="cart-title">Carrinho de Compras</h3>
+            <p class="page-subtitle" id="cart-count">0 itens</p>
+          </div>
+          <button class="btn btn-icon" onclick="limparCarrinho()" title="Limpar carrinho">
+            <i class="fas fa-trash-alt"></i>
+          </button>
+        </div>
+        
+        <div class="cart-items" id="cart-items">
+          <!-- Itens do carrinho serão exibidos aqui -->
+        </div>
+        
+        <div class="cart-footer">
+          <div class="cart-subtotal">
+            <span>Subtotal:</span>
+            <span id="cart-subtotal">R$ 0,00</span>
+          </div>
+          <div class="cart-discount">
+            <span>Desconto:</span>
+            <span id="cart-discount">R$ 0,00</span>
+          </div>
+          <div class="cart-total">
+            <span>Total:</span>
+            <span id="cart-total">R$ 0,00</span>
+          </div>
+          
+          <div class="cart-actions">
+            <button class="btn btn-primary btn-large" onclick="finalizarVenda()">
+              <i class="fas fa-check"></i>
+              <span>Finalizar Venda</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <!-- Modal de cliente -->
+  <div id="modal-cliente" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">Selecionar Cliente</h3>
+        <button class="close-btn" onclick="fecharModal('modal-cliente')">&times;</button>
+      </div>
+      <div class="form-grid">
+        <div class="field">
+          <span>Buscar Cliente</span>
+          <input type="text" id="cliente-search" placeholder="Nome ou CPF/CNPJ">
+        </div>
+        <div id="clientes-lista"></div>
+        <div class="form-actions">
+          <button class="btn btn-secondary" onclick="fecharModal('modal-cliente')">Cancelar</button>
+          <button class="btn btn-primary" onclick="selecionarCliente(null)">Venda Avulsa</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de caixa -->
+  <div id="modal-caixa" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">Gerenciar Caixa</h3>
+        <button class="close-btn" onclick="fecharModal('modal-caixa')">&times;</button>
+      </div>
+      <div class="form-grid">
+        <div id="caixa-info">
+          <p>Status: <span id="caixa-status">Verificando...</span></p>
+          <p>Valor Atual: <span id="caixa-valor">R$ 0,00</span></p>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-secondary" onclick="fecharModal('modal-caixa')">Fechar</button>
+          <button class="btn btn-primary" id="caixa-action-btn" onclick="toggleCaixa()">Abrir Caixa</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de finalização -->
+  <div id="modal-finalizar" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">Finalizar Venda</h3>
+        <button class="close-btn" onclick="fecharModal('modal-finalizar')">&times;</button>
+      </div>
+      <div class="form-grid">
+        <div class="form-row">
+          <div class="field">
+            <span>Forma de Pagamento</span>
+            <select id="forma-pagamento">
+              <option value="DINHEIRO">Dinheiro</option>
+              <option value="CARTAO">Cartão</option>
+              <option value="PIX">PIX</option>
+              <option value="BOLETO">Boleto</option>
+            </select>
+          </div>
+          <div class="field">
+            <span>Vendedor</span>
+            <select id="vendedor">
+              <!-- Vendedores serão carregados aqui -->
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <span>Observações</span>
+          <textarea id="observacoes" rows="3"></textarea>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-secondary" onclick="fecharModal('modal-finalizar')">Cancelar</button>
+          <button class="btn btn-primary" onclick="confirmarVenda()">Confirmar Venda</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Barra de status -->
+  <div class="status-bar">
+    <div class="sync-status">
+      <div class="sync-indicator" id="sync-indicator"></div>
+      <span id="sync-text">Sincronizado</span>
+    </div>
+    <div>
+      <span id="vendas-pendentes">0 vendas pendentes</span>
+    </div>
+  </div>
+
+  <link rel="stylesheet" href="/css/pdv.css">
+  <link rel="stylesheet" href="/css/pdv-operacoes.css">
+
+  <script src="/pdv.js"></script>
+</body>
+</html>
+

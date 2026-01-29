@@ -1,0 +1,1139 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contas a Pagar - Nexus Gestão</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: #3498db;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2980b9;
+        }
+
+        .btn-success {
+            background: #27ae60;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #229954;
+        }
+
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+
+        .btn-secondary {
+            background: #95a5a6;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #7f8c8d;
+        }
+
+        .btn-small {
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+
+        /* Cards de Resumo */
+        .cards-resumo {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .card-resumo {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .card-resumo h3 {
+            font-size: 14px;
+            color: #7f8c8d;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        .card-resumo .valor {
+            font-size: 28px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .card-resumo .subvalor {
+            font-size: 12px;
+            color: #95a5a6;
+            margin-top: 5px;
+        }
+
+        .card-resumo.vencidas {
+            border-left: 4px solid #e74c3c;
+        }
+
+        .card-resumo.pendentes {
+            border-left: 4px solid #f39c12;
+        }
+
+        .card-resumo.pagas {
+            border-left: 4px solid #27ae60;
+        }
+
+        /* Filtros */
+        .filtros {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .filtros h3 {
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+
+        .filtros-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-size: 13px;
+            font-weight: 500;
+            color: #555;
+            margin-bottom: 5px;
+        }
+
+        .form-group input,
+        .form-group select {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        /* Tabela */
+        .tabela-container {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .tabela-header {
+            padding: 15px 20px;
+            border-bottom: 1px solid #ecf0f1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .tabela-header h3 {
+            color: #2c3e50;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: #f8f9fa;
+        }
+
+        th {
+            padding: 12px 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #555;
+            font-size: 13px;
+            text-transform: uppercase;
+        }
+
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #ecf0f1;
+            font-size: 14px;
+        }
+
+        tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        /* Status badges */
+        .badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .badge-pendente {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .badge-pago {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .badge-vencido {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .badge-parcial {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .badge-cancelado {
+            background: #e2e3e5;
+            color: #383d41;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            overflow-y: auto;
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 30px auto;
+            padding: 0;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 800px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid #ecf0f1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 {
+            color: #2c3e50;
+        }
+
+        .close {
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            border: none;
+            background: none;
+        }
+
+        .close:hover {
+            color: #000;
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .modal-footer {
+            padding: 15px 20px;
+            border-top: 1px solid #ecf0f1;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #95a5a6;
+        }
+
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Pagination */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            padding: 20px;
+        }
+
+        .pagination button {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .pagination button:hover:not(:disabled) {
+            background: #3498db;
+            color: white;
+            border-color: #3498db;
+        }
+
+        .pagination button:disabled {
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        .pagination span {
+            color: #555;
+        }
+
+        /* Alert */
+        .alert {
+            padding: 12px 20px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            display: none;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border-left: 4px solid #28a745;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border-left: 4px solid #dc3545;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 5px;
+            border-bottom: 2px solid #ecf0f1;
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            background: transparent;
+            border: none;
+            color: #7f8c8d;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .tab:hover {
+            color: #3498db;
+        }
+
+        .tab.active {
+            color: #3498db;
+            border-bottom: 2px solid #3498db;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .filtros-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .cards-resumo {
+                grid-template-columns: 1fr;
+            }
+
+            table {
+                font-size: 12px;
+            }
+
+            th, td {
+                padding: 8px 10px;
+            }
+        }
+
+        .valor-positivo {
+            color: #27ae60;
+        }
+
+        .valor-negativo {
+            color: #e74c3c;
+        }
+
+        .dias-vencido {
+            font-weight: bold;
+            color: #e74c3c;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>💳 Contas a Pagar</h1>
+            <p>Gerencie suas contas, fornecedores e pagamentos</p>
+            <div class="header-actions">
+                <button class="btn btn-primary" onclick="abrirModalNovo()">
+                    ➕ Nova Conta
+                </button>
+                <button class="btn btn-success" onclick="baixarEmLote()">
+                    ✓ Baixar em Lote
+                </button>
+                <button class="btn btn-secondary" onclick="window.print()">
+                    🖨️ Imprimir
+                </button>
+                <button class="btn btn-secondary" onclick="exportarExcel()">
+                    📊 Exportar
+                </button>
+            </div>
+        </div>
+
+        <!-- Alert -->
+        <div id="alert" class="alert"></div>
+
+        <!-- Cards de Resumo -->
+        <div class="cards-resumo">
+            <div class="card-resumo vencidas">
+                <h3>Contas Vencidas</h3>
+                <div class="valor" id="totalVencidas">0</div>
+                <div class="subvalor">R$ <span id="valorVencido">0,00</span></div>
+            </div>
+            <div class="card-resumo pendentes">
+                <h3>Contas Pendentes</h3>
+                <div class="valor" id="totalPendentes">0</div>
+                <div class="subvalor">R$ <span id="valorPendente">0,00</span></div>
+            </div>
+            <div class="card-resumo pagas">
+                <h3>Contas Pagas</h3>
+                <div class="valor" id="totalPagas">0</div>
+                <div class="subvalor">R$ <span id="valorPago">0,00</span></div>
+            </div>
+            <div class="card-resumo">
+                <h3>Total a Pagar</h3>
+                <div class="valor valor-negativo">R$ <span id="valorTotal">0,00</span></div>
+                <div class="subvalor"><span id="totalContas">0</span> contas</div>
+            </div>
+        </div>
+
+        <!-- Filtros -->
+        <div class="filtros">
+            <h3>🔍 Filtros</h3>
+            <div class="filtros-grid">
+                <div class="form-group">
+                    <label>Fornecedor</label>
+                    <select id="filtroFornecedor">
+                        <option value="">Todos</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Categoria</label>
+                    <select id="filtroCategoria">
+                        <option value="">Todas</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Status</label>
+                    <select id="filtroStatus">
+                        <option value="">Todos</option>
+                        <option value="PENDENTE">Pendente</option>
+                        <option value="PARCIAL">Parcial</option>
+                        <option value="PAGO">Pago</option>
+                        <option value="VENCIDO">Vencido</option>
+                        <option value="CANCELADO">Cancelado</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Período</label>
+                    <select id="filtroPeriodo">
+                        <option value="">Personalizado</option>
+                        <option value="hoje">Hoje</option>
+                        <option value="semana">Esta Semana</option>
+                        <option value="mes">Este Mês</option>
+                        <option value="trimestre">Este Trimestre</option>
+                        <option value="ano">Este Ano</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Data Início</label>
+                    <input type="date" id="filtroDataInicio">
+                </div>
+                <div class="form-group">
+                    <label>Data Fim</label>
+                    <input type="date" id="filtroDataFim">
+                </div>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn btn-primary" onclick="aplicarFiltros()">🔍 Filtrar</button>
+                <button class="btn btn-secondary" onclick="limparFiltros()">🔄 Limpar</button>
+            </div>
+        </div>
+
+        <!-- Tabela -->
+        <div class="tabela-container">
+            <div class="tabela-header">
+                <h3>Lista de Contas</h3>
+            </div>
+            <div id="loadingTable" class="loading" style="display: none;">
+                <div class="loading-spinner"></div>
+                <p>Carregando contas...</p>
+            </div>
+            <table id="tabelaContas" style="display: none;">
+                <thead>
+                    <tr>
+                        <th>Código</th>
+                        <th>Fornecedor</th>
+                        <th>Descrição</th>
+                        <th>Vencimento</th>
+                        <th>Valor</th>
+                        <th>Status</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="tbody-contas"></tbody>
+            </table>
+            <div class="pagination">
+                <button id="btnPrevPage" onclick="mudarPagina(-1)">Anterior</button>
+                <span>Página <span id="currentPage">1</span> de <span id="totalPages">1</span></span>
+                <button id="btnNextPage" onclick="mudarPagina(1)">Próxima</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Nova Conta / Editar -->
+    <div id="modalConta" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitulo">Nova Conta a Pagar</h2>
+                <button class="close" onclick="fecharModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="formConta">
+                    <input type="hidden" id="contaId">
+                    
+                    <div class="filtros-grid">
+                        <div class="form-group">
+                            <label>Fornecedor *</label>
+                            <select id="fornecedor_id" required>
+                                <option value="">Selecione...</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Categoria</label>
+                            <select id="categoria_id">
+                                <option value="">Selecione...</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Nº Documento</label>
+                            <input type="text" id="numero_documento">
+                        </div>
+                        <div class="form-group">
+                            <label>Valor Total *</label>
+                            <input type="number" id="valor_total" step="0.01" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Data Emissão *</label>
+                            <input type="date" id="data_emissao" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Data Vencimento *</label>
+                            <input type="date" id="data_vencimento" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Forma Pagamento</label>
+                            <select id="forma_pagamento">
+                                <option value="">Selecione...</option>
+                                <option value="DINHEIRO">Dinheiro</option>
+                                <option value="BOLETO">Boleto</option>
+                                <option value="TRANSFERENCIA">Transferência</option>
+                                <option value="PIX">PIX</option>
+                                <option value="CARTAO">Cartão</option>
+                                <option value="CHEQUE">Cheque</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Parcelas</label>
+                            <input type="number" id="parcelas" value="1" min="1" max="120">
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-top: 15px;">
+                        <label>Descrição *</label>
+                        <textarea id="descricao" rows="3" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;" required></textarea>
+                    </div>
+
+                    <div class="form-group" style="margin-top: 15px;">
+                        <label>Observações</label>
+                        <textarea id="observacoes" rows="2" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="fecharModal()">Cancelar</button>
+                <button class="btn btn-primary" onclick="salvarConta()">Salvar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Baixar -->
+    <div id="modalBaixar" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Baixar Conta a Pagar</h2>
+                <button class="close" onclick="fecharModalBaixar()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="formBaixar">
+                    <input type="hidden" id="baixarContaId">
+                    
+                    <div class="filtros-grid">
+                        <div class="form-group">
+                            <label>Valor a Pagar *</label>
+                            <input type="number" id="valor_pago" step="0.01" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Data Pagamento *</label>
+                            <input type="date" id="data_pagamento" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Forma Pagamento *</label>
+                            <select id="forma_pagamento_baixa" required>
+                                <option value="">Selecione...</option>
+                                <option value="DINHEIRO">Dinheiro</option>
+                                <option value="BOLETO">Boleto</option>
+                                <option value="TRANSFERENCIA">Transferência</option>
+                                <option value="PIX">PIX</option>
+                                <option value="CARTAO">Cartão</option>
+                                <option value="CHEQUE">Cheque</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Juros</label>
+                            <input type="number" id="valor_juros" step="0.01" value="0">
+                        </div>
+                        <div class="form-group">
+                            <label>Multa</label>
+                            <input type="number" id="valor_multa" step="0.01" value="0">
+                        </div>
+                        <div class="form-group">
+                            <label>Desconto</label>
+                            <input type="number" id="valor_desconto" step="0.01" value="0">
+                        </div>
+                    </div>
+                    <div class="form-group" style="margin-top: 15px;">
+                        <label>Observações</label>
+                        <textarea id="observacoes_baixa" rows="2" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="fecharModalBaixar()">Cancelar</button>
+                <button class="btn btn-success" onclick="confirmarBaixar()">Confirmar Pagamento</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Estado da aplicação
+        let currentPage = 1;
+        let totalPages = 1;
+        let contas = [];
+        let fornecedores = [];
+        let categorias = [];
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', function() {
+            carregarFornecedores();
+            carregarCategorias();
+            carregarContas();
+
+            // Definir data de hoje como padrão
+            const hoje = new Date().toISOString().split('T')[0];
+            document.getElementById('data_emissao').value = hoje;
+            document.getElementById('data_pagamento').value = hoje;
+        });
+
+        // Funções de API
+        async function carregarContas() {
+            try {
+                showLoading(true);
+                
+                // Construir query string com filtros
+                const params = new URLSearchParams();
+                params.append('page', currentPage);
+                params.append('limit', 50);
+
+                const filtros = obterFiltros();
+                Object.keys(filtros).forEach(key => {
+                    if (filtros[key]) params.append(key, filtros[key]);
+                });
+
+                const response = await fetch(`/api/contas-pagar?${params}`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+
+                if (!response.ok) throw new Error('Erro ao carregar contas');
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    contas = data.contas;
+                    atualizarTabela(contas);
+                    atualizarResumo(data.totalizadores);
+                    atualizarPaginacao(data.pagination);
+                }
+            } catch (error) {
+                mostrarAlerta('Erro ao carregar contas: ' + error.message, 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        async function carregarFornecedores() {
+            try {
+                const response = await fetch('/api/fornecedores', {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+
+                if (!response.ok) throw new Error('Erro ao carregar fornecedores');
+
+                const data = await response.json();
+                fornecedores = data.fornecedores || data;
+
+                const selectFiltro = document.getElementById('filtroFornecedor');
+                const selectForm = document.getElementById('fornecedor_id');
+
+                fornecedores.forEach(f => {
+                    const option1 = new Option(f.razao_social, f.id);
+                    const option2 = new Option(f.razao_social, f.id);
+                    selectFiltro.add(option1);
+                    selectForm.add(option2);
+                });
+            } catch (error) {
+                console.error('Erro ao carregar fornecedores:', error);
+            }
+        }
+
+        async function carregarCategorias() {
+            try {
+                const response = await fetch('/api/categorias-financeiras?tipo=DESPESA', {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+
+                if (!response.ok) throw new Error('Erro ao carregar categorias');
+
+                const data = await response.json();
+                categorias = data.categorias || data;
+
+                const selectFiltro = document.getElementById('filtroCategoria');
+                const selectForm = document.getElementById('categoria_id');
+
+                categorias.forEach(c => {
+                    const option1 = new Option(c.nome, c.id);
+                    const option2 = new Option(c.nome, c.id);
+                    selectFiltro.add(option1);
+                    selectForm.add(option2);
+                });
+            } catch (error) {
+                console.error('Erro ao carregar categorias:', error);
+            }
+        }
+
+        async function salvarConta() {
+            try {
+                const contaId = document.getElementById('contaId').value;
+                const formData = {
+                    fornecedor_id: document.getElementById('fornecedor_id').value,
+                    categoria_id: document.getElementById('categoria_id').value || null,
+                    numero_documento: document.getElementById('numero_documento').value,
+                    descricao: document.getElementById('descricao').value,
+                    valor_total: parseFloat(document.getElementById('valor_total').value),
+                    data_emissao: document.getElementById('data_emissao').value,
+                    data_vencimento: document.getElementById('data_vencimento').value,
+                    forma_pagamento: document.getElementById('forma_pagamento').value || null,
+                    parcelas: parseInt(document.getElementById('parcelas').value),
+                    observacoes: document.getElementById('observacoes').value || null
+                };
+
+                const url = contaId ? `/api/contas-pagar/${contaId}` : '/api/contas-pagar';
+                const method = contaId ? 'PUT' : 'POST';
+
+                const response = await fetch(url, {
+                    method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    mostrarAlerta(data.message, 'success');
+                    fecharModal();
+                    carregarContas();
+                } else {
+                    throw new Error(data.message || 'Erro ao salvar conta');
+                }
+            } catch (error) {
+                mostrarAlerta('Erro ao salvar: ' + error.message, 'error');
+            }
+        }
+
+        async function baixarConta(id, valorRestante) {
+            document.getElementById('baixarContaId').value = id;
+            document.getElementById('valor_pago').value = valorRestante;
+            document.getElementById('modalBaixar').style.display = 'block';
+        }
+
+        async function confirmarBaixar() {
+            try {
+                const contaId = document.getElementById('baixarContaId').value;
+                const formData = {
+                    valor_pago: parseFloat(document.getElementById('valor_pago').value),
+                    data_pagamento: document.getElementById('data_pagamento').value,
+                    forma_pagamento: document.getElementById('forma_pagamento_baixa').value,
+                    valor_juros: parseFloat(document.getElementById('valor_juros').value) || 0,
+                    valor_multa: parseFloat(document.getElementById('valor_multa').value) || 0,
+                    valor_desconto: parseFloat(document.getElementById('valor_desconto').value) || 0,
+                    observacoes: document.getElementById('observacoes_baixa').value || null
+                };
+
+                const response = await fetch(`/api/contas-pagar/${contaId}/baixar`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    mostrarAlerta(data.message, 'success');
+                    fecharModalBaixar();
+                    carregarContas();
+                } else {
+                    throw new Error(data.message || 'Erro ao baixar conta');
+                }
+            } catch (error) {
+                mostrarAlerta('Erro ao baixar: ' + error.message, 'error');
+            }
+        }
+
+        async function excluirConta(id) {
+            if (!confirm('Deseja realmente excluir esta conta?')) return;
+
+            try {
+                const response = await fetch(`/api/contas-pagar/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    mostrarAlerta(data.message, 'success');
+                    carregarContas();
+                } else {
+                    throw new Error(data.message || 'Erro ao excluir conta');
+                }
+            } catch (error) {
+                mostrarAlerta('Erro ao excluir: ' + error.message, 'error');
+            }
+        }
+
+        // Funções de UI
+        function atualizarTabela(contas) {
+            const tbody = document.getElementById('tbody-contas');
+            tbody.innerHTML = '';
+
+            contas.forEach(conta => {
+                const tr = document.createElement('tr');
+                
+                // Status badge
+                let statusClass = 'badge-pendente';
+                if (conta.status === 'PAGO') statusClass = 'badge-pago';
+                else if (conta.status_calculado === 'VENCIDO') statusClass = 'badge-vencido';
+                else if (conta.status === 'PARCIAL') statusClass = 'badge-parcial';
+                else if (conta.status === 'CANCELADO') statusClass = 'badge-cancelado';
+
+                // Dias vencido
+                let diasInfo = '';
+                if (conta.dias_vencimento > 0 && conta.status !== 'PAGO') {
+                    diasInfo = `<div class="dias-vencido">${conta.dias_vencimento} dias atraso</div>`;
+                }
+
+                tr.innerHTML = `
+                    <td>${conta.codigo_interno || '-'}</td>
+                    <td>
+                        <strong>${conta.fornecedor_nome}</strong><br>
+                        <small>${conta.fornecedor_cnpj || ''}</small>
+                    </td>
+                    <td>
+                        ${conta.descricao}<br>
+                        ${conta.numero_documento ? `<small>Doc: ${conta.numero_documento}</small>` : ''}
+                        ${diasInfo}
+                    </td>
+                    <td>${formatarData(conta.data_vencimento)}</td>
+                    <td>
+                        <strong>R$ ${formatarMoeda(conta.valor_restante)}</strong><br>
+                        <small>Total: R$ ${formatarMoeda(conta.valor_total)}</small>
+                    </td>
+                    <td><span class="badge ${statusClass}">${conta.status_calculado || conta.status}</span></td>
+                    <td>
+                        ${conta.status !== 'PAGO' && conta.status !== 'CANCELADO' ? 
+                            `<button class="btn btn-success btn-small" onclick="baixarConta(${conta.id}, ${conta.valor_restante})">✓ Pagar</button>` : ''}
+                        <button class="btn btn-secondary btn-small" onclick="verDetalhes(${conta.id})">👁️</button>
+                        ${conta.status !== 'PAGO' ? 
+                            `<button class="btn btn-danger btn-small" onclick="excluirConta(${conta.id})">🗑️</button>` : ''}
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            document.getElementById('tabelaContas').style.display = contas.length > 0 ? 'table' : 'none';
+        }
+
+        function atualizarResumo(totalizadores) {
+            document.getElementById('totalVencidas').textContent = totalizadores.vencidas || 0;
+            document.getElementById('valorVencido').textContent = formatarMoeda(totalizadores.valor_vencido || 0);
+            
+            document.getElementById('totalPendentes').textContent = totalizadores.pendentes || 0;
+            document.getElementById('valorPendente').textContent = formatarMoeda(totalizadores.valor_restante || 0);
+            
+            document.getElementById('totalPagas').textContent = totalizadores.pagas || 0;
+            document.getElementById('valorPago').textContent = formatarMoeda(totalizadores.valor_pago || 0);
+            
+            document.getElementById('valorTotal').textContent = formatarMoeda(totalizadores.valor_restante || 0);
+            document.getElementById('totalContas').textContent = totalizadores.total_contas || 0;
+        }
+
+        function atualizarPaginacao(pagination) {
+            currentPage = pagination.page;
+            totalPages = pagination.totalPages;
+            
+            document.getElementById('currentPage').textContent = currentPage;
+            document.getElementById('totalPages').textContent = totalPages;
+            
+            document.getElementById('btnPrevPage').disabled = currentPage === 1;
+            document.getElementById('btnNextPage').disabled = currentPage === totalPages;
+        }
+
+        function obterFiltros() {
+            return {
+                fornecedor_id: document.getElementById('filtroFornecedor').value,
+                categoria_id: document.getElementById('filtroCategoria').value,
+                status: document.getElementById('filtroStatus').value,
+                periodo: document.getElementById('filtroPeriodo').value,
+                data_vencimento_inicio: document.getElementById('filtroDataInicio').value,
+                data_vencimento_fim: document.getElementById('filtroDataFim').value
+            };
+        }
+
+        function aplicarFiltros() {
+            currentPage = 1;
+            carregarContas();
+        }
+
+        function limparFiltros() {
+            document.getElementById('filtroFornecedor').value = '';
+            document.getElementById('filtroCategoria').value = '';
+            document.getElementById('filtroStatus').value = '';
+            document.getElementById('filtroPeriodo').value = '';
+            document.getElementById('filtroDataInicio').value = '';
+            document.getElementById('filtroDataFim').value = '';
+            aplicarFiltros();
+        }
+
+        function mudarPagina(direcao) {
+            currentPage += direcao;
+            carregarContas();
+        }
+
+        function abrirModalNovo() {
+            document.getElementById('modalTitulo').textContent = 'Nova Conta a Pagar';
+            document.getElementById('formConta').reset();
+            document.getElementById('contaId').value = '';
+            const hoje = new Date().toISOString().split('T')[0];
+            document.getElementById('data_emissao').value = hoje;
+            document.getElementById('modalConta').style.display = 'block';
+        }
+
+        function fecharModal() {
+            document.getElementById('modalConta').style.display = 'none';
+        }
+
+        function fecharModalBaixar() {
+            document.getElementById('modalBaixar').style.display = 'none';
+            document.getElementById('formBaixar').reset();
+        }
+
+        function verDetalhes(id) {
+            window.location.href = `/contas-pagar-detalhes.html?id=${id}`;
+        }
+
+        function showLoading(show) {
+            document.getElementById('loadingTable').style.display = show ? 'block' : 'none';
+        }
+
+        function mostrarAlerta(mensagem, tipo) {
+            const alert = document.getElementById('alert');
+            alert.className = `alert alert-${tipo === 'success' ? 'success' : 'error'}`;
+            alert.textContent = mensagem;
+            alert.style.display = 'block';
+            setTimeout(() => alert.style.display = 'none', 5000);
+        }
+
+        function formatarMoeda(valor) {
+            return parseFloat(valor || 0).toLocaleString('pt-BR', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        }
+
+        function formatarData(data) {
+            if (!data) return '-';
+            const d = new Date(data + 'T00:00:00');
+            return d.toLocaleDateString('pt-BR');
+        }
+
+        function baixarEmLote() {
+            alert('Função em desenvolvimento');
+        }
+
+        function exportarExcel() {
+            alert('Função em desenvolvimento');
+        }
+
+        // Fechar modal ao clicar fora
+        window.onclick = function(event) {
+            const modalConta = document.getElementById('modalConta');
+            const modalBaixar = document.getElementById('modalBaixar');
+            if (event.target == modalConta) {
+                fecharModal();
+            }
+            if (event.target == modalBaixar) {
+                fecharModalBaixar();
+            }
+        }
+    </script>
+</body>
+</html>

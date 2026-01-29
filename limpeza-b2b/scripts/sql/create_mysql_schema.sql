@@ -1,0 +1,80 @@
+-- Schema Nexus_B2b (MySQL)
+
+CREATE TABLE IF NOT EXISTS usuarios (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  nome VARCHAR(100) NOT NULL,
+  email VARCHAR(120) NOT NULL UNIQUE,
+  senha VARCHAR(255) NOT NULL,
+  perfil ENUM('gestor','equipe') NOT NULL,
+  ativo TINYINT(1) DEFAULT 1,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS equipes (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  nome VARCHAR(100) NOT NULL,
+  gestor_id INT NOT NULL,
+  limite_total DECIMAL(15,2) NOT NULL DEFAULT 0,
+  saldo_atual DECIMAL(15,2) NOT NULL DEFAULT 0,
+  status ENUM('ATIVA','INATIVA') DEFAULT 'ATIVA',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX idx_gestor (gestor_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS pedidos (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  equipe_id INT NOT NULL,
+  valor_total DECIMAL(15,2) NOT NULL,
+  data DATETIME NOT NULL,
+  status ENUM('AGUARDANDO','APROVADO','ENVIADO','CANCELADO') DEFAULT 'AGUARDANDO',
+  saldo_restante DECIMAL(15,2) NOT NULL,
+  origem VARCHAR(20) DEFAULT 'Local',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_eq (equipe_id),
+  INDEX idx_status (status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS itens_pedido (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  pedido_id INT NOT NULL,
+  codprod VARCHAR(30) NOT NULL,
+  descricao VARCHAR(200) NOT NULL,
+  quantidade DECIMAL(15,3) NOT NULL,
+  valor_unitario DECIMAL(15,2) NOT NULL,
+  valor_total DECIMAL(15,2) NOT NULL,
+  INDEX idx_pedido (pedido_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS notificacoes (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  equipe_id INT NOT NULL,
+  tipo VARCHAR(50) NOT NULL,
+  mensagem VARCHAR(255) NOT NULL,
+  data DATETIME NOT NULL,
+  status ENUM('pendente','lida') DEFAULT 'pendente',
+  INDEX idx_eq (equipe_id),
+  INDEX idx_status (status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Foreign Keys
+ALTER TABLE equipes
+  ADD CONSTRAINT fk_equipes_gestor FOREIGN KEY (gestor_id)
+  REFERENCES usuarios(id)
+  ON UPDATE RESTRICT ON DELETE RESTRICT;
+
+ALTER TABLE pedidos
+  ADD CONSTRAINT fk_pedidos_equipe FOREIGN KEY (equipe_id)
+  REFERENCES equipes(id)
+  ON UPDATE RESTRICT ON DELETE RESTRICT;
+
+ALTER TABLE itens_pedido
+  ADD CONSTRAINT fk_itens_pedido_pedido FOREIGN KEY (pedido_id)
+  REFERENCES pedidos(id)
+  ON UPDATE RESTRICT ON DELETE CASCADE;
+
+ALTER TABLE notificacoes
+  ADD CONSTRAINT fk_notificacoes_equipe FOREIGN KEY (equipe_id)
+  REFERENCES equipes(id)
+  ON UPDATE RESTRICT ON DELETE CASCADE;

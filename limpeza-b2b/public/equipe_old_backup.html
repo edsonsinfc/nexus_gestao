@@ -1,0 +1,698 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Nexus B2B - Catálogo de Produtos</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root { 
+      --primary: #0066cc; 
+      --primary-dark: #0052a3; 
+      --secondary: #ff6600; 
+      --bg: #f5f5f5; 
+      --card: #ffffff; 
+      --border: #e0e0e0; 
+      --text: #333333; 
+      --text-muted: #666666; 
+      --danger: #dc3545;
+      --warning: #ff9500;
+      --success: #00a650;
+      --accent: #00bcd4;
+    }
+    
+    * { box-sizing: border-box; }
+    body { 
+      margin: 0; 
+      font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; 
+      background: var(--bg); 
+      color: var(--text); 
+      line-height: 1.6;
+    }
+    
+    /* Header */
+    header { 
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark)); 
+      color: white; 
+      padding: 1rem 2rem; 
+      position: sticky; 
+      top: 0; 
+      z-index: 100; 
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(10px);
+    }
+    .header-content { 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center; 
+      max-width: 1400px; 
+      margin: 0 auto; 
+    }
+    .brand { 
+      font-size: 1.5rem; 
+      font-weight: 700; 
+      display: flex; 
+      align-items: center; 
+      gap: 0.5rem;
+    }
+    .nav-actions { 
+      display: flex; 
+      align-items: center; 
+      gap: 1rem; 
+    }
+    .cart-button { 
+      background: rgba(255,255,255,0.2); 
+      border: none; 
+      color: white; 
+      padding: 0.5rem 1rem; 
+      border-radius: 50px; 
+      cursor: pointer; 
+      display: flex; 
+      align-items: center; 
+      gap: 0.5rem; 
+      font-weight: 600;
+      position: relative;
+    }
+    .cart-count { 
+      background: var(--danger); 
+      color: white; 
+      border-radius: 50%; 
+      width: 20px; 
+      height: 20px; 
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+      font-size: 0.75rem; 
+      position: absolute; 
+      top: -8px; 
+      right: -8px;
+    }
+    
+    /* Main Layout */
+    .container { 
+      max-width: 1400px; 
+      margin: 0 auto; 
+      padding: 2rem; 
+    }
+    
+    /* Controls */
+    .controls { 
+      display: flex; 
+      flex-wrap: wrap; 
+      gap: 1rem; 
+      margin-bottom: 2rem; 
+      align-items: center;
+    }
+    .search-box { 
+      flex: 1; 
+      min-width: 300px; 
+      position: relative; 
+    }
+    .search-box input { 
+      width: 100%; 
+      padding: 0.75rem 1rem 0.75rem 2.5rem; 
+      border: 2px solid var(--border); 
+      border-radius: 50px; 
+      background: var(--card); 
+      color: var(--text); 
+      font-size: 1rem;
+    }
+    .search-box input:focus { 
+      outline: none; 
+      border-color: var(--primary); 
+      box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.1); 
+    }
+    .search-icon { 
+      position: absolute; 
+      left: 1rem; 
+      top: 50%; 
+      transform: translateY(-50%); 
+      color: var(--text-muted); 
+    }
+    
+    select { 
+      padding: 0.75rem 1rem; 
+      border: 2px solid var(--border); 
+      border-radius: 10px; 
+      background: var(--card); 
+      color: var(--text); 
+      font-size: 1rem;
+    }
+    select:focus { 
+      outline: none; 
+      border-color: var(--primary); 
+    }
+    
+    /* Product Grid */
+    .products-grid { 
+      display: grid; 
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); 
+      gap: 1.5rem; 
+      margin-bottom: 2rem; 
+    }
+    
+    .product-card { 
+      background: var(--card); 
+      border: 1px solid var(--border); 
+      border-radius: 15px; 
+      overflow: hidden; 
+      transition: all 0.3s ease; 
+      cursor: pointer;
+    }
+    .product-card:hover { 
+      transform: translateY(-6px) scale(1.02); 
+      box-shadow: 0 25px 50px -12px rgba(59, 130, 246, 0.4), 0 20px 25px -5px rgba(0, 0, 0, 0.3); 
+      border-color: var(--primary); 
+    }
+    
+    .product-image { 
+      width: 100%; 
+      height: 200px; 
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+      font-size: 3rem; 
+      color: white; 
+      position: relative;
+    }
+    .product-image img { 
+      width: 100%; 
+      height: 100%; 
+      object-fit: cover; 
+    }
+    .product-badge { 
+      position: absolute; 
+      top: 10px; 
+      right: 10px; 
+      background: var(--primary); 
+      color: white; 
+      padding: 0.25rem 0.5rem; 
+      border-radius: 20px; 
+      font-size: 0.75rem; 
+      font-weight: 600;
+    }
+    
+    .product-info { 
+      padding: 1.25rem; 
+    }
+    .product-title { 
+      font-size: 1.1rem; 
+      font-weight: 600; 
+      margin: 0 0 0.5rem 0; 
+      color: var(--text); 
+      line-height: 1.4;
+    }
+    .product-code { 
+      color: var(--text-muted); 
+      font-size: 0.875rem; 
+      margin-bottom: 0.5rem; 
+    }
+    .product-description { 
+      color: var(--text-muted); 
+      font-size: 0.875rem; 
+      margin-bottom: 1rem; 
+      line-height: 1.5; 
+      display: -webkit-box; 
+      -webkit-line-clamp: 2; 
+      -webkit-box-orient: vertical; 
+      overflow: hidden;
+    }
+    .product-unit { 
+      background: var(--bg); 
+      color: var(--primary); 
+      padding: 0.25rem 0.75rem; 
+      border-radius: 20px; 
+      font-size: 0.75rem; 
+      font-weight: 600; 
+      display: inline-block; 
+      margin-bottom: 1rem;
+    }
+    
+    .product-actions { 
+      display: flex; 
+      gap: 0.5rem; 
+      align-items: center; 
+    }
+    .qty-input { 
+      width: 80px; 
+      padding: 0.5rem; 
+      border: 2px solid var(--border); 
+      border-radius: 8px; 
+      background: var(--bg); 
+      color: var(--text); 
+      text-align: center;
+    }
+    .add-to-cart { 
+      flex: 1; 
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark)); 
+      color: white; 
+      border: none; 
+      padding: 0.875rem 1.25rem; 
+      border-radius: 10px; 
+      font-weight: 600; 
+      cursor: pointer; 
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 14px 0 rgba(59, 130, 246, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+    .add-to-cart:hover { 
+      background: linear-gradient(135deg, var(--primary-dark), #1e40af); 
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px 0 rgba(59, 130, 246, 0.5);
+    }
+    .add-to-cart:disabled { 
+      background: var(--secondary); 
+      cursor: not-allowed; 
+    }
+    
+    /* Empty State */
+    .empty-state { 
+      text-align: center; 
+      padding: 4rem 2rem; 
+      color: var(--text-muted); 
+    }
+    .empty-state-icon { 
+      font-size: 4rem; 
+      margin-bottom: 1rem; 
+    }
+    
+    /* Loading */
+    .loading { 
+      display: flex; 
+      justify-content: center; 
+      padding: 2rem; 
+    }
+    .spinner { 
+      width: 40px; 
+      height: 40px; 
+      border: 4px solid var(--border); 
+      border-top: 4px solid var(--primary); 
+      border-radius: 50%; 
+      animation: spin 1s linear infinite; 
+    }
+    @keyframes spin { 
+      0% { transform: rotate(0deg); } 
+      100% { transform: rotate(360deg); } 
+    }
+    
+    /* Pagination */
+    .pagination { 
+      display: flex; 
+      justify-content: center; 
+      align-items: center; 
+      gap: 1rem; 
+      margin-top: 2rem; 
+    }
+    .pagination button { 
+      background: var(--card); 
+      border: 2px solid var(--border); 
+      color: var(--text); 
+      padding: 0.5rem 1rem; 
+      border-radius: 8px; 
+      cursor: pointer; 
+      transition: all 0.2s;
+    }
+    .pagination button:hover:not(:disabled) { 
+      background: var(--primary); 
+      border-color: var(--primary); 
+      color: white; 
+    }
+    .pagination button:disabled { 
+      opacity: 0.5; 
+      cursor: not-allowed; 
+    }
+    .pagination .page-info { 
+      color: var(--text-muted); 
+      font-size: 0.875rem; 
+    }
+    
+    /* Cart Sidebar */
+    .cart-sidebar { 
+      position: fixed; 
+      right: -400px; 
+      top: 0; 
+      width: 400px; 
+      height: 100vh; 
+      background: var(--card); 
+      border-left: 1px solid var(--border); 
+      transition: right 0.3s ease; 
+      z-index: 200; 
+      display: flex; 
+      flex-direction: column;
+    }
+    .cart-sidebar.open { 
+      right: 0; 
+    }
+    
+    .cart-header { 
+      padding: 1.5rem; 
+      border-bottom: 1px solid var(--border); 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center;
+    }
+    .cart-close { 
+      background: none; 
+      border: none; 
+      color: var(--text-muted); 
+      font-size: 1.5rem; 
+      cursor: pointer; 
+    }
+    
+    .cart-items { 
+      flex: 1; 
+      overflow-y: auto; 
+      padding: 1rem; 
+    }
+    .cart-item { 
+      display: flex; 
+      gap: 1rem; 
+      padding: 1rem; 
+      border-bottom: 1px solid var(--border); 
+      align-items: center;
+    }
+    .cart-item-info { 
+      flex: 1; 
+    }
+    .cart-item-name { 
+      font-weight: 600; 
+      margin-bottom: 0.25rem; 
+    }
+    .cart-item-code { 
+      color: var(--text-muted); 
+      font-size: 0.875rem; 
+    }
+    .cart-item-controls { 
+      display: flex; 
+      align-items: center; 
+      gap: 0.5rem; 
+    }
+    .cart-item-qty { 
+      width: 60px; 
+      padding: 0.25rem; 
+      text-align: center; 
+      border: 1px solid var(--border); 
+      border-radius: 4px; 
+      background: var(--bg); 
+      color: var(--text);
+    }
+    .cart-remove { 
+      background: var(--danger); 
+      color: white; 
+      border: none; 
+      padding: 0.25rem 0.5rem; 
+      border-radius: 4px; 
+      cursor: pointer; 
+      font-size: 0.75rem;
+    }
+    
+    .cart-footer { 
+      padding: 1.5rem; 
+      border-top: 1px solid var(--border); 
+      background: var(--bg);
+    }
+    .cart-total { 
+      font-size: 1.25rem; 
+      font-weight: 700; 
+      margin-bottom: 1rem; 
+      text-align: center; 
+      color: var(--primary);
+    }
+    .checkout-btn { 
+      width: 100%; 
+      background: var(--primary); 
+      color: white; 
+      border: none; 
+      padding: 1rem; 
+      border-radius: 10px; 
+      font-size: 1.1rem; 
+      font-weight: 600; 
+      cursor: pointer; 
+      transition: background 0.2s;
+    }
+    .checkout-btn:hover { 
+      background: var(--primary-dark); 
+    }
+    .checkout-btn:disabled { 
+      background: var(--secondary); 
+      cursor: not-allowed; 
+    }
+    
+    /* Overlay */
+    .overlay { 
+      position: fixed; 
+      top: 0; 
+      left: 0; 
+      width: 100%; 
+      height: 100%; 
+      background: rgba(0, 0, 0, 0.5); 
+      z-index: 150; 
+      display: none;
+    }
+    .overlay.show { 
+      display: block; 
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+      .container { padding: 1rem; }
+      .controls { flex-direction: column; align-items: stretch; }
+      .search-box { min-width: auto; }
+      .products-grid { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+      .cart-sidebar { width: 100%; right: -100%; }
+      .product-actions { flex-direction: column; }
+      .qty-input { width: 100%; }
+    }
+      line-clamp: 2;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-content">
+      <div class="brand">
+        🛒 Nexus B2B
+      </div>
+      <div class="nav-actions">
+        <button class="cart-button" id="cartToggle">
+          🛍️ Carrinho
+          <span class="cart-count" id="cartCount">0</span>
+        </button>
+        <button id="btnSair" style="background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); padding: 0.5rem 1rem; border-radius: 8px; cursor: pointer; transition: all 0.2s; text-decoration: none;">
+          🚪 Sair
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+    <!-- Controles de busca e filtro -->
+    <div class="controls">
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="searchInput" placeholder="Buscar produtos..." />
+      </div>
+      <select id="categoryFilter">
+        <option value="">Todas as categorias</option>
+      </select>
+      <button id="clearFilters" style="background: var(--secondary); color: white; border: none; padding: 0.75rem 1rem; border-radius: 8px; cursor: pointer;">
+        Limpar Filtros
+      </button>
+    </div>
+
+    <!-- Grid de produtos -->
+    <div class="products-grid" id="productsGrid">
+      <!-- Produtos serão carregados aqui -->
+    </div>
+
+    <!-- Loading -->
+    <div class="loading" id="loading" style="display: none;">
+      <div class="spinner"></div>
+    </div>
+
+    <!-- Empty state -->
+    <div class="empty-state" id="emptyState" style="display: none;">
+      <div class="empty-state-icon">📦</div>
+      <h3>Nenhum produto encontrado</h3>
+      <p>Tente ajustar os filtros ou buscar por outro termo.</p>
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination" id="pagination" style="display: none;">
+      <button id="prevPage">← Anterior</button>
+      <span class="page-info" id="pageInfo">Página 1 de 1</span>
+      <button id="nextPage">Próxima →</button>
+    </div>
+  </div>
+
+  <!-- Cart Sidebar -->
+  <div class="cart-sidebar" id="cartSidebar">
+    <div class="cart-header">
+      <h3>🛍️ Meu Carrinho</h3>
+      <button class="cart-close" id="cartClose">×</button>
+    </div>
+    <div class="cart-items" id="cartItems">
+      <!-- Itens do carrinho aqui -->
+    </div>
+    <div class="cart-footer">
+      <div class="cart-total" id="cartTotal">Total: R$ 0,00</div>
+      <button class="checkout-btn" id="checkoutBtn">Finalizar Pedido</button>
+    </div>
+  </div>
+
+  <!-- Overlay -->
+  <div class="overlay" id="overlay"></div>
+
+  <script src="/js/equipe.js"></script>
+</body>
+</html>
+  <header>
+    <div class="brand">Nexus_B2b • Equipe</div>
+    <nav>
+      <a href="#" id="btnSair">Sair</a>
+      <a href="/gestor.html">Gestor</a>
+    </nav>
+  </header>
+
+  <div class="wrap">
+    <div class="grid">
+      <div class="card">
+        <h2>Montar Pedido</h2>
+        <div class="row" style="gap:16px;">
+          <div style="flex:1;">
+            <label>Equipe</label>
+            <select id="equipeId">
+              <option value="">(selecione)</option>
+            </select>
+            <div class="muted" id="equipeLoadMsg" style="min-height:16px;"></div>
+          </div>
+          <div style="flex:1;">
+            <label>&nbsp;</label>
+            <div class="row" style="gap:8px; flex-wrap:wrap;">
+              <button id="btnVerSaldo" class="secondary">Ver Saldo</button>
+              <button id="btnLimparEquipe" class="secondary">Limpar seleção</button>
+            </div>
+            <div id="equipeNome" class="muted" style="margin-top:6px;"></div>
+            <div id="saldoBox" class="muted" style="margin-top:4px;"></div>
+          </div>
+        </div>
+
+        <div class="row" style="gap:10px; margin-top:10px;">
+          <input id="busca" placeholder="Buscar produto (Oracle opcional)" />
+          <button id="btnBuscar" class="secondary">Buscar</button>
+        </div>
+        <div id="resultadoBusca" class="muted"></div>
+
+        <div class="row" style="gap:10px; margin-top:10px; align-items:flex-end;">
+          <div style="flex:1;">
+            <label>Código</label>
+            <input id="codprod" />
+          </div>
+          <div style="flex:3;">
+            <label>Descrição</label>
+            <input id="descricao" />
+          </div>
+          <div style="flex:1;">
+            <label>Qtde</label>
+            <input id="quantidade" type="number" step="0.001" value="1" />
+          </div>
+          <div style="flex:1;">
+            <label>Vlr Unit (R$)</label>
+            <input id="valorUnit" type="number" step="0.01" value="0" />
+          </div>
+          <div>
+            <button id="btnAdd">Adicionar</button>
+          </div>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Código</th>
+              <th>Descrição</th>
+              <th>Qtde</th>
+              <th>Unit (R$)</th>
+              <th>Total (R$)</th>
+              <th class="right">Ações</th>
+            </tr>
+          </thead>
+          <tbody id="tbodyItens"></tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <h2>Resumo</h2>
+        <div class="muted">Revise os itens antes de enviar.</div>
+        <div style="margin-top:10px;">
+          <div class="row" style="justify-content:space-between;">
+            <div>Total do Pedido</div>
+            <div id="valorTotal" style="font-weight:700;">R$ 0,00</div>
+          </div>
+          <button id="btnEnviar" style="margin-top:14px; width:100%;">Enviar Pedido</button>
+          <div id="statusEnvio" class="muted" style="margin-top:8px;"></div>
+        </div>
+        <div class="muted" style="margin-top:12px;">
+          Dicas:
+          <ul>
+            <li>Se a busca de produtos retornar indisponível (503), preencha os itens manualmente.</li>
+            <li>O saldo é verificado no envio. Se insuficiente, o gestor será notificado.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <div class="row" style="justify-content:space-between;">
+        <h2>Meus Pedidos</h2>
+        <div class="row">
+          <label style="margin:0;">Status</label>
+          <select id="selFiltroStatus">
+            <option value="">(todos)</option>
+            <option value="AGUARDANDO" selected>AGUARDANDO</option>
+            <option value="ENVIADO">ENVIADO</option>
+            <option value="APROVADO">APROVADO</option>
+            <option value="CANCELADO">CANCELADO</option>
+          </select>
+          <button id="btnRecarregarPedidos" class="secondary">Recarregar</button>
+        </div>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Valor Total</th>
+            <th>Data</th>
+            <th>Status</th>
+            <th class="right">Ações</th>
+          </tr>
+        </thead>
+        <tbody id="tbodyPedidos"></tbody>
+      </table>
+      <div class="row" style="justify-content:space-between; align-items:center; margin-top:8px;">
+        <div class="muted" id="pedidosLoading" style="min-height:18px;"></div>
+        <div class="row" style="gap:8px;">
+          <label for="selPedidosPageSize" class="muted" style="margin:0;">Itens por pág.</label>
+          <select id="selPedidosPageSize">
+            <option value="5">5</option>
+            <option value="10" selected>10</option>
+            <option value="20">20</option>
+            <option value="50">50</option>
+          </select>
+          <button id="btnPedidosPrev" class="secondary">Anterior</button>
+          <button id="btnPedidosNext" class="secondary">Próxima</button>
+          <label for="inpPedidosGoTo" class="muted" style="margin:0 0 0 8px;">Ir para</label>
+          <input id="inpPedidosGoTo" type="number" min="1" step="1" style="width:72px;" placeholder="página" />
+          <button id="btnPedidosGoTo" class="secondary">Ir</button>
+          <span id="pedidosPageInfo" class="muted"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/equipe.js"></script>
+</body>
+</html>

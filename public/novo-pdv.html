@@ -1,0 +1,1013 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus Gestão - PDV</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #0066ff;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --dark: #111827;
+            --light: #ffffff;
+            --gray: #6b7280;
+            --background: #0f172a;
+            --card: #1e293b;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--background);
+            color: var(--light);
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            padding: 20px;
+            background-color: var(--card);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 4px;
+        }
+
+        .header p {
+            color: var(--gray);
+            font-size: 14px;
+        }
+
+        /* Ações */
+        .actions {
+            display: flex;
+            gap: 12px;
+            padding: 20px;
+            background-color: var(--card);
+        }
+
+        .search-container {
+            flex: 1;
+            position: relative;
+        }
+
+        .search-container i {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray);
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 12px 12px 40px;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.1);
+            background: var(--background);
+            color: var(--light);
+            font-size: 14px;
+        }
+
+        /* Botões */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            border-radius: 8px;
+            border: none;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn i {
+            font-size: 16px;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: var(--card);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        /* Operações */
+        .operations {
+            display: flex;
+            gap: 12px;
+            padding: 20px;
+            background-color: var(--card);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .operations .btn {
+            flex: 1;
+            justify-content: center;
+        }
+
+        .btn-return {
+            background: var(--warning);
+            color: white;
+        }
+
+        .btn-exchange {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-cancel {
+            background: var(--danger);
+            color: white;
+        }
+
+        /* Grid de Produtos */
+        .products-container {
+            padding: 20px;
+            overflow-y: auto;
+            max-height: calc(100vh - 200px);
+        }
+
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 20px;
+        }
+
+        .product-card {
+            background: var(--card);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 0.2s;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .product-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--primary);
+        }
+
+        .product-image {
+            width: 100%;
+            height: 160px;
+            overflow: hidden;
+            background: rgba(0,0,0,0.1);
+        }
+
+        .product-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .product-info {
+            padding: 16px;
+        }
+
+        .product-code {
+            font-size: 12px;
+            color: var(--gray);
+            margin-bottom: 4px;
+        }
+
+        .product-name {
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .product-price {
+            color: var(--primary);
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .product-stock {
+            font-size: 12px;
+            color: var(--success);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            margin-bottom: 16px;
+        }
+
+        .product-stock.out {
+            color: var(--danger);
+        }
+
+        .btn-add {
+            width: 100%;
+            justify-content: center;
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 8px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        /* Carrinho */
+        .cart {
+            background: var(--card);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .cart-header {
+            padding: 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .cart-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .cart-items {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .cart-item {
+            background: var(--background);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+
+        .item-name {
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .item-price {
+            color: var(--gray);
+            font-size: 12px;
+            margin-bottom: 12px;
+        }
+
+        .item-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .quantity-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .qty-btn {
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            border: 1px solid rgba(255,255,255,0.1);
+            background: var(--card);
+            color: var(--light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .qty-input {
+            width: 50px;
+            text-align: center;
+            padding: 4px;
+            border-radius: 6px;
+            border: 1px solid rgba(255,255,255,0.1);
+            background: var(--card);
+            color: var(--light);
+        }
+
+        .item-total {
+            margin-left: auto;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .cart-footer {
+            padding: 20px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .cart-totals {
+            margin-bottom: 20px;
+        }
+
+        .cart-total-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .cart-total-row.main {
+            font-size: 20px;
+            font-weight: 700;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .cart-actions {
+            display: grid;
+            gap: 12px;
+        }
+
+        .btn-finish {
+            background: var(--success);
+            color: white;
+            width: 100%;
+            justify-content: center;
+        }
+
+        /* Notificações */
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 16px 24px;
+            border-radius: 8px;
+            background: var(--card);
+            color: var(--light);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transform: translateX(120%);
+            opacity: 0;
+            transition: all 0.3s;
+            z-index: 1000;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        .toast i {
+            font-size: 20px;
+        }
+
+        .toast.success {
+            background: var(--success);
+        }
+
+        .toast.error {
+            background: var(--danger);
+        }
+
+        .toast.warning {
+            background: var(--warning);
+        }
+
+        /* Status */
+        .status {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 12px 20px;
+            background: var(--card);
+            border-top: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+            color: var(--gray);
+        }
+
+        .status-icon {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--success);
+            margin-right: 8px;
+            display: inline-block;
+        }
+
+        .status-icon.offline {
+            background: var(--danger);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Área principal -->
+        <main>
+            <!-- Header -->
+            <header class="header">
+                <h1>PDV - Ponto de Venda</h1>
+                <p>Sistema de vendas offline/online</p>
+            </header>
+
+            <!-- Barra de ações -->
+            <div class="actions">
+                <div class="search-container">
+                    <i class="fas fa-search"></i>
+                    <input type="text" class="search-input" id="search" placeholder="Buscar produtos por nome ou código...">
+                </div>
+                <button class="btn btn-primary" onclick="openClientModal()">
+                    <i class="fas fa-user"></i>
+                    Cliente
+                </button>
+                <button class="btn btn-secondary" onclick="openRegisterModal()">
+                    <i class="fas fa-cash-register"></i>
+                    Caixa
+                </button>
+            </div>
+
+            <!-- Barra de operações -->
+            <div class="operations">
+                <button class="btn btn-return" onclick="startReturn()">
+                    <i class="fas fa-undo"></i>
+                    Devolução
+                </button>
+                <button class="btn btn-exchange" onclick="startExchange()">
+                    <i class="fas fa-exchange-alt"></i>
+                    Troca
+                </button>
+                <button class="btn btn-cancel" onclick="startCancel()">
+                    <i class="fas fa-times"></i>
+                    Cancelar
+                </button>
+            </div>
+
+            <!-- Grid de produtos -->
+            <div class="products-container">
+                <div class="products-grid" id="products-grid">
+                    <!-- Produtos serão carregados aqui -->
+                </div>
+            </div>
+        </main>
+
+        <!-- Carrinho -->
+        <aside class="cart">
+            <div class="cart-header">
+                <h2 class="cart-title">Carrinho</h2>
+                <p class="cart-subtitle" id="cart-count">0 itens</p>
+            </div>
+
+            <div class="cart-items" id="cart-items">
+                <!-- Itens do carrinho serão exibidos aqui -->
+            </div>
+
+            <div class="cart-footer">
+                <div class="cart-totals">
+                    <div class="cart-total-row">
+                        <span>Subtotal:</span>
+                        <span id="subtotal">R$ 0,00</span>
+                    </div>
+                    <div class="cart-total-row">
+                        <span>Desconto:</span>
+                        <span id="discount">R$ 0,00</span>
+                    </div>
+                    <div class="cart-total-row main">
+                        <span>Total:</span>
+                        <span id="total">R$ 0,00</span>
+                    </div>
+                </div>
+
+                <div class="cart-actions">
+                    <button class="btn btn-finish" onclick="finishSale()">
+                        <i class="fas fa-check"></i>
+                        Finalizar Venda
+                    </button>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <!-- Barra de Status e Informações -->
+    <div class="status">
+        <!-- Status de Conexão -->
+        <div class="status-group">
+            <div class="status-item">
+                <i class="fas fa-wifi" id="connection-icon"></i>
+                <span id="status-text">Online</span>
+            </div>
+            <div class="status-item">
+                <i class="fas fa-sync-alt" id="sync-icon"></i>
+                <span id="sync-text">Sincronizado</span>
+            </div>
+        </div>
+
+        <!-- Informações do PDV -->
+        <div class="status-group">
+            <div class="status-item">
+                <i class="fas fa-cash-register"></i>
+                <span id="caixa-status">Caixa: Fechado</span>
+            </div>
+            <div class="status-item">
+                <i class="fas fa-user"></i>
+                <span id="operador-nome">Operador: Não identificado</span>
+            </div>
+            <div class="status-item">
+                <i class="fas fa-clock"></i>
+                <span id="data-hora">25/10/2025 12:00</span>
+            </div>
+        </div>
+
+        <!-- Status de Sincronização -->
+        <div class="status-group">
+            <div class="status-item">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <span id="pending-sales">0 vendas pendentes</span>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        /* Estilos adicionais para a barra de status */
+        .status {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 12px 24px;
+            background: var(--card);
+            border-top: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+            color: var(--gray);
+            z-index: 1000;
+        }
+
+        .status-group {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-item i {
+            font-size: 16px;
+        }
+
+        /* Estados específicos */
+        .status-item.online i {
+            color: var(--success);
+        }
+
+        .status-item.offline i {
+            color: var(--danger);
+        }
+
+        .status-item.syncing i {
+            color: var(--warning);
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+    </style>
+
+    <script>
+        // Atualizar data e hora
+        function updateDateTime() {
+            const now = new Date();
+            const options = { 
+                day: '2-digit', 
+                month: '2-digit', 
+                year: 'numeric',
+                hour: '2-digit', 
+                minute: '2-digit'
+            };
+            document.getElementById('data-hora').textContent = now.toLocaleDateString('pt-BR', options);
+        }
+
+        // Atualizar a cada minuto
+        setInterval(updateDateTime, 60000);
+        updateDateTime(); // Primeira atualização
+        // Variáveis globais
+        let produtos = [];
+        let carrinho = [];
+        let isOnline = navigator.onLine;
+        let currentOperation = 'SALE'; // SALE, RETURN, EXCHANGE, CANCEL
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', () => {
+            init();
+            setupEventListeners();
+            updateConnectionStatus();
+        });
+
+        // Função de inicialização
+        async function init() {
+            try {
+                await loadProducts();
+                showToast('Sistema pronto para uso', 'success');
+            } catch (error) {
+                console.error('Erro na inicialização:', error);
+                showToast('Erro ao inicializar o sistema', 'error');
+            }
+        }
+
+        // Configurar event listeners
+        function setupEventListeners() {
+            // Listener para busca
+            document.getElementById('search').addEventListener('input', (e) => {
+                filterProducts(e.target.value);
+            });
+
+            // Listeners para status online/offline
+            window.addEventListener('online', () => {
+                isOnline = true;
+                updateConnectionStatus();
+                syncData();
+            });
+
+            window.addEventListener('offline', () => {
+                isOnline = false;
+                updateConnectionStatus();
+            });
+        }
+
+        // Carregar produtos
+        async function loadProducts() {
+            try {
+                const response = await fetch('/api/vendas/produtos-ativos');
+                if (!response.ok) throw new Error('Erro ao carregar produtos');
+                
+                const data = await response.json();
+                produtos = Array.isArray(data) ? data : data.data || [];
+                renderProducts();
+            } catch (error) {
+                console.error('Erro ao carregar produtos:', error);
+                showToast('Erro ao carregar produtos', 'error');
+            }
+        }
+
+        // Renderizar produtos
+        function renderProducts(filter = '') {
+            const grid = document.getElementById('products-grid');
+            grid.innerHTML = '';
+
+            const filteredProducts = produtos.filter(produto => 
+                !filter || 
+                produto.descricao?.toLowerCase().includes(filter.toLowerCase()) ||
+                produto.codigo?.toLowerCase().includes(filter.toLowerCase())
+            );
+
+            filteredProducts.forEach(produto => {
+                const card = document.createElement('div');
+                card.className = 'product-card';
+                
+                const estoque = produto.estoque_atual || 0;
+                const stockClass = estoque > 0 ? '' : 'out';
+                const stockText = estoque > 0 ? 
+                    `${estoque} unidades em estoque` : 
+                    'Fora de estoque';
+
+                card.innerHTML = `
+                    <div class="product-image">
+                        <img src="${produto.imagem_url || 'https://via.placeholder.com/300x200'}" 
+                             alt="${produto.descricao}"
+                             onerror="this.src='https://via.placeholder.com/300x200'">
+                    </div>
+                    <div class="product-info">
+                        <div class="product-code">${produto.codigo || 'Sem código'}</div>
+                        <div class="product-name">${produto.descricao}</div>
+                        <div class="product-price">R$ ${(produto.preco_venda || 0).toFixed(2)}</div>
+                        <div class="product-stock ${stockClass}">
+                            <i class="fas fa-box"></i>
+                            ${stockText}
+                        </div>
+                        <button class="btn-add" onclick="addToCart(${produto.id})">
+                            <i class="fas fa-plus"></i>
+                            Adicionar
+                        </button>
+                    </div>
+                `;
+
+                grid.appendChild(card);
+            });
+        }
+
+        // Filtrar produtos
+        function filterProducts(query) {
+            renderProducts(query);
+        }
+
+        // Adicionar ao carrinho
+        function addToCart(productId) {
+            const produto = produtos.find(p => p.id === productId);
+            if (!produto) return;
+
+            const itemExistente = carrinho.find(item => item.produto_id === productId);
+            
+            if (itemExistente) {
+                itemExistente.quantidade++;
+                itemExistente.valor_total = itemExistente.quantidade * itemExistente.valor_unitario;
+            } else {
+                carrinho.push({
+                    produto_id: produto.id,
+                    descricao: produto.descricao,
+                    valor_unitario: produto.preco_venda,
+                    quantidade: 1,
+                    valor_total: produto.preco_venda
+                });
+            }
+
+            updateCart();
+            showToast('Produto adicionado ao carrinho', 'success');
+        }
+
+        // Atualizar carrinho
+        function updateCart() {
+            const container = document.getElementById('cart-items');
+            container.innerHTML = '';
+
+            carrinho.forEach((item, index) => {
+                const itemEl = document.createElement('div');
+                itemEl.className = 'cart-item';
+                
+                itemEl.innerHTML = `
+                    <div class="item-name">${item.descricao}</div>
+                    <div class="item-price">R$ ${item.valor_unitario.toFixed(2)} cada</div>
+                    <div class="item-controls">
+                        <div class="quantity-controls">
+                            <button class="qty-btn" onclick="updateQuantity(${index}, -1)">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                            <input type="number" class="qty-input" value="${item.quantidade}"
+                                   onchange="updateQuantity(${index}, 0, this.value)">
+                            <button class="qty-btn" onclick="updateQuantity(${index}, 1)">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                        <button class="qty-btn" onclick="removeFromCart(${index})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                        <div class="item-total">R$ ${item.valor_total.toFixed(2)}</div>
+                    </div>
+                `;
+
+                container.appendChild(itemEl);
+            });
+
+            updateTotals();
+        }
+
+        // Atualizar quantidade
+        function updateQuantity(index, change, newValue = null) {
+            const item = carrinho[index];
+            if (!item) return;
+
+            if (newValue !== null) {
+                item.quantidade = parseInt(newValue) || 1;
+            } else {
+                item.quantidade = Math.max(1, item.quantidade + change);
+            }
+
+            item.valor_total = item.quantidade * item.valor_unitario;
+            updateCart();
+        }
+
+        // Remover do carrinho
+        function removeFromCart(index) {
+            carrinho.splice(index, 1);
+            updateCart();
+            showToast('Item removido do carrinho', 'success');
+        }
+
+        // Atualizar totais
+        function updateTotals() {
+            const subtotal = carrinho.reduce((total, item) => total + item.valor_total, 0);
+            const discount = 0; // Implementar lógica de desconto
+            const total = subtotal - discount;
+
+            document.getElementById('subtotal').textContent = `R$ ${subtotal.toFixed(2)}`;
+            document.getElementById('discount').textContent = `R$ ${discount.toFixed(2)}`;
+            document.getElementById('total').textContent = `R$ ${total.toFixed(2)}`;
+            document.getElementById('cart-count').textContent = `${carrinho.length} itens`;
+        }
+
+        // Operações do PDV
+        function startReturn() {
+            currentOperation = 'RETURN';
+            const saleNumber = prompt('Digite o número da venda para devolução:');
+            if (saleNumber) {
+                loadSale(saleNumber);
+            }
+        }
+
+        function startExchange() {
+            currentOperation = 'EXCHANGE';
+            const saleNumber = prompt('Digite o número da venda para troca:');
+            if (saleNumber) {
+                loadSale(saleNumber);
+            }
+        }
+
+        function startCancel() {
+            currentOperation = 'CANCEL';
+            const saleNumber = prompt('Digite o número da venda para cancelamento:');
+            if (saleNumber) {
+                loadSale(saleNumber);
+            }
+        }
+
+        // Carregar venda
+        async function loadSale(number) {
+            try {
+                const response = await fetch(`/api/vendas/${number}`);
+                if (!response.ok) throw new Error('Venda não encontrada');
+
+                const venda = await response.json();
+                
+                if (venda.status === 'CANCELADO') {
+                    throw new Error('Esta venda já está cancelada');
+                }
+
+                switch (currentOperation) {
+                    case 'CANCEL':
+                        await cancelSale(venda);
+                        break;
+                    case 'RETURN':
+                    case 'EXCHANGE':
+                        showReturnItems(venda);
+                        break;
+                }
+            } catch (error) {
+                showToast(error.message, 'error');
+            }
+        }
+
+        // Mostrar itens para devolução/troca
+        function showReturnItems(sale) {
+            carrinho = [];
+            const grid = document.getElementById('products-grid');
+            grid.innerHTML = '';
+
+            sale.itens.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'product-card';
+                
+                card.innerHTML = `
+                    <div class="product-info">
+                        <div class="product-name">${item.produto.descricao}</div>
+                        <div class="product-price">R$ ${item.valor_unitario.toFixed(2)}</div>
+                        <div class="return-controls">
+                            <input type="number" class="qty-input" 
+                                   min="0" max="${item.quantidade}" value="0"
+                                   onchange="addToReturn(${item.produto_id}, this.value, ${item.valor_unitario})">
+                            <input type="text" class="return-reason" 
+                                   placeholder="Motivo"
+                                   onchange="updateReturnReason(${item.produto_id}, this.value)">
+                        </div>
+                    </div>
+                `;
+                
+                grid.appendChild(card);
+            });
+        }
+
+        // Finalizar operação
+        async function finishOperation() {
+            if (carrinho.length === 0) {
+                showToast('Selecione pelo menos um item', 'warning');
+                return;
+            }
+
+            try {
+                let endpoint = '';
+                let data = {};
+
+                switch (currentOperation) {
+                    case 'SALE':
+                        endpoint = '/api/vendas';
+                        data = {
+                            items: carrinho,
+                            // Adicionar outros dados necessários
+                        };
+                        break;
+                    case 'RETURN':
+                    case 'EXCHANGE':
+                        endpoint = '/api/devolucoes';
+                        data = {
+                            items: carrinho,
+                            tipo: currentOperation,
+                            // Adicionar outros dados necessários
+                        };
+                        break;
+                }
+
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (!response.ok) throw new Error('Erro ao processar operação');
+
+                showToast('Operação realizada com sucesso', 'success');
+                resetPDV();
+            } catch (error) {
+                showToast(error.message, 'error');
+            }
+        }
+
+        // Funções auxiliares
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            
+            toast.innerHTML = `
+                <i class="fas ${getToastIcon(type)}"></i>
+                <span>${message}</span>
+            `;
+
+            document.body.appendChild(toast);
+            setTimeout(() => toast.classList.add('show'), 10);
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        function getToastIcon(type) {
+            switch (type) {
+                case 'success': return 'fa-check-circle';
+                case 'error': return 'fa-times-circle';
+                case 'warning': return 'fa-exclamation-triangle';
+                default: return 'fa-info-circle';
+            }
+        }
+
+        function updateConnectionStatus() {
+            const icon = document.getElementById('connection-status');
+            const text = document.getElementById('status-text');
+            
+            icon.className = `status-icon ${isOnline ? '' : 'offline'}`;
+            text.textContent = isOnline ? 'Online' : 'Offline';
+        }
+
+        function resetPDV() {
+            carrinho = [];
+            currentOperation = 'SALE';
+            updateCart();
+            loadProducts();
+        }
+
+        // Sincronização
+        async function syncData() {
+            if (!isOnline) return;
+            
+            try {
+                await loadProducts();
+                // Implementar sincronização de vendas pendentes
+            } catch (error) {
+                console.error('Erro na sincronização:', error);
+            }
+        }
+    </script>
+</body>
+</html>

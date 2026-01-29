@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Configurações Fiscais</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div class="container" style="max-width: 960px; margin: 24px auto;">
+    <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:8px;">
+      <button id="btn-voltar" class="btn" style="padding:6px 10px; font-size:12px;">← VOLTAR</button>
+    </div>
+    <h2>Configurações Fiscais (NFC-e)</h2>
+    <p class="page-subtitle">Defina os dados do emitente, ambiente e arquivos (logo e Certificado A1).</p>
+
+    <section class="card">
+      <h3>Dados da Empresa</h3>
+      <form id="form-campos" class="form-grid">
+        <label>Razão Social <input name="razao_social" required /></label>
+        <label>Nome Fantasia <input name="nome_fantasia" /></label>
+        <label>CNPJ <input name="cnpj" required /></label>
+        <label>Inscrição Estadual <input name="inscricao_estadual" required /></label>
+        <label>Logradouro <input name="logradouro" required /></label>
+        <label>Número <input name="numero" required /></label>
+        <label>Complemento <input name="complemento" /></label>
+        <label>Bairro <input name="bairro" required /></label>
+        <label>Município <input name="municipio" required /></label>
+        <label>UF <input name="uf" maxlength="2" required /></label>
+        <label>CEP <input name="cep" required /></label>
+        <label>Código Município (IBGE) <input name="codigo_municipio" required /></label>
+        <label>Telefone <input name="telefone" /></label>
+        <label>Email <input name="email" type="email" /></label>
+        <label>Ambiente
+          <select name="ambiente_nfce">
+            <option value="HOMOLOGACAO">Homologação</option>
+            <option value="PRODUCAO">Produção</option>
+          </select>
+        </label>
+        <label>Série NFC-e <input name="serie_nfce" type="number" min="1" /></label>
+        <label>Próximo Número <input name="proximo_numero" type="number" min="1" /></label>
+        <label>CSC ID <input name="csc_id" /></label>
+        <label>CSC Token <input name="csc_token" /></label>
+        <label>Observações Padrão <textarea name="observacoes_padrao"></textarea></label>
+      </form>
+      <div class="form-grid" style="margin-top:8px;">
+        <label style="grid-column: 1 / -1;">Emissão padrão no PDV</label>
+        <div style="display:flex; gap:16px; align-items:center;">
+          <label><input type="radio" name="emissao_padrao" value="nao_fiscal" checked /> Não Fiscal (recomendado)</label>
+          <label><input type="radio" name="emissao_padrao" value="fiscal" /> Fiscal (SEFAZ)</label>
+          <button id="btn-salvar-pref" class="btn">Salvar preferência</button>
+        </div>
+      </div>
+      <div style="margin-top:12px;">
+        <button id="btn-salvar" class="btn btn-success">Salvar</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <h3>Arquivos</h3>
+      <div style="display:flex; gap:24px; flex-wrap:wrap;">
+        <div>
+          <p><strong>Logo</strong></p>
+          <input id="input-logo" type="file" accept="image/*" />
+          <div style="margin-top:8px;">
+            <button id="btn-logo" class="btn">Enviar Logo</button>
+            <button id="btn-remover-logo" class="btn" style="background:#ef4444; color:#fff;">Remover Logo</button>
+          </div>
+        </div>
+        <div>
+          <p><strong>Certificado A1 (.pfx)</strong></p>
+          <input id="input-cert" type="file" accept=".pfx" />
+          <input id="input-senha" type="password" placeholder="Senha do certificado" style="display:block; margin-top:8px;" />
+          <div style="margin-top:8px;">
+            <button id="btn-cert" class="btn">Enviar Certificado</button>
+            <button id="btn-remover-cert" class="btn" style="background:#ef4444; color:#fff;">Remover Certificado</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const token = localStorage.getItem('token');
+    const headers = { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
+
+    async function carregar() {
+      const res = await fetch('/api/config-fiscal', { headers });
+      if (!res.ok) return alert('Erro ao carregar configurações fiscais');
+      const cfg = await res.json();
+      for (const [k,v] of Object.entries(cfg)) {
+        const el = document.querySelector(`[name="${k}"]`);
+        if (el) el.value = v || '';
+      }
+    }
+    async function salvarCampos() {
+      const form = document.getElementById('form-campos');
+      const data = Object.fromEntries(new FormData(form).entries());
+      const res = await fetch('/api/config-fiscal', { method:'PUT', headers, body: JSON.stringify(data) });
+      if (!res.ok) return alert('Erro ao salvar');
+      alert('Configurações salvas.');
+    }
+    async function enviarLogo() {
+      const f = document.getElementById('input-logo').files[0];
+      if (!f) return alert('Selecione uma imagem');
+      const fd = new FormData(); fd.append('logo', f);
+      const res = await fetch('/api/config-fiscal/logo', { method:'POST', headers: { 'Authorization': `Bearer ${token}` }, body: fd });
+      if (!res.ok) return alert('Erro ao enviar logo');
+      alert('Logo atualizada.');
+    }
+    async function removerLogo() {
+      const res = await fetch('/api/config-fiscal/logo', { method:'DELETE', headers });
+      if (!res.ok) return alert('Erro ao remover logo');
+      alert('Logo removida.');
+    }
+    async function enviarCert() {
+      const f = document.getElementById('input-cert').files[0];
+      const senha = document.getElementById('input-senha').value;
+      if (!f || !senha) return alert('Selecione o .pfx e informe a senha');
+      const fd = new FormData(); fd.append('certificado', f); fd.append('senha', senha);
+      const res = await fetch('/api/config-fiscal/certificado', { method:'POST', headers: { 'Authorization': `Bearer ${token}` }, body: fd });
+      if (!res.ok) { const t = await res.text(); return alert('Erro: ' + t); }
+      alert('Certificado atualizado.');
+    }
+    async function removerCert() {
+      const res = await fetch('/api/config-fiscal/certificado', { method:'DELETE', headers });
+      if (!res.ok) return alert('Erro ao remover certificado');
+      alert('Certificado removido.');
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      carregar();
+      const btnVoltar = document.getElementById('btn-voltar');
+      if (btnVoltar) {
+        btnVoltar.onclick = (e) => {
+          e.preventDefault();
+          if (window.history.length > 1) {
+            window.history.back();
+          } else {
+            window.location.href = '/admin.html#sec-config-fiscal';
+          }
+        };
+      }
+      document.getElementById('btn-salvar').onclick = salvarCampos;
+      document.getElementById('btn-logo').onclick = enviarLogo;
+      document.getElementById('btn-remover-logo').onclick = removerLogo;
+      document.getElementById('btn-cert').onclick = enviarCert;
+      document.getElementById('btn-remover-cert').onclick = removerCert;
+      // Preferência local do PDV
+      const pref = localStorage.getItem('preferencia_emissao') || 'nao_fiscal';
+      const radios = document.querySelectorAll('input[name="emissao_padrao"]');
+      radios.forEach(r => r.checked = (r.value === pref));
+      document.getElementById('btn-salvar-pref').onclick = (e) => {
+        e.preventDefault();
+        const v = document.querySelector('input[name="emissao_padrao"]:checked')?.value || 'nao_fiscal';
+        localStorage.setItem('preferencia_emissao', v);
+        alert('Preferência de emissão salva como ' + (v === 'nao_fiscal' ? 'Não Fiscal' : 'Fiscal'));
+      };
+    });
+  </script>
+</body>
+</html>

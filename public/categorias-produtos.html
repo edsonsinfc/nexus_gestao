@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gerenciar Categorias de Produtos - Nexus Gestão</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    :root {
+      --primary: #5b8cff;
+      --secondary: #64748b;
+      --success: #10b981;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --bg: #0f172a;
+      --surface: #1e293b;
+      --border: #334155;
+      --text: #e2e8f0;
+      --text-muted: #94a3b8;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, var(--bg) 0%, #1a2332 100%);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .header {
+      background: var(--surface);
+      padding: 20px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border: 1px solid var(--border);
+    }
+
+    h1 {
+      font-size: 24px;
+      color: var(--primary);
+    }
+
+    .btn-voltar {
+      background: var(--secondary);
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+      transition: all 0.3s;
+    }
+
+    .btn-voltar:hover {
+      background: #475569;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .tab {
+      flex: 1;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 15px;
+      text-align: center;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-size: 16px;
+      color: var(--text-muted);
+    }
+
+    .tab.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    .tab:hover:not(.active) {
+      background: rgba(91, 140, 255, 0.1);
+      border-color: var(--primary);
+    }
+
+    .content-section {
+      display: none;
+      background: var(--surface);
+      padding: 20px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+
+    .content-section.active {
+      display: block;
+    }
+
+    .toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      gap: 15px;
+    }
+
+    .search-box {
+      flex: 1;
+      max-width: 400px;
+    }
+
+    .search-box input {
+      width: 100%;
+      padding: 10px 15px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 14px;
+    }
+
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.3s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #4a7aed;
+    }
+
+    .btn-success {
+      background: var(--success);
+      color: white;
+    }
+
+    .btn-success:hover {
+      background: #059669;
+    }
+
+    .btn-danger {
+      background: var(--danger);
+      color: white;
+    }
+
+    .btn-danger:hover {
+      background: #dc2626;
+    }
+
+    .btn-warning {
+      background: var(--warning);
+      color: white;
+    }
+
+    .btn-warning:hover {
+      background: #d97706;
+    }
+
+    .btn-secondary {
+      background: var(--secondary);
+      color: white;
+    }
+
+    .btn-secondary:hover {
+      background: #475569;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+
+    thead {
+      background: var(--bg);
+    }
+
+    th {
+      padding: 12px;
+      text-align: left;
+      font-weight: 600;
+      color: var(--primary);
+      border-bottom: 2px solid var(--border);
+    }
+
+    td {
+      padding: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    tbody tr {
+      transition: background 0.2s;
+    }
+
+    tbody tr:hover {
+      background: rgba(91, 140, 255, 0.05);
+    }
+
+    .badge {
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .badge-success {
+      background: rgba(16, 185, 129, 0.2);
+      color: var(--success);
+    }
+
+    .badge-danger {
+      background: rgba(239, 68, 68, 0.2);
+      color: var(--danger);
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-icon {
+      padding: 6px 12px;
+      font-size: 12px;
+    }
+
+    /* Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .modal.show {
+      display: flex;
+    }
+
+    .modal-content {
+      background: var(--surface);
+      padding: 30px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      width: 90%;
+      max-width: 500px;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .modal-header {
+      margin-bottom: 20px;
+    }
+
+    .modal-header h2 {
+      color: var(--primary);
+      font-size: 20px;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 5px;
+      color: var(--text);
+      font-weight: 500;
+    }
+
+    .form-group input,
+    .form-group select {
+      width: 100%;
+      padding: 10px 15px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 14px;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      margin-top: 20px;
+    }
+
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .checkbox-group input[type="checkbox"] {
+      width: auto;
+      cursor: pointer;
+    }
+
+    .message {
+      padding: 12px 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      display: none;
+    }
+
+    .message.show {
+      display: block;
+    }
+
+    .message.success {
+      background: rgba(16, 185, 129, 0.2);
+      color: var(--success);
+      border: 1px solid var(--success);
+    }
+
+    .message.error {
+      background: rgba(239, 68, 68, 0.2);
+      color: var(--danger);
+      border: 1px solid var(--danger);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-muted);
+    }
+
+    .empty-state-icon {
+      font-size: 64px;
+      margin-bottom: 20px;
+      opacity: 0.5;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🏷️ Gerenciar Categorias de Produtos</h1>
+      <a href="admin.html" class="btn-voltar">← Voltar</a>
+    </div>
+
+    <div id="message" class="message"></div>
+
+    <div class="tabs">
+      <div class="tab active" onclick="showTab('departamentos')">
+        📁 Departamentos
+      </div>
+      <div class="tab" onclick="showTab('secoes')">
+        📂 Seções
+      </div>
+      <div class="tab" onclick="showTab('categorias')">
+        🏷️ Categorias
+      </div>
+    </div>
+
+    <!-- Departamentos -->
+    <div id="departamentos-section" class="content-section active">
+      <div class="toolbar">
+        <div class="search-box">
+          <input type="text" id="search-departamentos" placeholder="🔍 Buscar departamentos...">
+        </div>
+        <button class="btn btn-primary" onclick="abrirModalDepartamento()">
+          ➕ Novo Departamento
+        </button>
+      </div>
+      <table id="table-departamentos">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nome</th>
+            <th>Status</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <!-- Seções -->
+    <div id="secoes-section" class="content-section">
+      <div class="toolbar">
+        <div class="search-box">
+          <input type="text" id="search-secoes" placeholder="🔍 Buscar seções...">
+        </div>
+        <button class="btn btn-primary" onclick="abrirModalSecao()">
+          ➕ Nova Seção
+        </button>
+      </div>
+      <table id="table-secoes">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nome</th>
+            <th>Departamento</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <!-- Categorias -->
+    <div id="categorias-section" class="content-section">
+      <div class="toolbar">
+        <div class="search-box">
+          <input type="text" id="search-categorias" placeholder="🔍 Buscar categorias...">
+        </div>
+        <button class="btn btn-primary" onclick="abrirModalCategoria()">
+          ➕ Nova Categoria
+        </button>
+      </div>
+      <table id="table-categorias">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nome</th>
+            <th>Departamento</th>
+            <th>Status</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Modal Departamento -->
+  <div id="modal-departamento" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="modal-departamento-title">Novo Departamento</h2>
+      </div>
+      <form id="form-departamento" onsubmit="salvarDepartamento(event)">
+        <input type="hidden" id="departamento-id">
+        <div class="form-group">
+          <label>Nome *</label>
+          <input type="text" id="departamento-nome" required>
+        </div>
+        <div class="form-group checkbox-group">
+          <input type="checkbox" id="departamento-ativo" checked>
+          <label for="departamento-ativo">Ativo</label>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary" onclick="fecharModal('departamento')">Cancelar</button>
+          <button type="submit" class="btn btn-success">Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal Seção -->
+  <div id="modal-secao" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="modal-secao-title">Nova Seção</h2>
+      </div>
+      <form id="form-secao" onsubmit="salvarSecao(event)">
+        <input type="hidden" id="secao-id">
+        <div class="form-group">
+          <label>Nome *</label>
+          <input type="text" id="secao-nome" required>
+        </div>
+        <div class="form-group">
+          <label>Departamento</label>
+          <select id="secao-departamento">
+            <option value="">Sem departamento</option>
+          </select>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary" onclick="fecharModal('secao')">Cancelar</button>
+          <button type="submit" class="btn btn-success">Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal Categoria -->
+  <div id="modal-categoria" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="modal-categoria-title">Nova Categoria</h2>
+      </div>
+      <form id="form-categoria" onsubmit="salvarCategoria(event)">
+        <input type="hidden" id="categoria-id">
+        <div class="form-group">
+          <label>Nome *</label>
+          <input type="text" id="categoria-nome" required>
+        </div>
+        <div class="form-group">
+          <label>Departamento</label>
+          <select id="categoria-departamento">
+            <option value="">Sem departamento</option>
+          </select>
+        </div>
+        <div class="form-group checkbox-group">
+          <input type="checkbox" id="categoria-ativo" checked>
+          <label for="categoria-ativo">Ativo</label>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary" onclick="fecharModal('categoria')">Cancelar</button>
+          <button type="submit" class="btn btn-success">Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="js/categorias-produtos.js"></script>
+</body>
+</html>

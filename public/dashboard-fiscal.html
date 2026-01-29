@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Fiscal - Nexus Gestão</title>
+  <link rel="stylesheet" href="/styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    .dashboard-container {
+      max-width: 1800px;
+      margin: 20px auto;
+      padding: 20px;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+    }
+    .filtros {
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 30px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+    }
+    .filtro-grupo {
+      display: flex;
+      flex-direction: column;
+    }
+    .filtro-grupo label {
+      margin-bottom: 5px;
+      font-weight: 600;
+      font-size: 13px;
+    }
+    .filtro-grupo input {
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+    .btn-filtrar {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 10px 30px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 600;
+      align-self: flex-end;
+    }
+    .cards-totalizadores {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+    .card-total {
+      background: white;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      position: relative;
+      overflow: hidden;
+    }
+    .card-total::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: linear-gradient(90deg, #667eea, #764ba2);
+    }
+    .card-total h4 {
+      color: #666;
+      font-size: 13px;
+      text-transform: uppercase;
+      margin: 0 0 10px 0;
+    }
+    .card-total .valor {
+      font-size: 32px;
+      font-weight: 700;
+      color: #333;
+      margin: 5px 0;
+    }
+    .card-total .subtexto {
+      font-size: 13px;
+      color: #999;
+    }
+    .graficos-section {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+    .grafico-card {
+      background: white;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    .grafico-card h3 {
+      margin: 0 0 20px 0;
+      color: #333;
+      font-size: 18px;
+    }
+    .tabelas-section {
+      margin-top: 30px;
+    }
+    .tabela-card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+      overflow: hidden;
+    }
+    .tabela-card h3 {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 15px 20px;
+      margin: 0;
+      font-size: 18px;
+    }
+    .tabela-card table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .tabela-card th {
+      background: #f8f9fa;
+      padding: 12px;
+      text-align: left;
+      font-weight: 600;
+      font-size: 13px;
+      border-bottom: 2px solid #dee2e6;
+    }
+    .tabela-card td {
+      padding: 12px;
+      border-bottom: 1px solid #f0f0f0;
+      font-size: 13px;
+    }
+    .tabela-card tr:hover {
+      background: #f9f9f9;
+    }
+    .loading {
+      text-align: center;
+      padding: 60px;
+      font-size: 18px;
+      color: #667eea;
+    }
+    .no-data {
+      text-align: center;
+      padding: 60px;
+      color: #999;
+    }
+  </style>
+</head>
+<body>
+  <div class="dashboard-container">
+    <div class="header">
+      <h1>📊 Dashboard Fiscal</h1>
+    </div>
+
+    <!-- Filtros -->
+    <div class="filtros">
+      <div class="filtro-grupo">
+        <label>Data Início</label>
+        <input type="date" id="dataInicio">
+      </div>
+      <div class="filtro-grupo">
+        <label>Data Fim</label>
+        <input type="date" id="dataFim">
+      </div>
+      <button class="btn-filtrar" onclick="carregarDashboard()">
+        🔍 Gerar Dashboard
+      </button>
+    </div>
+
+    <!-- Loading -->
+    <div id="loading" class="loading" style="display: none;">
+      ⏳ Carregando estatísticas...
+    </div>
+
+    <!-- Cards Totalizadores -->
+    <div id="cardsTotalizadores" class="cards-totalizadores" style="display: none;"></div>
+
+    <!-- Gráficos -->
+    <div id="graficosSection" class="graficos-section" style="display: none;">
+      <div class="grafico-card">
+        <h3>📈 Distribuição por CFOP</h3>
+        <canvas id="graficoCFOP"></canvas>
+      </div>
+      <div class="grafico-card">
+        <h3>📊 Situações Tributárias</h3>
+        <canvas id="graficoCST"></canvas>
+      </div>
+      <div class="grafico-card">
+        <h3>💰 Formas de Pagamento</h3>
+        <canvas id="graficoFormasPagamento"></canvas>
+      </div>
+      <div class="grafico-card">
+        <h3>📅 Evolução Diária</h3>
+        <canvas id="graficoEvolucao"></canvas>
+      </div>
+    </div>
+
+    <!-- Tabelas Detalhadas -->
+    <div id="tabelasSection" class="tabelas-section" style="display: none;">
+      <!-- CFOP -->
+      <div class="tabela-card">
+        <h3>📋 Detalhamento por CFOP</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>CFOP</th>
+              <th>Qtd Notas</th>
+              <th>Valor Total</th>
+              <th>Base ICMS</th>
+              <th>Valor ICMS</th>
+            </tr>
+          </thead>
+          <tbody id="tabelaCFOP"></tbody>
+        </table>
+      </div>
+
+      <!-- CST -->
+      <div class="tabela-card">
+        <h3>📊 Detalhamento por Situação Tributária</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>CST</th>
+              <th>Qtd Notas</th>
+              <th>Qtd Itens</th>
+              <th>Valor Total</th>
+              <th>Base ICMS</th>
+              <th>ICMS</th>
+              <th>Base ST</th>
+              <th>ICMS ST</th>
+            </tr>
+          </thead>
+          <tbody id="tabelaCST"></tbody>
+        </table>
+      </div>
+
+      <!-- Top Produtos -->
+      <div class="tabela-card">
+        <h3>🏆 Top 10 Produtos Mais Vendidos</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Código</th>
+              <th>Descrição</th>
+              <th>Quantidade</th>
+              <th>Valor Total</th>
+              <th>Nº Vendas</th>
+            </tr>
+          </thead>
+          <tbody id="tabelaTopProdutos"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let chartCFOP, chartCST, chartFormas, chartEvolucao;
+
+    // Configurar datas padrão (mês atual)
+    window.onload = () => {
+      const hoje = new Date();
+      const primeiroDia = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+      
+      document.getElementById('dataInicio').valueAsDate = primeiroDia;
+      document.getElementById('dataFim').valueAsDate = hoje;
+    };
+
+    async function carregarDashboard() {
+      const dataInicio = document.getElementById('dataInicio').value;
+      const dataFim = document.getElementById('dataFim').value;
+
+      if (!dataInicio || !dataFim) {
+        alert('⚠️ Selecione o período');
+        return;
+      }
+
+      // Mostrar loading
+      document.getElementById('loading').style.display = 'block';
+      document.getElementById('cardsTotalizadores').style.display = 'none';
+      document.getElementById('graficosSection').style.display = 'none';
+      document.getElementById('tabelasSection').style.display = 'none';
+
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`/api/dashboard-fiscal?data_inicio=${dataInicio}&data_fim=${dataFim}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Erro ao carregar dashboard');
+        }
+
+        renderizarDashboard(data.dashboard);
+
+      } catch (error) {
+        console.error('Erro:', error);
+        alert('❌ ' + error.message);
+      } finally {
+        document.getElementById('loading').style.display = 'none';
+      }
+    }
+
+    function renderizarDashboard(dashboard) {
+      // 1. CARDS TOTALIZADORES
+      const cardsContainer = document.getElementById('cardsTotalizadores');
+      cardsContainer.innerHTML = `
+        <div class="card-total">
+          <h4>📄 Total NFC-e</h4>
+          <div class="valor">${dashboard.totalizadores.nfce.quantidade}</div>
+          <div class="subtexto">R$ ${dashboard.totalizadores.nfce.valor_total.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+        </div>
+        <div class="card-total">
+          <h4>📋 Total NF-e</h4>
+          <div class="valor">${dashboard.totalizadores.nfe.quantidade}</div>
+          <div class="subtexto">R$ ${dashboard.totalizadores.nfe.valor_total.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+        </div>
+        <div class="card-total">
+          <h4>💰 Faturamento Total</h4>
+          <div class="valor">R$ ${dashboard.totalizadores.geral.valor_total.toLocaleString('pt-BR', {minimumFractionDigits: 0, maximumFractionDigits: 0})}</div>
+          <div class="subtexto">${dashboard.totalizadores.geral.quantidade} notas fiscais</div>
+        </div>
+        <div class="card-total">
+          <h4>🏛️ ICMS Recolhido</h4>
+          <div class="valor">R$ ${dashboard.totalizadores.nfce.valor_icms.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+          <div class="subtexto">Base: R$ ${dashboard.totalizadores.nfce.base_icms.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+        </div>
+      `;
+      cardsContainer.style.display = 'grid';
+
+      // 2. GRÁFICO CFOP
+      renderizarGraficoCFOP(dashboard.cfops);
+
+      // 3. GRÁFICO CST
+      renderizarGraficoCST(dashboard.situacoes_tributarias);
+
+      // 4. GRÁFICO FORMAS PAGAMENTO
+      renderizarGraficoFormas(dashboard.formas_pagamento);
+
+      // 5. GRÁFICO EVOLUÇÃO
+      renderizarGraficoEvolucao(dashboard.evolucao_diaria);
+
+      // 6. TABELAS
+      renderizarTabelas(dashboard);
+
+      // Mostrar seções
+      document.getElementById('graficosSection').style.display = 'grid';
+      document.getElementById('tabelasSection').style.display = 'block';
+    }
+
+    function renderizarGraficoCFOP(cfops) {
+      const ctx = document.getElementById('graficoCFOP');
+      if (chartCFOP) chartCFOP.destroy();
+
+      chartCFOP = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: cfops.map(c => c.cfop),
+          datasets: [{
+            label: 'Valor Total',
+            data: cfops.map(c => c.valor_total),
+            backgroundColor: '#667eea'
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { display: false }
+          }
+        }
+      });
+    }
+
+    function renderizarGraficoCST(situacoes) {
+      const ctx = document.getElementById('graficoCST');
+      if (chartCST) chartCST.destroy();
+
+      chartCST = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: situacoes.map(s => `CST ${s.cst}`),
+          datasets: [{
+            data: situacoes.map(s => s.valor_total),
+            backgroundColor: ['#667eea', '#764ba2', '#f093fb', '#4facfe', '#00f2fe', '#43e97b']
+          }]
+        },
+        options: {
+          responsive: true
+        }
+      });
+    }
+
+    function renderizarGraficoFormas(formas) {
+      const ctx = document.getElementById('graficoFormasPagamento');
+      if (chartFormas) chartFormas.destroy();
+
+      chartFormas = new Chart(ctx, {
+        type: 'pie',
+        data: {
+          labels: formas.map(f => f.forma || 'Não informado'),
+          datasets: [{
+            data: formas.map(f => f.valor_total),
+            backgroundColor: ['#667eea', '#f093fb', '#4facfe', '#43e97b', '#fa709a']
+          }]
+        },
+        options: {
+          responsive: true
+        }
+      });
+    }
+
+    function renderizarGraficoEvolucao(evolucao) {
+      const ctx = document.getElementById('graficoEvolucao');
+      if (chartEvolucao) chartEvolucao.destroy();
+
+      chartEvolucao = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: evolucao.map(e => new Date(e.data).toLocaleDateString('pt-BR')),
+          datasets: [{
+            label: 'Valor Total',
+            data: evolucao.map(e => e.valor_total),
+            borderColor: '#667eea',
+            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+            fill: true,
+            tension: 0.4
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { display: false }
+          }
+        }
+      });
+    }
+
+    function renderizarTabelas(dashboard) {
+      // Tabela CFOP
+      document.getElementById('tabelaCFOP').innerHTML = dashboard.cfops.map(c => `
+        <tr>
+          <td><strong>${c.cfop}</strong></td>
+          <td>${c.quantidade_notas}</td>
+          <td>R$ ${c.valor_total.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
+          <td>R$ ${c.base_icms.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
+          <td>R$ ${c.valor_icms.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
+        </tr>
+      `).join('');
+
+      // Tabela CST
+      document.getElementById('tabelaCST').innerHTML = dashboard.situacoes_tributarias.map(st => `
+        <tr>
+          <td><strong>${st.cst}</strong></td>
+          <td>${st.quantidade_notas}</td>
+          <td>${st.quantidade_itens}</td>
+          <td>R$ ${st.valor_total.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
+          <td>R$ ${st.base_icms.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
+          <td>R$ ${st.valor_icms.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
+          <td>R$ ${st.base_icms_st.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
+          <td>R$ ${st.valor_icms_st.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
+        </tr>
+      `).join('');
+
+      // Tabela Top Produtos
+      document.getElementById('tabelaTopProdutos').innerHTML = dashboard.top_produtos.map((p, i) => `
+        <tr>
+          <td><strong>${i + 1}º</strong></td>
+          <td>${p.codigo}</td>
+          <td>${p.descricao}</td>
+          <td>${p.quantidade.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
+          <td>R$ ${p.valor_total.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
+          <td>${p.numero_vendas}</td>
+        </tr>
+      `).join('');
+    }
+  </script>
+</body>
+</html>

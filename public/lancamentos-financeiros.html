@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lançamentos Financeiros - Nexus Gestão</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1600px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      overflow: hidden;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 30px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .header h1 {
+      font-size: 28px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-primary {
+      background: white;
+      color: #667eea;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(255,255,255,0.3);
+    }
+
+    .btn-success {
+      background: #48bb78;
+      color: white;
+    }
+
+    .btn-success:hover {
+      background: #38a169;
+    }
+
+    .btn-info {
+      background: #4299e1;
+      color: white;
+      padding: 8px 16px;
+      font-size: 12px;
+    }
+
+    .btn-warning {
+      background: #ed8936;
+      color: white;
+      padding: 8px 16px;
+      font-size: 12px;
+    }
+
+    .btn-danger {
+      background: #f56565;
+      color: white;
+      padding: 8px 16px;
+      font-size: 12px;
+    }
+
+    .btn-secondary {
+      background: #718096;
+      color: white;
+    }
+
+    .content {
+      padding: 40px;
+    }
+
+    .filters {
+      background: #f7fafc;
+      padding: 25px;
+      border-radius: 12px;
+      margin-bottom: 30px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+    }
+
+    .filter-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .filter-group label {
+      font-weight: 600;
+      color: #2d3748;
+      font-size: 13px;
+    }
+
+    .filter-group select,
+    .filter-group input {
+      padding: 10px 15px;
+      border: 2px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 14px;
+      transition: all 0.3s;
+    }
+
+    .filter-group select:focus,
+    .filter-group input:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    .stat-card {
+      padding: 25px;
+      border-radius: 12px;
+      color: white;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+
+    .stat-card.receitas {
+      background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+    }
+
+    .stat-card.despesas {
+      background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
+    }
+
+    .stat-card.saldo {
+      background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+    }
+
+    .stat-label {
+      font-size: 13px;
+      opacity: 0.9;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .stat-value {
+      font-size: 32px;
+      font-weight: 700;
+    }
+
+    .table-container {
+      overflow-x: auto;
+      border-radius: 12px;
+      border: 1px solid #e2e8f0;
+      margin-bottom: 20px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    thead {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    th {
+      padding: 15px;
+      text-align: left;
+      font-weight: 600;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    tbody tr {
+      border-bottom: 1px solid #e2e8f0;
+      transition: all 0.3s;
+    }
+
+    tbody tr:hover {
+      background: #f7fafc;
+    }
+
+    td {
+      padding: 15px;
+      font-size: 14px;
+      color: #2d3748;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .badge.receita {
+      background: #c6f6d5;
+      color: #22543d;
+    }
+
+    .badge.despesa {
+      background: #fed7d7;
+      color: #742a2a;
+    }
+
+    .badge.transferencia {
+      background: #bee3f8;
+      color: #2c5282;
+    }
+
+    .badge.pendente {
+      background: #feebc8;
+      color: #7c2d12;
+    }
+
+    .badge.pago {
+      background: #c6f6d5;
+      color: #22543d;
+    }
+
+    .badge.cancelado {
+      background: #e2e8f0;
+      color: #4a5568;
+    }
+
+    .actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.7);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      overflow-y: auto;
+    }
+
+    .modal.active {
+      display: flex;
+    }
+
+    .modal-content {
+      background: white;
+      border-radius: 20px;
+      max-width: 700px;
+      width: 90%;
+      max-height: 90vh;
+      overflow-y: auto;
+      animation: slideIn 0.3s;
+      margin: 20px;
+    }
+
+    @keyframes slideIn {
+      from {
+        transform: translateY(-50px);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .modal-header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 25px 30px;
+      border-radius: 20px 20px 0 0;
+    }
+
+    .modal-header h2 {
+      font-size: 24px;
+    }
+
+    .modal-body {
+      padding: 30px;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .form-group label {
+      font-weight: 600;
+      color: #2d3748;
+      font-size: 14px;
+    }
+
+    .form-group label.required::after {
+      content: ' *';
+      color: #f56565;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 12px 15px;
+      border: 2px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 14px;
+      transition: all 0.3s;
+      font-family: inherit;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    .form-group textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    .modal-footer {
+      padding: 20px 30px;
+      border-top: 1px solid #e2e8f0;
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: #667eea;
+      font-size: 18px;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #718096;
+    }
+
+    .alert {
+      padding: 15px 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      display: none;
+    }
+
+    .alert.success {
+      background: #c6f6d5;
+      color: #22543d;
+      border: 1px solid #9ae6b4;
+    }
+
+    .alert.error {
+      background: #fed7d7;
+      color: #742a2a;
+      border: 1px solid #fc8181;
+    }
+
+    .alert.active {
+      display: block;
+    }
+
+    .pagination {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .pagination button {
+      padding: 8px 16px;
+      border: 2px solid #e2e8f0;
+      background: white;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .pagination button:hover:not(:disabled) {
+      background: #667eea;
+      color: white;
+      border-color: #667eea;
+    }
+
+    .pagination button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>
+        <span>💰</span>
+        Lançamentos Financeiros
+      </h1>
+      <div style="display: flex; gap: 10px;">
+        <button class="btn btn-primary" onclick="abrirModal()">
+          ➕ Novo Lançamento
+        </button>
+        <a href="/admin.html" class="btn btn-secondary">← Voltar</a>
+      </div>
+    </div>
+
+    <div class="content">
+      <div id="alert" class="alert"></div>
+
+      <div class="filters">
+        <div class="filter-group">
+          <label>Tipo</label>
+          <select id="filtroTipo" onchange="carregarLancamentos()">
+            <option value="">Todos</option>
+            <option value="RECEITA">Receitas</option>
+            <option value="DESPESA">Despesas</option>
+            <option value="TRANSFERENCIA">Transferências</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label>Status</label>
+          <select id="filtroStatus" onchange="carregarLancamentos()">
+            <option value="">Todos</option>
+            <option value="PENDENTE">Pendente</option>
+            <option value="PAGO">Pago</option>
+            <option value="CANCELADO">Cancelado</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label>Data Início</label>
+          <input type="date" id="dataInicio" onchange="carregarLancamentos()">
+        </div>
+
+        <div class="filter-group">
+          <label>Data Fim</label>
+          <input type="date" id="dataFim" onchange="carregarLancamentos()">
+        </div>
+      </div>
+
+      <div class="stats">
+        <div class="stat-card receitas">
+          <div class="stat-label">Total Receitas</div>
+          <div class="stat-value" id="totalReceitas">R$ 0,00</div>
+        </div>
+        <div class="stat-card despesas">
+          <div class="stat-label">Total Despesas</div>
+          <div class="stat-value" id="totalDespesas">R$ 0,00</div>
+        </div>
+        <div class="stat-card saldo">
+          <div class="stat-label">Saldo</div>
+          <div class="stat-value" id="saldo">R$ 0,00</div>
+        </div>
+      </div>
+
+      <div id="loading" class="loading" style="display: none;">
+        Carregando lançamentos...
+      </div>
+
+      <div id="tableContainer" class="table-container" style="display: none;">
+        <table>
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Tipo</th>
+              <th>Categoria</th>
+              <th>Descrição</th>
+              <th>Valor</th>
+              <th>Status</th>
+              <th>Vencimento</th>
+              <th style="text-align: center;">Ações</th>
+            </tr>
+          </thead>
+          <tbody id="tbody">
+          </tbody>
+        </table>
+      </div>
+
+      <div id="emptyState" class="empty-state" style="display: none;">
+        <h3>Nenhum lançamento encontrado</h3>
+        <p>Adicione seu primeiro lançamento financeiro</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Cadastro/Edição -->
+  <div id="modal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="modalTitle">Novo Lançamento</h2>
+      </div>
+      <form id="lancamentoForm">
+        <div class="modal-body">
+          <input type="hidden" id="lancamentoId">
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label class="required">Tipo</label>
+              <select id="tipo" required>
+                <option value="">Selecione...</option>
+                <option value="RECEITA">Receita</option>
+                <option value="DESPESA">Despesa</option>
+                <option value="TRANSFERENCIA">Transferência</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>Categoria</label>
+              <select id="categoriaId">
+                <option value="">Carregando...</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="required">Descrição</label>
+            <input type="text" id="descricao" required placeholder="Ex: Pagamento de energia elétrica">
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="required">Valor</label>
+              <input type="number" id="valor" step="0.01" min="0" required placeholder="0,00">
+            </div>
+
+            <div class="form-group">
+              <label class="required">Data Lançamento</label>
+              <input type="date" id="dataLancamento" required>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Data Vencimento</label>
+              <input type="date" id="dataVencimento">
+            </div>
+
+            <div class="form-group">
+              <label>Data Pagamento</label>
+              <input type="date" id="dataPagamento">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Status</label>
+              <select id="status">
+                <option value="PENDENTE">Pendente</option>
+                <option value="PAGO">Pago</option>
+                <option value="CANCELADO">Cancelado</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>Forma de Pagamento</label>
+              <select id="formaPagamento">
+                <option value="">Selecione...</option>
+                <option value="DINHEIRO">Dinheiro</option>
+                <option value="PIX">PIX</option>
+                <option value="CARTAO_CREDITO">Cartão de Crédito</option>
+                <option value="CARTAO_DEBITO">Cartão de Débito</option>
+                <option value="BOLETO">Boleto</option>
+                <option value="TRANSFERENCIA">Transferência</option>
+                <option value="CHEQUE">Cheque</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Número do Documento</label>
+            <input type="text" id="numeroDocumento" placeholder="Número do cheque, boleto, etc">
+          </div>
+
+          <div class="form-group">
+            <label>Observações</label>
+            <textarea id="observacoes" placeholder="Informações adicionais sobre o lançamento"></textarea>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="fecharModal()">
+            Cancelar
+          </button>
+          <button type="submit" class="btn btn-success">
+            Salvar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    let lancamentos = [];
+    let categorias = [];
+
+    document.addEventListener('DOMContentLoaded', () => {
+      carregarCategorias();
+      carregarLancamentos();
+      
+      // Definir data início como primeiro dia do mês atual
+      const hoje = new Date();
+      const primeiroDia = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+      document.getElementById('dataInicio').valueAsDate = primeiroDia;
+      document.getElementById('dataFim').valueAsDate = hoje;
+      document.getElementById('dataLancamento').valueAsDate = hoje;
+    });
+
+    async function carregarCategorias() {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch('/api/categorias-financeiras', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (!response.ok) throw new Error('Erro ao carregar categorias');
+
+        const data = await response.json();
+        categorias = data.categorias;
+
+        const select = document.getElementById('categoriaId');
+        select.innerHTML = '<option value="">Nenhuma</option>';
+        
+        categorias.forEach(cat => {
+          const option = document.createElement('option');
+          option.value = cat.id;
+          option.textContent = `${cat.codigo} - ${cat.nome} (${cat.tipo})`;
+          select.appendChild(option);
+        });
+
+      } catch (error) {
+        console.error('Erro ao carregar categorias:', error);
+      }
+    }
+
+    async function carregarLancamentos() {
+      document.getElementById('loading').style.display = 'block';
+      document.getElementById('tableContainer').style.display = 'none';
+      document.getElementById('emptyState').style.display = 'none';
+
+      try {
+        const token = localStorage.getItem('token');
+        const params = new URLSearchParams();
+        
+        const tipo = document.getElementById('filtroTipo').value;
+        const status = document.getElementById('filtroStatus').value;
+        const dataInicio = document.getElementById('dataInicio').value;
+        const dataFim = document.getElementById('dataFim').value;
+
+        if (tipo) params.append('tipo', tipo);
+        if (status) params.append('status', status);
+        if (dataInicio) params.append('data_inicio', dataInicio);
+        if (dataFim) params.append('data_fim', dataFim);
+
+        const response = await fetch(`/api/lancamentos-financeiros?${params}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (!response.ok) throw new Error('Erro ao carregar lançamentos');
+
+        const data = await response.json();
+        lancamentos = data.lancamentos;
+
+        atualizarTotais(data.totais);
+        renderizarTabela();
+
+      } catch (error) {
+        mostrarAlerta('Erro ao carregar lançamentos: ' + error.message, 'error');
+      } finally {
+        document.getElementById('loading').style.display = 'none';
+      }
+    }
+
+    function atualizarTotais(totais) {
+      document.getElementById('totalReceitas').textContent = formatarMoeda(totais.receitas);
+      document.getElementById('totalDespesas').textContent = formatarMoeda(totais.despesas);
+      document.getElementById('saldo').textContent = formatarMoeda(totais.saldo);
+    }
+
+    function renderizarTabela() {
+      const tbody = document.getElementById('tbody');
+      tbody.innerHTML = '';
+
+      if (lancamentos.length === 0) {
+        document.getElementById('emptyState').style.display = 'block';
+        return;
+      }
+
+      document.getElementById('tableContainer').style.display = 'block';
+
+      lancamentos.forEach(lanc => {
+        const tr = document.createElement('tr');
+        
+        tr.innerHTML = `
+          <td>${formatarData(lanc.data_lancamento)}</td>
+          <td><span class="badge ${lanc.tipo.toLowerCase()}">${lanc.tipo}</span></td>
+          <td>${lanc.categoria_nome || '-'}</td>
+          <td>${lanc.descricao}</td>
+          <td><strong>${formatarMoeda(lanc.valor)}</strong></td>
+          <td><span class="badge ${lanc.status.toLowerCase()}">${lanc.status}</span></td>
+          <td>${lanc.data_vencimento ? formatarData(lanc.data_vencimento) : '-'}</td>
+          <td style="text-align: center;">
+            <div class="actions">
+              <button class="btn btn-info" onclick="editarLancamento(${lanc.id})" title="Editar">
+                ✏️
+              </button>
+              ${lanc.status === 'PENDENTE' ? `
+                <button class="btn btn-success" onclick="marcarPago(${lanc.id})" title="Marcar como pago">
+                  ✓
+                </button>
+              ` : ''}
+              ${lanc.status !== 'CANCELADO' && !lanc.conciliado ? `
+                <button class="btn btn-danger" onclick="excluirLancamento(${lanc.id})" title="Excluir">
+                  🗑️
+                </button>
+              ` : ''}
+            </div>
+          </td>
+        `;
+        
+        tbody.appendChild(tr);
+      });
+    }
+
+    function abrirModal() {
+      document.getElementById('modalTitle').textContent = 'Novo Lançamento';
+      document.getElementById('lancamentoForm').reset();
+      document.getElementById('lancamentoId').value = '';
+      document.getElementById('dataLancamento').valueAsDate = new Date();
+      document.getElementById('modal').classList.add('active');
+    }
+
+    function fecharModal() {
+      document.getElementById('modal').classList.remove('active');
+    }
+
+    async function editarLancamento(id) {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`/api/lancamentos-financeiros/${id}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (!response.ok) throw new Error('Erro ao buscar lançamento');
+
+        const data = await response.json();
+        const lanc = data.lancamento;
+
+        document.getElementById('modalTitle').textContent = 'Editar Lançamento';
+        document.getElementById('lancamentoId').value = lanc.id;
+        document.getElementById('tipo').value = lanc.tipo;
+        document.getElementById('categoriaId').value = lanc.categoria_id || '';
+        document.getElementById('descricao').value = lanc.descricao;
+        document.getElementById('valor').value = lanc.valor;
+        document.getElementById('dataLancamento').value = lanc.data_lancamento;
+        document.getElementById('dataVencimento').value = lanc.data_vencimento || '';
+        document.getElementById('dataPagamento').value = lanc.data_pagamento || '';
+        document.getElementById('status').value = lanc.status;
+        document.getElementById('formaPagamento').value = lanc.forma_pagamento || '';
+        document.getElementById('numeroDocumento').value = lanc.numero_documento || '';
+        document.getElementById('observacoes').value = lanc.observacoes || '';
+        
+        document.getElementById('modal').classList.add('active');
+
+      } catch (error) {
+        mostrarAlerta('Erro ao carregar lançamento: ' + error.message, 'error');
+      }
+    }
+
+    document.getElementById('lancamentoForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const id = document.getElementById('lancamentoId').value;
+      const dados = {
+        tipo: document.getElementById('tipo').value,
+        categoria_id: document.getElementById('categoriaId').value || null,
+        descricao: document.getElementById('descricao').value,
+        valor: parseFloat(document.getElementById('valor').value),
+        data_lancamento: document.getElementById('dataLancamento').value,
+        data_vencimento: document.getElementById('dataVencimento').value || null,
+        data_pagamento: document.getElementById('dataPagamento').value || null,
+        status: document.getElementById('status').value,
+        forma_pagamento: document.getElementById('formaPagamento').value || null,
+        numero_documento: document.getElementById('numeroDocumento').value || null,
+        observacoes: document.getElementById('observacoes').value || null
+      };
+
+      try {
+        const token = localStorage.getItem('token');
+        const url = id 
+          ? `/api/lancamentos-financeiros/${id}`
+          : '/api/lancamentos-financeiros';
+        
+        const method = id ? 'PUT' : 'POST';
+
+        const response = await fetch(url, {
+          method,
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(dados)
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+          throw new Error(result.error || 'Erro ao salvar lançamento');
+        }
+
+        mostrarAlerta(result.message, 'success');
+        fecharModal();
+        carregarLancamentos();
+
+      } catch (error) {
+        mostrarAlerta(error.message, 'error');
+      }
+    });
+
+    async function marcarPago(id) {
+      if (!confirm('Marcar este lançamento como pago?')) return;
+
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`/api/lancamentos-financeiros/${id}/pagar`, {
+          method: 'PATCH',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            data_pagamento: new Date().toISOString().split('T')[0]
+          })
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+          throw new Error(result.error || 'Erro ao marcar como pago');
+        }
+
+        mostrarAlerta(result.message, 'success');
+        carregarLancamentos();
+
+      } catch (error) {
+        mostrarAlerta(error.message, 'error');
+      }
+    }
+
+    async function excluirLancamento(id) {
+      if (!confirm('Tem certeza que deseja excluir este lançamento?\n\nEsta ação não pode ser desfeita.')) {
+        return;
+      }
+
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`/api/lancamentos-financeiros/${id}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+          throw new Error(result.error || 'Erro ao excluir lançamento');
+        }
+
+        mostrarAlerta(result.message, 'success');
+        carregarLancamentos();
+
+      } catch (error) {
+        mostrarAlerta(error.message, 'error');
+      }
+    }
+
+    function formatarMoeda(valor) {
+      return new Intl.NumberFormat('pt-BR', {
+        style: 'currency',
+        currency: 'BRL'
+      }).format(valor);
+    }
+
+    function formatarData(data) {
+      if (!data) return '-';
+      return new Date(data + 'T00:00:00').toLocaleDateString('pt-BR');
+    }
+
+    function mostrarAlerta(mensagem, tipo) {
+      const alert = document.getElementById('alert');
+      alert.textContent = mensagem;
+      alert.className = `alert ${tipo} active`;
+      
+      setTimeout(() => {
+        alert.classList.remove('active');
+      }, 5000);
+    }
+
+    document.getElementById('modal').addEventListener('click', (e) => {
+      if (e.target.id === 'modal') {
+        fecharModal();
+      }
+    });
+  </script>
+</body>
+</html>

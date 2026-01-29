@@ -1,0 +1,2776 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NF-e de Entrada - Nexus Gestão</title>
+  <link rel="stylesheet" href="/styles.css">
+  <style>
+    .nfe-container {
+      max-width: 1600px;
+      margin: 20px auto;
+      padding: 20px;
+    }
+    .header-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    .btn-upload {
+      background: #28a745;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .btn-upload:hover {
+      background: #218838;
+    }
+    .filters {
+      background: #f5f5f5;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+    }
+    .filter-group {
+      display: flex;
+      flex-direction: column;
+    }
+    .filter-group label {
+      margin-bottom: 5px;
+      font-weight: 600;
+      font-size: 13px;
+    }
+    .filter-group select,
+    .filter-group input {
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+    .nfe-table {
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .nfe-table table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .nfe-table th {
+      background: #667eea;
+      color: white;
+      padding: 12px;
+      text-align: left;
+      font-weight: 600;
+      font-size: 13px;
+    }
+    .nfe-table td {
+      padding: 12px;
+      border-bottom: 1px solid #eee;
+      font-size: 13px;
+    }
+    .nfe-table tr:hover {
+      background: #f9f9f9;
+    }
+    .status-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .status-PENDENTE { background: #fff3cd; color: #856404; }
+    .status-CONFERIDO { background: #cce5ff; color: #004085; }
+    .status-IMPORTADO { background: #d4edda; color: #155724; }
+    .status-CANCELADO { background: #f8d7da; color: #721c24; }
+    .status-SEM_MANIFESTACAO { background: #e2e3e5; color: #383d41; }
+    .status-CIENCIA_EMISSAO { background: #d1ecf1; color: #0c5460; }
+    .status-CONFIRMACAO_OPERACAO { background: #d4edda; color: #155724; }
+    .btn-acao {
+      padding: 4px 12px;
+      margin: 0 2px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .btn-visualizar { background: #17a2b8; color: white; }
+    .btn-manifestar { background: #ffc107; color: #000; }
+    .btn-importar { background: #28a745; color: white; }
+    .btn-deletar { background: #dc3545; color: white; }
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal.show {
+      display: flex;
+    }
+    .modal-content {
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      max-width: 900px;
+      max-height: 80vh;
+      overflow-y: auto;
+      position: relative;
+      width: 90%;
+    }
+    .modal-close {
+      position: absolute;
+      top: 10px;
+      right: 15px;
+      font-size: 28px;
+      cursor: pointer;
+      color: #999;
+    }
+    .detalhes-nfe {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 15px;
+      margin: 20px 0;
+    }
+    .detalhe-item {
+      padding: 10px;
+      background: #f8f9fa;
+      border-radius: 4px;
+    }
+    .detalhe-item label {
+      display: block;
+      font-weight: 600;
+      font-size: 12px;
+      color: #666;
+      margin-bottom: 5px;
+    }
+    .detalhe-item value {
+      display: block;
+      font-size: 14px;
+      color: #333;
+    }
+    .itens-nfe table {
+      width: 100%;
+      margin-top: 20px;
+    }
+    .itens-nfe th {
+      background: #f8f9fa;
+      padding: 10px;
+      text-align: left;
+      font-size: 12px;
+    }
+    .itens-nfe td {
+      padding: 10px;
+      border-bottom: 1px solid #eee;
+      font-size: 13px;
+    }
+    .upload-area {
+      border: 2px dashed #667eea;
+      border-radius: 8px;
+      padding: 40px;
+      text-align: center;
+      margin: 20px 0;
+      cursor: pointer;
+    }
+    .upload-area:hover {
+      background: #f8f9ff;
+    }
+    .upload-area input[type="file"] {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="nfe-container">
+    <div class="header-actions">
+      <h1>📥 NF-e de Entrada</h1>
+      <div style="display: flex; gap: 10px;">
+        <button class="btn-upload" onclick="abrirModalEntradaManual()" style="background: #3b82f6;">
+          ✍️ Entrada Manual
+        </button>
+        <button class="btn-upload" onclick="consultarSefaz()" style="background: #10b981;">
+          🔍 Consultar SEFAZ
+        </button>
+        <button class="btn-upload" onclick="abrirModalUpload()">
+          📤 Fazer Upload de XML
+        </button>
+      </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="filters">
+      <div class="filter-group">
+        <label>Status Entrada</label>
+        <select id="filtroStatusEntrada">
+          <option value="">Todos</option>
+          <option value="PENDENTE">Pendente</option>
+          <option value="CONFERIDO">Conferido</option>
+          <option value="IMPORTADO">Importado</option>
+          <option value="CANCELADO">Cancelado</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label>Status Manifestação</label>
+        <select id="filtroStatusManifestacao">
+          <option value="">Todos</option>
+          <option value="SEM_MANIFESTACAO">Sem Manifestação</option>
+          <option value="CIENCIA_EMISSAO">Ciência da Emissão</option>
+          <option value="CONFIRMACAO_OPERACAO">Confirmação</option>
+          <option value="DESCONHECIMENTO_OPERACAO">Desconhecimento</option>
+          <option value="OPERACAO_NAO_REALIZADA">Não Realizada</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label>Data Início</label>
+        <input type="date" id="filtroDataInicio">
+      </div>
+
+      <div class="filter-group">
+        <label>Data Fim</label>
+        <input type="date" id="filtroDataFim">
+      </div>
+
+      <div class="filter-group" style="align-self: flex-end;">
+        <button onclick="filtrar()" style="padding: 8px 20px; background: #667eea; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600;">
+          🔍 Filtrar
+        </button>
+      </div>
+    </div>
+
+    <!-- Tabela -->
+    <div class="nfe-table">
+      <table>
+        <thead>
+          <tr>
+            <th>Número</th>
+            <th>Chave de Acesso</th>
+            <th>Fornecedor</th>
+            <th>Data Emissão</th>
+            <th>Valor Total</th>
+            <th>Status Entrada</th>
+            <th>Manifestação</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody id="nfeTableBody">
+          <tr>
+            <td colspan="8" style="text-align: center; padding: 40px;">Carregando...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Paginação -->
+    <div class="pagination" style="display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 20px;">
+      <button id="btnPrevPage" onclick="mudarPagina(-1)">Anterior</button>
+      <span id="paginaInfo">Página 1</span>
+      <button id="btnNextPage" onclick="mudarPagina(1)">Próxima</button>
+    </div>
+  </div>
+
+  <!-- Modal Upload -->
+  <div class="modal" id="modalUpload">
+    <div class="modal-content">
+      <span class="modal-close" onclick="fecharModal('modalUpload')">&times;</span>
+      <h2>📤 Upload de XML</h2>
+      
+      <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+        <p style="font-size: 48px; margin: 0;">📄</p>
+        <p style="font-size: 18px; font-weight: 600; margin: 10px 0;">Clique ou arraste o arquivo XML aqui</p>
+        <p style="font-size: 14px; color: #666;">Apenas arquivos .xml são aceitos</p>
+        <input type="file" id="fileInput" accept=".xml" onchange="uploadXML()">
+      </div>
+
+      <div id="uploadProgress" style="display: none; margin-top: 20px;">
+        <p>Processando XML...</p>
+        <div style="background: #e9ecef; height: 20px; border-radius: 10px; overflow: hidden;">
+          <div id="progressBar" style="background: #28a745; height: 100%; width: 0%; transition: width 0.3s;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Detalhes -->
+  <div class="modal" id="modalDetalhes">
+    <div class="modal-content" style="max-width: 1200px;">
+      <span class="modal-close" onclick="fecharModal('modalDetalhes')">&times;</span>
+      <div id="detalhesContent"></div>
+    </div>
+  </div>
+
+  <!-- Modal Manifestação -->
+  <div class="modal" id="modalManifestar">
+    <div class="modal-content">
+      <span class="modal-close" onclick="fecharModal('modalManifestar')">&times;</span>
+      <h2>📝 Manifestação do Destinatário</h2>
+      
+      <div style="margin: 20px 0;">
+        <label style="display: block; font-weight: 600; margin-bottom: 10px;">Tipo de Evento</label>
+        <select id="tipoEvento" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+          <option value="CIENCIA_EMISSAO">Ciência da Emissão</option>
+          <option value="CONFIRMACAO_OPERACAO">Confirmação da Operação</option>
+          <option value="DESCONHECIMENTO_OPERACAO">Desconhecimento da Operação</option>
+          <option value="OPERACAO_NAO_REALIZADA">Operação Não Realizada</option>
+        </select>
+      </div>
+
+      <div style="margin: 20px 0;">
+        <label style="display: block; font-weight: 600; margin-bottom: 10px;">Justificativa (opcional)</label>
+        <textarea id="justificativa" rows="4" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;"></textarea>
+      </div>
+
+      <div style="text-align: right;">
+        <button onclick="fecharModal('modalManifestar')" style="padding: 10px 20px; margin-right: 10px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">
+          Cancelar
+        </button>
+        <button onclick="manifestar()" style="padding: 10px 20px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600;">
+          Enviar Manifestação
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Entrada Manual -->
+  <div class="modal" id="modalEntradaManual">
+    <div class="modal-content" style="max-width: 1200px;">
+      <span class="modal-close" onclick="fecharModal('modalEntradaManual')">&times;</span>
+      <h2>✍️ Entrada Manual de NF-e</h2>
+      
+      <!-- Opção: Upload XML ou Manual -->
+      <div style="background: #f0f9ff; border-left: 4px solid #3b82f6; padding: 15px; margin: 20px 0;">
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+          <div>
+            <strong>💡 Opções de Entrada:</strong>
+            <p style="margin: 5px 0 0 0; color: #1e40af;">
+              Importe um XML do fornecedor ou preencha manualmente os dados da nota
+            </p>
+          </div>
+          <div>
+            <input type="file" id="xmlFileInput" accept=".xml" style="display: none;" onchange="processarXMLFornecedor(event)">
+            <button onclick="document.getElementById('xmlFileInput').click()" style="padding: 10px 20px; background: #10b981; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600;">
+              📤 Importar XML
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 20px 0;">
+        <!-- Dados do Fornecedor -->
+        <div>
+          <h3 style="color: #374151; margin-bottom: 15px;">📋 Dados do Fornecedor</h3>
+          
+          <div style="margin-bottom: 15px;">
+            <label style="display: block; font-weight: 600; margin-bottom: 5px;">Fornecedor *</label>
+            <select id="fornecedorId" onchange="carregarPedidosCompra()" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+              <option value="">Selecione...</option>
+            </select>
+          </div>
+
+          <div style="margin-bottom: 15px;">
+            <label style="display: block; font-weight: 600; margin-bottom: 5px;">Pedido de Compra (opcional)</label>
+            <select id="pedidoCompraId" onchange="preencherDadosPedido()" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+              <option value="">Nenhum (entrada avulsa)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Dados da NF-e -->
+        <div>
+          <h3 style="color: #374151; margin-bottom: 15px;">📄 Dados da NF-e</h3>
+          
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
+            <div>
+              <label style="display: block; font-weight: 600; margin-bottom: 5px;">Número NF *</label>
+              <input type="text" id="numeroNF" placeholder="123456" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+            </div>
+            <div>
+              <label style="display: block; font-weight: 600; margin-bottom: 5px;">Série *</label>
+              <input type="text" id="serieNF" value="1" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
+            <div>
+              <label style="display: block; font-weight: 600; margin-bottom: 5px;">Data Emissão *</label>
+              <input type="date" id="dataEmissao" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+            </div>
+            <div>
+              <label style="display: block; font-weight: 600; margin-bottom: 5px;">Data Entrada *</label>
+              <input type="date" id="dataEntrada" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+            </div>
+          </div>
+
+          <div style="margin-bottom: 15px;">
+            <label style="display: block; font-weight: 600; margin-bottom: 5px;">Chave de Acesso (44 dígitos)</label>
+            <input type="text" id="chaveAcesso" maxlength="44" placeholder="44 dígitos (opcional)" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+          </div>
+        </div>
+      </div>
+
+      <!-- Itens da Nota -->
+      <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 20px 0;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+          <h3 style="color: #374151; margin: 0;">📦 Itens da Nota</h3>
+          <button onclick="adicionarItemManual()" style="padding: 8px 16px; background: #10b981; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px;">
+            ➕ Adicionar Item
+          </button>
+        </div>
+        
+        <div id="itensContainer" style="max-height: 300px; overflow-y: auto;">
+          <p style="text-align: center; color: #666; padding: 20px;">Nenhum item adicionado. Clique em "Adicionar Item" ou importe um XML.</p>
+        </div>
+
+        <!-- Painel de Totais Fiscais Detalhados -->
+        <div id="totaisFiscais"></div>
+      </div>
+
+      <!-- Totais -->
+      <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 20px 0;">
+        <h3 style="color: #374151; margin-bottom: 15px;">💰 Valores</h3>
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px;">
+          <div>
+            <label style="display: block; font-weight: 600; margin-bottom: 5px;">Valor Produtos</label>
+            <input type="number" id="valorProdutos" step="0.01" value="0.00" readonly style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; background: #f3f4f6;">
+          </div>
+          <div>
+            <label style="display: block; font-weight: 600; margin-bottom: 5px;">Frete</label>
+            <input type="number" id="valorFrete" step="0.01" value="0.00" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+          </div>
+          <div>
+            <label style="display: block; font-weight: 600; margin-bottom: 5px;">Outras Despesas</label>
+            <input type="number" id="valorOutros" step="0.01" value="0.00" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+          </div>
+          <div>
+            <label style="display: block; font-weight: 600; margin-bottom: 5px; color: #059669;">Valor Total</label>
+            <input type="number" id="valorTotal" step="0.01" value="0.00" readonly style="width: 100%; padding: 10px; border: 1px solid #059669; border-radius: 4px; background: #ecfdf5; font-weight: 600;">
+          </div>
+        </div>
+      </div>
+
+      <!-- Observações -->
+      <div style="margin: 20px 0;">
+        <label style="display: block; font-weight: 600; margin-bottom: 5px;">Observações</label>
+        <textarea id="observacoes" rows="3" placeholder="Informações adicionais sobre esta entrada..." style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;"></textarea>
+      </div>
+
+      <div style="text-align: right; border-top: 1px solid #e5e7eb; padding-top: 20px;">
+        <button onclick="fecharModal('modalEntradaManual')" style="padding: 10px 20px; margin-right: 10px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">
+          Cancelar
+        </button>
+        <button onclick="salvarEntradaManualComItens()" style="padding: 10px 20px; background: #3b82f6; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600;">
+          💾 Salvar Entrada
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Associar Itens do XML -->
+  <div class="modal" id="modalAssociarItens">
+    <div class="modal-content" style="max-width: 1400px;">
+      <span class="modal-close" onclick="fecharModal('modalAssociarItens')">&times;</span>
+      <h2>🔗 Associar Itens do XML aos Produtos</h2>
+      
+      <div style="background: #f0f9ff; border-left: 4px solid #3b82f6; padding: 15px; margin: 20px 0;">
+        <p style="margin: 0; color: #1e40af;">
+          <strong>💡 Dica:</strong> Associe os itens da NF-e aos produtos cadastrados no sistema. 
+          Itens não associados serão importados como novos produtos.
+        </p>
+      </div>
+
+      <div id="itensXMLContent" style="margin: 20px 0;">
+        <p style="text-align: center; color: #666;">Carregando itens...</p>
+      </div>
+
+      <div style="text-align: right; border-top: 1px solid #e5e7eb; padding-top: 20px; margin-top: 20px;">
+        <button onclick="fecharModal('modalAssociarItens')" style="padding: 10px 20px; margin-right: 10px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">
+          Cancelar
+        </button>
+        <button onclick="salvarAssociacoes()" style="padding: 10px 20px; background: #8b5cf6; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600;">
+          💾 Salvar Associações
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Adicionar/Editar Item Manual -->
+  <div class="modal" id="modalAdicionarItem">
+    <div class="modal-content" style="max-width: 900px;">
+      <span class="modal-close" onclick="fecharModal('modalAdicionarItem')">&times;</span>
+      <h2 id="tituloModalItem">➕ Adicionar Item</h2>
+      
+      <div style="margin: 20px 0;">
+        <!-- Buscar Produto Existente para Associar -->
+        <div style="background: #fef3c7; border: 2px solid #f59e0b; border-radius: 8px; padding: 15px; margin-bottom: 20px;">
+          <h3 style="color: #92400e; margin: 0 0 10px 0; font-size: 16px;">
+            🔗 Selecionar Produto do Sistema para Associar
+          </h3>
+          <p style="margin: 0 0 10px 0; color: #78350f; font-size: 13px;">
+            Busque e selecione o produto cadastrado que corresponde a este item da nota
+          </p>
+          <div style="display: flex; gap: 10px;">
+            <input 
+              type="text" 
+              id="buscaProdutoItem" 
+              placeholder="Digite código, GTIN ou descrição do produto..."
+              style="flex: 1; padding: 10px; border: 1px solid #f59e0b; border-radius: 4px; background: white;"
+              onkeyup="buscarProdutosParaItem(event)"
+            >
+            <button onclick="buscarProdutosParaItem()" style="padding: 10px 20px; background: #f59e0b; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600;">
+              🔍 Buscar
+            </button>
+          </div>
+          <div id="resultadosBuscaProduto" style="margin-top: 10px; max-height: 200px; overflow-y: auto;"></div>
+          <div id="produtoSelecionadoInfo" style="margin-top: 10px; display: none; background: #d1fae5; border: 1px solid #059669; border-radius: 4px; padding: 10px;">
+            <strong style="color: #047857;">✓ Produto Selecionado:</strong>
+            <span id="produtoSelecionadoNome" style="color: #065f46; margin-left: 10px;"></span>
+            <button onclick="removerSelecaoProduto()" style="float: right; background: #ef4444; color: white; border: none; padding: 4px 8px; border-radius: 3px; cursor: pointer; font-size: 11px;">
+              ✕ Remover
+            </button>
+          </div>
+        </div>
+
+        <!-- Abas: Dados do Produto | Dados Fiscais -->
+        <div style="border-bottom: 2px solid #e5e7eb; margin-bottom: 20px;">
+          <div style="display: flex; gap: 5px;">
+            <button id="tabDadosProduto" onclick="trocarAbaItem('produto')" style="padding: 10px 20px; background: #3b82f6; color: white; border: none; border-bottom: 3px solid #2563eb; cursor: pointer; font-weight: 600;">
+              📦 Dados do Produto
+            </button>
+            <button id="tabDadosFiscais" onclick="trocarAbaItem('fiscal')" style="padding: 10px 20px; background: #e5e7eb; color: #6b7280; border: none; cursor: pointer;">
+              📋 Dados Fiscais (XML)
+            </button>
+          </div>
+        </div>
+
+        <!-- Conteúdo Aba: Dados do Produto -->
+        <div id="abaDadosProduto">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+            <div>
+              <label style="display: block; font-weight: 600; margin-bottom: 5px;">Código *</label>
+              <input type="text" id="itemCodigo" placeholder="Código do produto" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+            </div>
+            <div>
+              <label style="display: block; font-weight: 600; margin-bottom: 5px;">GTIN/EAN</label>
+              <input type="text" id="itemGTIN" placeholder="Código de barras" maxlength="14" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+            </div>
+          </div>
+
+          <div style="margin-top: 15px;">
+            <label style="display: block; font-weight: 600; margin-bottom: 5px;">Descrição *</label>
+            <input type="text" id="itemDescricao" placeholder="Descrição do produto" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-top: 15px;">
+            <div>
+              <label style="display: block; font-weight: 600; margin-bottom: 5px;">Unidade *</label>
+              <select id="itemUnidade" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+                <option value="UN">UN - Unidade</option>
+                <option value="KG">KG - Quilograma</option>
+                <option value="MT">MT - Metro</option>
+                <option value="LT">LT - Litro</option>
+                <option value="PC">PC - Peça</option>
+                <option value="CX">CX - Caixa</option>
+                <option value="FD">FD - Fardo</option>
+                <option value="RL">RL - Rolo</option>
+                <option value="FR">FR - Frasco</option>
+              </select>
+            </div>
+            <div>
+              <label style="display: block; font-weight: 600; margin-bottom: 5px;">Quantidade *</label>
+              <input type="number" id="itemQuantidade" value="1" min="0.0001" step="0.0001" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;" onchange="calcularTotalItem()">
+            </div>
+            <div>
+              <label style="display: block; font-weight: 600; margin-bottom: 5px;">Valor Unitário *</label>
+              <input type="number" id="itemValorUnitario" value="0.00" min="0" step="0.0001" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;" onchange="calcularTotalItem()">
+            </div>
+          </div>
+
+          <div style="background: #ecfdf5; border: 1px solid #059669; border-radius: 8px; padding: 15px; margin-top: 15px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span style="font-weight: 600; color: #047857;">Valor Total do Item:</span>
+              <span id="itemValorTotal" style="font-size: 20px; font-weight: 700; color: #059669;">R$ 0,00</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Conteúdo Aba: Dados Fiscais -->
+        <div id="abaDadosFiscais" style="display: none;">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+            <div>
+              <label style="display: block; font-weight: 600; margin-bottom: 5px;">NCM</label>
+              <input type="text" id="itemNCM" placeholder="00000000" maxlength="8" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+            </div>
+            <div>
+              <label style="display: block; font-weight: 600; margin-bottom: 5px;">CFOP</label>
+              <input type="text" id="itemCFOP" placeholder="0000" maxlength="4" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-top: 15px;">
+            <div>
+              <label style="display: block; font-weight: 600; margin-bottom: 5px;">CEST</label>
+              <input type="text" id="itemCEST" placeholder="0000000" maxlength="7" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+            </div>
+            <div>
+              <label style="display: block; font-weight: 600; margin-bottom: 5px;">Origem</label>
+              <select id="itemOrigem" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+                <option value="">Selecione...</option>
+                <option value="0">0 - Nacional</option>
+                <option value="1">1 - Estrangeira Importação Direta</option>
+                <option value="2">2 - Estrangeira Adquirida no Mercado Interno</option>
+                <option value="3">3 - Nacional c/ + 40% Conteúdo Estrangeiro</option>
+                <option value="4">4 - Nacional Prod. Conf. Processos Básicos</option>
+                <option value="5">5 - Nacional c/ - 40% Conteúdo Estrangeiro</option>
+                <option value="6">6 - Estrangeira Importação Direta sem Similar</option>
+                <option value="7">7 - Estrangeira Mercado Interno sem Similar</option>
+                <option value="8">8 - Nacional Importação Superior 70%</option>
+              </select>
+            </div>
+            <div>
+              <label style="display: block; font-weight: 600; margin-bottom: 5px;">CST</label>
+              <input type="text" id="itemCST" placeholder="00" maxlength="3" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+            </div>
+          </div>
+
+          <h3 style="color: #374151; margin: 20px 0 10px 0; font-size: 14px; border-bottom: 1px solid #e5e7eb; padding-bottom: 5px;">
+            💰 ICMS
+          </h3>
+          <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px;">
+            <div>
+              <label style="display: block; font-weight: 600; margin-bottom: 5px; font-size: 13px;">Base ICMS</label>
+              <input type="number" id="itemICMSBase" value="0" step="0.01" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px;">
+            </div>
+            <div>
+              <label style="display: block; font-weight: 600; margin-bottom: 5px; font-size: 13px;">Alíquota %</label>
+              <input type="number" id="itemICMSAliquota" value="0" step="0.01" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px;">
+            </div>
+            <div>
+              <label style="display: block; font-weight: 600; margin-bottom: 5px; font-size: 13px;">Valor ICMS</label>
+              <input type="number" id="itemICMSValor" value="0" step="0.01" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px;">
+            </div>
+            <div>
+              <label style="display: block; font-weight: 600; margin-bottom: 5px; font-size: 13px;">ICMS ST</label>
+              <input type="number" id="itemICMSST" value="0" step="0.01" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px;">
+            </div>
+          </div>
+
+          <h3 style="color: #374151; margin: 20px 0 10px 0; font-size: 14px; border-bottom: 1px solid #e5e7eb; padding-bottom: 5px;">
+            🏭 IPI / PIS / COFINS
+          </h3>
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px;">
+            <div>
+              <label style="display: block; font-weight: 600; margin-bottom: 5px; font-size: 13px;">IPI Valor</label>
+              <input type="number" id="itemIPIValor" value="0" step="0.01" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px;">
+            </div>
+            <div>
+              <label style="display: block; font-weight: 600; margin-bottom: 5px; font-size: 13px;">PIS Valor</label>
+              <input type="number" id="itemPISValor" value="0" step="0.01" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px;">
+            </div>
+            <div>
+              <label style="display: block; font-weight: 600; margin-bottom: 5px; font-size: 13px;">COFINS Valor</label>
+              <input type="number" id="itemCOFINSValor" value="0" step="0.01" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px;">
+            </div>
+          </div>
+
+          <h3 style="color: #374151; margin: 20px 0 10px 0; font-size: 14px; border-bottom: 1px solid #e5e7eb; padding-bottom: 5px;">
+            💵 Outros Valores
+          </h3>
+          <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px;">
+            <div>
+              <label style="display: block; font-weight: 600; margin-bottom: 5px; font-size: 13px;">Desconto</label>
+              <input type="number" id="itemDesconto" value="0" step="0.01" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px;">
+            </div>
+            <div>
+              <label style="display: block; font-weight: 600; margin-bottom: 5px; font-size: 13px;">Frete</label>
+              <input type="number" id="itemFrete" value="0" step="0.01" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px;">
+            </div>
+            <div>
+              <label style="display: block; font-weight: 600; margin-bottom: 5px; font-size: 13px;">Seguro</label>
+              <input type="number" id="itemSeguro" value="0" step="0.01" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px;">
+            </div>
+            <div>
+              <label style="display: block; font-weight: 600; margin-bottom: 5px; font-size: 13px;">Outras Desp.</label>
+              <input type="number" id="itemOutros" value="0" step="0.01" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px;">
+            </div>
+          </div>
+        </div>
+
+        <input type="hidden" id="itemProdutoId" value="">
+        <input type="hidden" id="itemNumero" value="">
+      </div>
+
+      <div style="text-align: right; border-top: 1px solid #e5e7eb; padding-top: 20px; margin-top: 20px;">
+        <button onclick="fecharModal('modalAdicionarItem')" style="padding: 10px 20px; margin-right: 10px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">
+          Cancelar
+        </button>
+        <button onclick="confirmarAdicionarItem()" style="padding: 10px 20px; background: #10b981; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600;">
+          ✓ Adicionar Item
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = '/api/nfe-entrada';
+    let paginaAtual = 1;
+    let totalPaginas = 1;
+    let nfeAtual = null;
+
+    // Carregar NF-es ao iniciar
+    carregarNFes();
+
+    async function carregarNFes() {
+      try {
+        const token = localStorage.getItem('token');
+        
+        const statusEntrada = document.getElementById('filtroStatusEntrada').value;
+        const statusManifestacao = document.getElementById('filtroStatusManifestacao').value;
+        const dataInicio = document.getElementById('filtroDataInicio').value;
+        const dataFim = document.getElementById('filtroDataFim').value;
+
+        let url = `${API_BASE}?page=${paginaAtual}&limit=20`;
+        if (statusEntrada) url += `&status_entrada=${statusEntrada}`;
+        if (statusManifestacao) url += `&status_manifestacao=${statusManifestacao}`;
+        if (dataInicio) url += `&data_inicio=${dataInicio}`;
+        if (dataFim) url += `&data_fim=${dataFim}`;
+
+        const response = await fetch(url, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+
+        const data = await response.json();
+        
+        totalPaginas = data.pagination?.totalPages || 1;
+        renderizarNFes(data.notas || []);
+        atualizarPaginacao(data.pagination || { page: 1, totalPages: 1, total: 0 });
+
+      } catch (error) {
+        console.error('Erro ao carregar NF-es:', error);
+        document.getElementById('nfeTableBody').innerHTML = `
+          <tr><td colspan="8" style="text-align: center; padding: 40px;">
+            <div style="color: #666; font-size: 16px;">
+              <div style="font-size: 48px; margin-bottom: 10px;">📥</div>
+              <strong>Nenhuma NF-e de entrada encontrada</strong><br>
+              <small style="color: #999;">Faça o upload de XMLs usando o botão acima</small>
+            </div>
+          </td></tr>
+        `;
+      }
+    }
+
+    function renderizarNFes(notas) {
+      const tbody = document.getElementById('nfeTableBody');
+      
+      if (notas.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center;">Nenhuma NF-e encontrada</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = notas.map(nfe => `
+        <tr>
+          <td><strong>${nfe.numero_nfe}/${nfe.serie}</strong></td>
+          <td style="font-family: monospace; font-size: 11px;">
+            ${nfe.chave_acesso ? nfe.chave_acesso.substring(0, 10) + '...' : '<em style="color: #999;">Manual</em>'}
+          </td>
+          <td>${nfe.fornecedor_nome}</td>
+          <td>${new Date(nfe.data_emissao).toLocaleString('pt-BR')}</td>
+          <td>R$ ${parseFloat(nfe.valor_total).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
+          <td><span class="status-badge status-${nfe.status_entrada}">${nfe.status_entrada}</span></td>
+          <td><span class="status-badge status-${nfe.status_manifestacao}">${nfe.status_manifestacao.replace(/_/g, ' ')}</span></td>
+          <td>
+            <button class="btn-acao btn-visualizar" onclick="visualizarNFe(${nfe.id})">👁️ Ver</button>
+            ${nfe.xml_completo && nfe.status_entrada === 'PENDENTE' ? 
+              `<button class="btn-acao" onclick="abrirModalAssociarItens(${nfe.id})" style="background: #8b5cf6;">🔗 Itens</button>` : ''}
+            ${nfe.status_manifestacao === 'SEM_MANIFESTACAO' ? 
+              `<button class="btn-acao btn-manifestar" onclick="abrirModalManifestar(${nfe.id})">📝 Manifestar</button>` : ''}
+            ${nfe.status_entrada === 'PENDENTE' || nfe.status_entrada === 'CONFERIDO' ? 
+              `<button class="btn-acao btn-importar" onclick="importarNFe(${nfe.id})">📦 Importar</button>` : ''}
+            ${nfe.status_entrada !== 'IMPORTADO' ? 
+              `<button class="btn-acao btn-deletar" onclick="deletarNFe(${nfe.id})">🗑️</button>` : ''}
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function atualizarPaginacao(pagination) {
+      document.getElementById('paginaInfo').textContent = 
+        `Página ${pagination.page} de ${pagination.totalPages} (${pagination.total} registros)`;
+      
+      document.getElementById('btnPrevPage').disabled = pagination.page === 1;
+      document.getElementById('btnNextPage').disabled = pagination.page >= pagination.totalPages;
+    }
+
+    function mudarPagina(direcao) {
+      paginaAtual += direcao;
+      if (paginaAtual < 1) paginaAtual = 1;
+      if (paginaAtual > totalPaginas) paginaAtual = totalPaginas;
+      carregarNFes();
+    }
+
+    function filtrar() {
+      paginaAtual = 1;
+      carregarNFes();
+    }
+
+    function abrirModalUpload() {
+      document.getElementById('modalUpload').classList.add('show');
+    }
+
+    function fecharModal(modalId) {
+      document.getElementById(modalId).classList.remove('show');
+    }
+
+    async function uploadXML() {
+      const fileInput = document.getElementById('fileInput');
+      const file = fileInput.files[0];
+      
+      if (!file) return;
+
+      const formData = new FormData();
+      formData.append('xml', file);
+
+      document.getElementById('uploadProgress').style.display = 'block';
+      document.getElementById('progressBar').style.width = '50%';
+
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_BASE}/upload`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${token}` },
+          body: formData
+        });
+
+        const data = await response.json();
+
+        document.getElementById('progressBar').style.width = '100%';
+
+        if (response.ok) {
+          alert('✅ XML importado com sucesso!');
+          fecharModal('modalUpload');
+          carregarNFes();
+        } else {
+          alert('❌ Erro: ' + data.error);
+        }
+
+      } catch (error) {
+        console.error('Erro ao fazer upload:', error);
+        alert('❌ Erro ao processar XML');
+      } finally {
+        document.getElementById('uploadProgress').style.display = 'none';
+        document.getElementById('progressBar').style.width = '0%';
+        fileInput.value = '';
+      }
+    }
+
+    async function visualizarNFe(id) {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_BASE}/${id}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        const data = await response.json();
+        const { nota, itens, manifestacoes } = data;
+
+        const content = `
+          <h2>📄 Detalhes da NF-e ${nota.numero_nfe}/${nota.serie}</h2>
+          
+          <div class="detalhes-nfe">
+            <div class="detalhe-item">
+              <label>Chave de Acesso</label>
+              <value style="font-family: monospace; font-size: 11px;">${nota.chave_acesso}</value>
+            </div>
+            <div class="detalhe-item">
+              <label>Fornecedor</label>
+              <value>${nota.fornecedor_nome}</value>
+            </div>
+            <div class="detalhe-item">
+              <label>CNPJ</label>
+              <value>${nota.fornecedor_cnpj}</value>
+            </div>
+            <div class="detalhe-item">
+              <label>Data Emissão</label>
+              <value>${new Date(nota.data_emissao).toLocaleString('pt-BR')}</value>
+            </div>
+            <div class="detalhe-item">
+              <label>Natureza da Operação</label>
+              <value>${nota.natureza_operacao || '-'}</value>
+            </div>
+            <div class="detalhe-item">
+              <label>Valor Total</label>
+              <value>R$ ${parseFloat(nota.valor_total).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</value>
+            </div>
+          </div>
+
+          <h3 style="margin-top: 30px;">📦 Itens (${itens.length})</h3>
+          <div class="itens-nfe">
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Código</th>
+                  <th>Descrição</th>
+                  <th>Qtd</th>
+                  <th>Vlr Unit.</th>
+                  <th>Total</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${itens.map(item => `
+                  <tr>
+                    <td>${item.numero_item}</td>
+                    <td>${item.codigo_produto}</td>
+                    <td>${item.descricao}</td>
+                    <td>${item.quantidade}</td>
+                    <td>R$ ${parseFloat(item.valor_unitario).toFixed(2)}</td>
+                    <td>R$ ${parseFloat(item.valor_total).toFixed(2)}</td>
+                    <td>${item.produto_id ? '✅ Vinculado' : '⚠️ Não vinculado'}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+
+          ${manifestacoes.length > 0 ? `
+            <h3 style="margin-top: 30px;">📝 Manifestações</h3>
+            <div style="background: #f8f9fa; padding: 15px; border-radius: 4px;">
+              ${manifestacoes.map(m => `
+                <div style="margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid #dee2e6;">
+                  <strong>${m.tipo_evento.replace(/_/g, ' ')}</strong> - ${new Date(m.created_at).toLocaleString('pt-BR')}
+                  <br><small>Por: ${m.usuario_nome} | Status: ${m.resultado}</small>
+                  ${m.justificativa ? `<br><em>${m.justificativa}</em>` : ''}
+                </div>
+              `).join('')}
+            </div>
+          ` : ''}
+        `;
+
+        document.getElementById('detalhesContent').innerHTML = content;
+        document.getElementById('modalDetalhes').classList.add('show');
+
+      } catch (error) {
+        console.error('Erro ao buscar detalhes:', error);
+        alert('Erro ao carregar detalhes da NF-e');
+      }
+    }
+
+    function abrirModalManifestar(id) {
+      nfeAtual = id;
+      document.getElementById('modalManifestar').classList.add('show');
+    }
+
+    async function manifestar() {
+      if (!nfeAtual) return;
+
+      const tipoEvento = document.getElementById('tipoEvento').value;
+      const justificativa = document.getElementById('justificativa').value;
+
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_BASE}/${nfeAtual}/manifestar`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ tipo_evento: tipoEvento, justificativa })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          alert('✅ Manifestação registrada com sucesso!');
+          fecharModal('modalManifestar');
+          carregarNFes();
+        } else {
+          alert('❌ Erro: ' + data.error);
+        }
+
+      } catch (error) {
+        console.error('Erro ao manifestar:', error);
+        alert('❌ Erro ao enviar manifestação');
+      }
+    }
+
+    async function importarNFe(id) {
+      if (!confirm('Deseja importar esta NF-e como entrada de mercadoria?')) return;
+
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_BASE}/${id}/importar`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ data_entrada: new Date().toISOString().split('T')[0] })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          alert(`✅ NF-e importada! Entrada: ${data.numero_entrada}`);
+          carregarNFes();
+        } else {
+          alert('❌ Erro: ' + data.error);
+        }
+
+      } catch (error) {
+        console.error('Erro ao importar:', error);
+        alert('❌ Erro ao importar NF-e');
+      }
+    }
+
+    async function deletarNFe(id) {
+      if (!confirm('Deseja realmente deletar esta NF-e?')) return;
+
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_BASE}/${id}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (response.ok) {
+          alert('✅ NF-e removida com sucesso!');
+          carregarNFes();
+        } else {
+          const data = await response.json();
+          alert('❌ Erro: ' + data.error);
+        }
+
+      } catch (error) {
+        console.error('Erro ao deletar:', error);
+        alert('❌ Erro ao deletar NF-e');
+      }
+    }
+
+    // Fechar modal ao clicar fora
+    document.querySelectorAll('.modal').forEach(modal => {
+      modal.addEventListener('click', function(e) {
+        if (e.target === this) {
+          this.classList.remove('show');
+        }
+      });
+    });
+
+    // ============================================
+    // INTEGRAÇÃO SEFAZ
+    // ============================================
+
+    // Consultar notas pendentes na SEFAZ
+    async function consultarSefaz() {
+      const btn = event.target;
+      const textoOriginal = btn.innerHTML;
+      
+      try {
+        btn.disabled = true;
+        btn.innerHTML = '⏳ Consultando SEFAZ...';
+        
+        const token = localStorage.getItem('token');
+        const ultNSU = localStorage.getItem('ultimoNSU') || '0';
+        
+        const response = await fetch(`${API_BASE}/sefaz/consultar?ultNSU=${ultNSU}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || 'Erro ao consultar SEFAZ');
+        }
+
+        const resultado = await response.json();
+        
+        if (!resultado.sucesso) {
+          alert('⚠️ ' + resultado.mensagem);
+          return;
+        }
+
+        // Salvar último NSU
+        localStorage.setItem('ultimoNSU', resultado.ultNSU);
+
+        if (resultado.totalNotas === 0) {
+          alert('✅ Nenhuma nota nova encontrada na SEFAZ');
+          return;
+        }
+
+        // Mostrar modal com notas encontradas
+        mostrarNotasSefaz(resultado.notas);
+
+      } catch (error) {
+        console.error('Erro ao consultar SEFAZ:', error);
+        alert('❌ Erro: ' + error.message + '\n\nVerifique se o certificado digital está configurado corretamente.');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = textoOriginal;
+      }
+    }
+
+    // Mostrar notas encontradas
+    function mostrarNotasSefaz(notas) {
+      const modal = document.createElement('div');
+      modal.className = 'modal show';
+      modal.innerHTML = `
+        <div class="modal-content" style="max-width: 1200px;">
+          <div class="modal-header">
+            <h2>📥 Notas Encontradas na SEFAZ (${notas.length})</h2>
+            <button onclick="this.closest('.modal').remove()" style="background: none; border: none; color: white; font-size: 24px; cursor: pointer;">×</button>
+          </div>
+          <div class="modal-body">
+            <p style="margin-bottom: 20px; color: #666;">
+              Selecione as notas que deseja importar para o sistema:
+            </p>
+            <div style="max-height: 500px; overflow-y: auto;">
+              <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                  <tr style="background: #f8f9fa;">
+                    <th style="padding: 10px; text-align: left;">
+                      <input type="checkbox" id="selectAll" onchange="toggleSelectAll(this)">
+                    </th>
+                    <th style="padding: 10px; text-align: left;">Número</th>
+                    <th style="padding: 10px; text-align: left;">Emitente</th>
+                    <th style="padding: 10px; text-align: left;">Data Emissão</th>
+                    <th style="padding: 10px; text-align: right;">Valor</th>
+                    <th style="padding: 10px; text-align: center;">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${notas.map(nota => `
+                    <tr style="border-bottom: 1px solid #eee;">
+                      <td style="padding: 10px;">
+                        <input type="checkbox" class="nota-check" data-nota='${JSON.stringify(nota)}'>
+                      </td>
+                      <td style="padding: 10px;">${nota.numero}</td>
+                      <td style="padding: 10px;">
+                        <strong>${nota.nomeEmitente}</strong><br>
+                        <small style="color: #666;">${nota.cnpjEmitente}</small>
+                      </td>
+                      <td style="padding: 10px;">${new Date(nota.dataEmissao).toLocaleDateString('pt-BR')}</td>
+                      <td style="padding: 10px; text-align: right;">R$ ${nota.valorTotal.toFixed(2)}</td>
+                      <td style="padding: 10px; text-align: center;">
+                        ${nota.situacao === 'PENDENTE_MANIFESTACAO' 
+                          ? '<span style="background: #fef3c7; color: #92400e; padding: 4px 8px; border-radius: 4px; font-size: 11px;">⚠️ Pendente</span>'
+                          : '<span style="background: #dbeafe; color: #1e40af; padding: 4px 8px; border-radius: 4px; font-size: 11px;">📥 Disponível</span>'
+                        }
+                      </td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center; padding: 20px; background: #f8f9fa; border-top: 1px solid #e5e7eb;">
+            <div style="color: #666; font-size: 14px;">
+              <span id="qtdSelecionadas">0</span> nota(s) selecionada(s)
+            </div>
+            <div style="display: flex; gap: 10px;">
+              <button onclick="this.closest('.modal').remove()" style="padding: 10px 20px; background: #6b7280; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                Cancelar
+              </button>
+              <button onclick="importarNotasSelecionadas()" style="padding: 10px 20px; background: #10b981; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600;">
+                📥 Importar Selecionadas
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      document.body.appendChild(modal);
+      
+      // Atualizar contador
+      document.querySelectorAll('.nota-check').forEach(check => {
+        check.addEventListener('change', atualizarContador);
+      });
+    }
+
+    // Toggle selecionar todas
+    function toggleSelectAll(checkbox) {
+      document.querySelectorAll('.nota-check').forEach(check => {
+        check.checked = checkbox.checked;
+      });
+      atualizarContador();
+    }
+
+    // Atualizar contador
+    function atualizarContador() {
+      const qtd = document.querySelectorAll('.nota-check:checked').length;
+      const span = document.getElementById('qtdSelecionadas');
+      if (span) span.textContent = qtd;
+    }
+
+    // Importar notas selecionadas
+    async function importarNotasSelecionadas() {
+      const checkboxes = document.querySelectorAll('.nota-check:checked');
+      
+      if (checkboxes.length === 0) {
+        alert('⚠️ Selecione pelo menos uma nota para importar');
+        return;
+      }
+
+      const notasSelecionadas = Array.from(checkboxes).map(cb => JSON.parse(cb.dataset.nota));
+      
+      let importadas = 0;
+      let erros = 0;
+
+      for (const nota of notasSelecionadas) {
+        try {
+          await importarNotaSefaz(nota);
+          importadas++;
+        } catch (error) {
+          console.error('Erro ao importar nota:', nota.numero, error);
+          erros++;
+        }
+      }
+
+      // Fechar modal
+      document.querySelector('.modal').remove();
+
+      // Mostrar resultado
+      if (erros === 0) {
+        alert(`✅ ${importadas} nota(s) importada(s) com sucesso!`);
+      } else {
+        alert(`⚠️ Importação concluída:\n✅ ${importadas} sucesso\n❌ ${erros} erro(s)`);
+      }
+
+      // Recarregar lista
+      carregarNFes();
+    }
+
+    // Importar uma nota da SEFAZ
+    async function importarNotaSefaz(nota) {
+      const token = localStorage.getItem('token');
+      
+      const response = await fetch(`${API_BASE}/sefaz/importar`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          chaveNFe: nota.chave,
+          xmlContent: nota.xmlCompleto,
+          nsu: nota.nsu
+        })
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Erro ao importar');
+      }
+
+      return await response.json();
+    }
+
+    // Manifestar destinatário
+    async function manifestarNota(chaveNFe, tipoEvento, justificativa = '') {
+      try {
+        const token = localStorage.getItem('token');
+        
+        const response = await fetch(`${API_BASE}/sefaz/manifestar`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            chaveNFe,
+            tipoEvento,
+            justificativa
+          })
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || 'Erro ao manifestar');
+        }
+
+        const resultado = await response.json();
+        alert(`✅ ${resultado.mensagem}\nProtocolo: ${resultado.protocolo}`);
+        
+        carregarNFes();
+        
+      } catch (error) {
+        console.error('Erro ao manifestar:', error);
+        alert('❌ Erro: ' + error.message);
+      }
+    }
+
+    // ============================================
+    // ENTRADA MANUAL
+    // ============================================
+
+    let itensEntradaManual = [];
+    let duplicatasXML = [];
+    let xmlContentManual = null;
+
+    async function abrirModalEntradaManual() {
+      document.getElementById('modalEntradaManual').classList.add('show');
+      
+      // Limpar dados anteriores
+      itensEntradaManual = [];
+      duplicatasXML = [];
+      xmlContentManual = null;
+      renderizarItensEntradaManual();
+      
+      // Definir data de hoje
+      const hoje = new Date().toISOString().split('T')[0];
+      document.getElementById('dataEmissao').value = hoje;
+      document.getElementById('dataEntrada').value = hoje;
+      
+      // Carregar fornecedores
+      await carregarFornecedores();
+      
+      // Adicionar listeners para calcular total
+      ['valorFrete', 'valorOutros'].forEach(id => {
+        document.getElementById(id).addEventListener('input', calcularTotalEntradaManual);
+      });
+    }
+
+    // ========== Funções Auxiliares ==========
+    
+    async function processarXMLFornecedor(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      try {
+        const texto = await file.text();
+        xmlContentManual = texto;
+        
+        const parser = new DOMParser();
+        const xmlDoc = parser.parseFromString(texto, 'application/xml');
+        
+        // Buscar tags usando namespace-aware
+        function buscar(tag) {
+          let elem = xmlDoc.getElementsByTagName(tag)[0];
+          if (!elem) elem = xmlDoc.getElementsByTagNameNS('*', tag)[0];
+          return elem;
+        }
+        
+        function buscarTodos(tag) {
+          let elems = xmlDoc.getElementsByTagName(tag);
+          if (!elems || elems.length === 0) elems = xmlDoc.getElementsByTagNameNS('*', tag);
+          return elems;
+        }
+        
+        function valor(parent, tag) {
+          if (!parent) return '';
+          let elem = parent.getElementsByTagName(tag)[0];
+          if (!elem) elem = parent.getElementsByTagNameNS('*', tag)[0];
+          return elem ? elem.textContent : '';
+        }
+        
+        // Extrair dados básicos
+        const ide = buscar('ide');
+        const emit = buscar('emit');
+        const det = buscarTodos('det');
+        
+        if (!ide || !emit || !det || det.length === 0) {
+          alert('❌ XML inválido: não contém dados de NF-e');
+          return;
+        }
+        
+        // Preencher formulário
+        const numeroNF = valor(ide, 'nNF');
+        const serie = valor(ide, 'serie');
+        const dhEmi = valor(ide, 'dhEmi');
+        
+        if (numeroNF) document.getElementById('numeroNF').value = numeroNF;
+        if (serie) document.getElementById('serieNF').value = serie;
+        if (dhEmi) document.getElementById('dataEmissao').value = dhEmi.split('T')[0];
+        
+        const infNFe = buscar('infNFe');
+        if (infNFe) {
+          const chave = infNFe.getAttribute('Id');
+          if (chave) document.getElementById('chaveAcesso').value = chave.replace('NFe', '');
+        }
+        
+        // Totais
+        const total = buscar('total');
+        if (total) {
+          const icmsTot = buscar('ICMSTot');
+          if (icmsTot) {
+            const vFrete = parseFloat(valor(icmsTot, 'vFrete') || 0);
+            const vOutro = parseFloat(valor(icmsTot, 'vOutro') || 0);
+            document.getElementById('valorFrete').value = vFrete.toFixed(2);
+            document.getElementById('valorOutros').value = vOutro.toFixed(2);
+          }
+        }
+        
+        // Fornecedor por CNPJ
+        const cnpj = valor(emit, 'CNPJ');
+        if (cnpj) {
+          const selectFornecedor = document.getElementById('fornecedorId');
+          for (let option of selectFornecedor.options) {
+            if (option.text.includes(cnpj)) {
+              selectFornecedor.value = option.value;
+              break;
+            }
+          }
+        }
+        
+        // Processar itens
+        itensEntradaManual = [];
+        for (let i = 0; i < det.length; i++) {
+          const item = det[i];
+          const prod = item.getElementsByTagName('prod')[0] || item.getElementsByTagNameNS('*', 'prod')[0];
+          const imposto = item.getElementsByTagName('imposto')[0] || item.getElementsByTagNameNS('*', 'imposto')[0];
+          
+          if (!prod) continue;
+          
+          const itemData = {
+            numeroItem: i + 1,
+            produto_id: null,
+            codigo: valor(prod, 'cProd'),
+            gtin: valor(prod, 'cEAN'),
+            descricao: valor(prod, 'xProd'),
+            ncm: valor(prod, 'NCM'),
+            cfop: valor(prod, 'CFOP'),
+            cest: valor(prod, 'CEST'),
+            origem: '',
+            cst: '',
+            unidade: valor(prod, 'uCom') || 'UN',
+            quantidade: parseFloat(valor(prod, 'qCom') || 0),
+            valorUnitario: parseFloat(valor(prod, 'vUnCom') || 0),
+            valorProduto: parseFloat(valor(prod, 'vProd') || 0),
+            valorDesconto: parseFloat(valor(prod, 'vDesc') || 0),
+            valorFrete: parseFloat(valor(prod, 'vFrete') || 0),
+            valorSeguro: parseFloat(valor(prod, 'vSeg') || 0),
+            valorOutros: parseFloat(valor(prod, 'vOutro') || 0),
+            icmsBase: 0,
+            icmsAliquota: 0,
+            icmsValor: 0,
+            icmsST: 0,
+            ipiValor: 0,
+            ipiAliquota: 0,
+            pisValor: 0,
+            pisAliquota: 0,
+            cofinsValor: 0,
+            cofinsAliquota: 0
+          };
+          
+          // Impostos
+          if (imposto) {
+            const icmsTag = imposto.getElementsByTagName('ICMS')[0] || imposto.getElementsByTagNameNS('*', 'ICMS')[0];
+            if (icmsTag && icmsTag.children.length > 0) {
+              const icmsType = icmsTag.children[0];
+              itemData.cst = icmsType.tagName.replace(/[^0-9]/g, '');
+              itemData.icmsValor = parseFloat(valor(icmsType, 'vICMS') || 0);
+              itemData.icmsAliquota = parseFloat(valor(icmsType, 'pICMS') || 0);
+              itemData.icmsBase = parseFloat(valor(icmsType, 'vBC') || 0);
+              itemData.icmsST = parseFloat(valor(icmsType, 'vICMSST') || 0);
+            }
+            
+            const orig = imposto.getElementsByTagName('orig')[0] || imposto.getElementsByTagNameNS('*', 'orig')[0];
+            if (orig) itemData.origem = orig.textContent;
+            
+            const ipiTag = imposto.getElementsByTagName('IPI')[0] || imposto.getElementsByTagNameNS('*', 'IPI')[0];
+            if (ipiTag) {
+              const ipiTrib = ipiTag.getElementsByTagName('IPITrib')[0] || ipiTag.getElementsByTagNameNS('*', 'IPITrib')[0];
+              if (ipiTrib) {
+                itemData.ipiValor = parseFloat(valor(ipiTrib, 'vIPI') || 0);
+                itemData.ipiAliquota = parseFloat(valor(ipiTrib, 'pIPI') || 0);
+              }
+            }
+            
+            const pisTag = imposto.getElementsByTagName('PIS')[0] || imposto.getElementsByTagNameNS('*', 'PIS')[0];
+            if (pisTag && pisTag.children.length > 0) {
+              const pisType = pisTag.children[0];
+              itemData.pisValor = parseFloat(valor(pisType, 'vPIS') || 0);
+              itemData.pisAliquota = parseFloat(valor(pisType, 'pPIS') || 0);
+            }
+            
+            const cofinsTag = imposto.getElementsByTagName('COFINS')[0] || imposto.getElementsByTagNameNS('*', 'COFINS')[0];
+            if (cofinsTag && cofinsTag.children.length > 0) {
+              const cofinsType = cofinsTag.children[0];
+              itemData.cofinsValor = parseFloat(valor(cofinsType, 'vCOFINS') || 0);
+              itemData.cofinsAliquota = parseFloat(valor(cofinsType, 'pCOFINS') || 0);
+            }
+          }
+          
+          itensEntradaManual.push(itemData);
+        }
+        
+        renderizarItensEntradaManual();
+        calcularTotalEntradaManual();
+        
+        // Duplicatas
+        duplicatasXML = [];
+        const cobr = buscar('cobr');
+        if (cobr) {
+          const dups = cobr.getElementsByTagName('dup').length > 0 ? 
+                       cobr.getElementsByTagName('dup') : 
+                       cobr.getElementsByTagNameNS('*', 'dup');
+          for (let i = 0; i < dups.length; i++) {
+            duplicatasXML.push({
+              numero: valor(dups[i], 'nDup'),
+              vencimento: valor(dups[i], 'dVenc'),
+              valor: parseFloat(valor(dups[i], 'vDup') || 0)
+            });
+          }
+        }
+        
+        // Abrir modal de associação de produtos
+        console.log('📦 Itens carregados do XML:', itensEntradaManual.length);
+        abrirModalAssociacaoProdutos();
+        
+      } catch (error) {
+        console.error('Erro ao processar XML:', error);
+        alert('❌ Erro ao processar XML: ' + error.message);
+      }
+      
+      event.target.value = '';
+    }
+
+    // Modal de Associação de Produtos
+    async function abrirModalAssociacaoProdutos() {
+      console.log('🔗 Abrindo modal de associação para', itensEntradaManual.length, 'itens');
+      
+      if (!itensEntradaManual || itensEntradaManual.length === 0) {
+        alert('⚠️ Nenhum item encontrado no XML. Verifique se o arquivo está correto.');
+        return;
+      }
+      
+      const modal = document.createElement('div');
+      modal.id = 'modalAssociacao';
+      modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:10000;display:flex;align-items:center;justify-content:center;';
+      
+      const content = document.createElement('div');
+      content.style.cssText = 'background:white;border-radius:8px;width:95%;max-width:1400px;max-height:90vh;overflow:auto;padding:25px;';
+      
+      content.innerHTML = `
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;border-bottom:2px solid #007bff;padding-bottom:15px;">
+          <h2 style="margin:0;color:#007bff;">🔗 Associar Produtos do XML</h2>
+          <button onclick="document.getElementById('modalAssociacao').remove()" style="background:#dc3545;color:white;border:none;padding:8px 15px;border-radius:4px;cursor:pointer;font-weight:600;">✕ Fechar</button>
+        </div>
+        
+        <p style="background:#e7f3ff;padding:12px;border-left:4px solid #007bff;margin-bottom:20px;border-radius:4px;">
+          <strong>📋 ${itensEntradaManual.length} itens</strong> encontrados no XML. 
+          Use o <strong>campo de busca</strong> em cada linha para encontrar e associar produtos existentes, ou deixe em branco para criar novos.
+        </p>
+        
+        <div style="max-height:500px;overflow-y:auto;border:1px solid #ddd;border-radius:4px;">
+          <table style="width:100%;border-collapse:collapse;">
+            <thead style="background:#f8f9fa;position:sticky;top:0;z-index:10;">
+              <tr>
+                <th style="padding:12px;text-align:left;border-bottom:2px solid #dee2e6;font-size:13px;width:100px;">Código XML</th>
+                <th style="padding:12px;text-align:left;border-bottom:2px solid #dee2e6;font-size:13px;">Descrição XML</th>
+                <th style="padding:12px;text-align:center;border-bottom:2px solid #dee2e6;font-size:13px;width:80px;">Qtd</th>
+                <th style="padding:12px;text-align:right;border-bottom:2px solid #dee2e6;font-size:13px;width:100px;">Valor Unit.</th>
+                <th style="padding:12px;text-align:left;border-bottom:2px solid #dee2e6;font-size:13px;width:450px;">🔗 Buscar e Associar Produto</th>
+              </tr>
+            </thead>
+            <tbody id="listaAssociacaoProdutos"></tbody>
+          </table>
+        </div>
+        
+        <div style="margin-top:20px;display:flex;gap:10px;justify-content:space-between;align-items:center;">
+          <div id="resumoAssociacao" style="color:#6c757d;font-size:14px;"></div>
+          <div style="display:flex;gap:10px;">
+            <button onclick="document.getElementById('modalAssociacao').remove()" 
+                    style="background:#6c757d;color:white;border:none;padding:12px 25px;border-radius:4px;cursor:pointer;font-weight:600;">
+              Cancelar
+            </button>
+            <button onclick="confirmarAssociacoes()" 
+                    style="background:#28a745;color:white;border:none;padding:12px 25px;border-radius:4px;cursor:pointer;font-weight:600;">
+              ✅ Confirmar e Continuar
+            </button>
+          </div>
+        </div>
+      `;
+      
+      modal.appendChild(content);
+      document.body.appendChild(modal);
+      
+      // Buscar produtos existentes e renderizar lista
+      await renderizarListaAssociacao();
+    }
+
+    async function renderizarListaAssociacao() {
+      const tbody = document.getElementById('listaAssociacaoProdutos');
+      
+      console.log('📋 Renderizando lista de associação...');
+      console.log('Itens a processar:', itensEntradaManual.length);
+      
+      tbody.innerHTML = `<tr><td colspan="5" style="padding:30px;text-align:center;color:#6c757d;">
+        <div style="font-size:16px;margin-bottom:10px;">⏳ Carregando produtos...</div>
+      </td></tr>`;
+      
+      try {
+        // Buscar todos os produtos (remover filtro ativo=1 que pode estar bloqueando)
+        const token = localStorage.getItem('token');
+        console.log('🔑 Token:', token ? 'Presente' : 'Ausente');
+        
+        const response = await fetch('/api/produtos?limit=1000', {
+          headers: { 
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        console.log('📡 Response status:', response.status);
+        
+        if (!response.ok) {
+          throw new Error(`Erro ao buscar produtos (${response.status})`);
+        }
+        
+        const data = await response.json();
+        console.log('📦 Dados recebidos da API:', data);
+        console.log('📦 Tipo de data:', typeof data, Array.isArray(data));
+        
+        const produtos = Array.isArray(data) ? data : (data.produtos || []);
+        
+        console.log('✅ Produtos carregados:', produtos.length);
+        console.log('📋 Primeiros 3 produtos:', produtos.slice(0, 3));
+        
+        if (produtos.length === 0) {
+          tbody.innerHTML = `
+            <tr><td colspan="5" style="padding:30px;text-align:center;">
+              <div style="color:#ffc107;font-size:48px;margin-bottom:15px;">⚠️</div>
+              <div style="color:#856404;font-size:16px;font-weight:600;margin-bottom:10px;">
+                Nenhum produto cadastrado no sistema
+              </div>
+              <div style="color:#6c757d;font-size:14px;margin-bottom:20px;">
+                Todos os itens do XML serão criados como novos produtos.
+              </div>
+              <button onclick="document.getElementById('modalAssociacao').remove(); renderizarItensEntradaManual(); calcularTotalEntradaManual(); alert('✅ Pronto! Todos os ${itensEntradaManual.length} itens serão criados como novos produtos.');"
+                      style="background:#28a745;color:white;border:none;padding:12px 25px;border-radius:4px;cursor:pointer;font-weight:600;">
+                ✅ Continuar e Criar Novos Produtos
+              </button>
+            </td></tr>
+          `;
+          return;
+        }
+        
+        tbody.innerHTML = itensEntradaManual.map((item, index) => {
+          // Tentar encontrar produtos similares por código ou descrição
+          const similares = produtos.filter(p => 
+            p.codigo_principal === item.codigo ||
+            p.gtin === item.gtin ||
+            (p.descricao && item.descricao && p.descricao.toLowerCase().includes(item.descricao.toLowerCase().substring(0, 15)))
+          ).slice(0, 3); // Mostrar apenas 3 primeiras sugestões
+          
+          return `
+            <tr style="border-bottom:1px solid #dee2e6;">
+              <td style="padding:12px;font-family:monospace;font-size:13px;color:#495057;font-weight:600;">${item.codigo || '-'}</td>
+              <td style="padding:12px;font-size:13px;color:#212529;">
+                <div style="font-weight:600;margin-bottom:2px;">${item.descricao}</div>
+                ${item.gtin ? `<div style="font-size:11px;color:#6c757d;">EAN: ${item.gtin}</div>` : ''}
+              </td>
+              <td style="padding:12px;text-align:center;font-weight:600;color:#007bff;">${item.quantidade}</td>
+              <td style="padding:12px;text-align:right;font-family:monospace;color:#28a745;font-weight:600;">
+                R$ ${parseFloat(item.valorUnitario).toFixed(2)}
+              </td>
+              <td style="padding:12px;">
+                <div id="containerAssociacao_${index}">
+                  <div style="display:flex;gap:8px;margin-bottom:8px;">
+                    <input 
+                      type="text" 
+                      id="buscaProduto_${index}"
+                      list="listaProdutos_${index}"
+                      placeholder="🔍 Digite para buscar produto existente..."
+                      style="flex:1;padding:8px;border:1px solid #ced4da;border-radius:4px;font-size:13px;"
+                      oninput="atualizarResumoAssociacao()"
+                      onchange="selecionarProduto(${index}, this.value)"
+                    />
+                    <button 
+                      type="button"
+                      onclick="marcarComoNovo(${index})"
+                      style="background:#28a745;color:white;border:none;padding:8px 16px;border-radius:4px;cursor:pointer;font-weight:600;font-size:13px;white-space:nowrap;"
+                      title="Marcar para criar como novo produto"
+                    >
+                      ➕ Criar Novo
+                    </button>
+                  </div>
+                  <datalist id="listaProdutos_${index}">
+                    ${similares.length > 0 ? similares.map(p => `
+                      <option value="${p.id}" data-codigo="${p.codigo_principal}">
+                        ${p.codigo_principal} - ${p.descricao} (Est: ${p.estoque_atual || 0})
+                      </option>
+                    `).join('') : ''}
+                    ${produtos.map(p => `
+                      <option value="${p.id}" data-codigo="${p.codigo_principal}">
+                        ${p.codigo_principal} - ${p.descricao}
+                      </option>
+                    `).join('')}
+                  </datalist>
+                  <input type="hidden" id="produtoId_${index}" value="" />
+                  <div id="statusAssociacao_${index}" style="display:none;padding:8px;background:#d1ecf1;border-left:3px solid #0c5460;border-radius:3px;margin-bottom:8px;">
+                    <span style="color:#0c5460;font-weight:600;font-size:12px;">✅ Será criado como novo produto</span>
+                  </div>
+                  ${similares.length > 0 ? `
+                    <div style="padding:8px;background:#fff3cd;border-left:3px solid #ffc107;border-radius:3px;">
+                      <div style="font-size:11px;font-weight:600;color:#856404;margin-bottom:4px;">💡 Sugestões:</div>
+                      ${similares.map(p => `
+                        <button 
+                          type="button"
+                          onclick="associarProdutoRapido(${index}, ${p.id}, '${p.codigo_principal} - ${p.descricao.replace(/'/g, "\\'")}', event)"
+                          style="display:block;width:100%;text-align:left;padding:6px 8px;margin-bottom:4px;background:white;border:1px solid #dee2e6;border-radius:3px;cursor:pointer;font-size:12px;"
+                          onmouseover="this.style.background='#f8f9fa'"
+                          onmouseout="this.style.background='white'"
+                        >
+                          <strong>${p.codigo_principal}</strong> - ${p.descricao.substring(0, 50)}${p.descricao.length > 50 ? '...' : ''}
+                          <span style="color:#6c757d;font-size:11px;margin-left:8px;">(Est: ${p.estoque_atual || 0})</span>
+                        </button>
+                      `).join('')}
+                    </div>
+                  ` : ''}
+                </div>
+              </td>
+            </tr>
+          `;
+        }).join('');
+        
+        atualizarResumoAssociacao();
+      } catch (error) {
+        console.error('Erro ao carregar produtos:', error);
+        tbody.innerHTML = `
+          <tr><td colspan="5" style="padding:40px;text-align:center;">
+            <div style="color:#dc3545;font-size:48px;margin-bottom:15px;">❌</div>
+            <div style="color:#dc3545;font-size:18px;font-weight:600;margin-bottom:10px;">
+              Erro ao Carregar Produtos
+            </div>
+            <div style="color:#6c757d;font-size:14px;margin-bottom:8px;">
+              ${error.message || 'Erro desconhecido ao buscar produtos do sistema'}
+            </div>
+            <div style="background:#f8d7da;border:1px solid #f5c2c7;border-radius:4px;padding:12px;margin:20px auto;max-width:600px;text-align:left;">
+              <div style="font-weight:600;color:#842029;margin-bottom:8px;">Possíveis causas:</div>
+              <ul style="margin:0;padding-left:20px;color:#842029;font-size:13px;">
+                <li>Servidor offline ou reiniciando</li>
+                <li>Problema de conexão com o banco de dados</li>
+                <li>Sessão expirada - faça login novamente</li>
+              </ul>
+            </div>
+            <div style="display:flex;gap:10px;justify-content:center;margin-top:20px;">
+              <button onclick="renderizarListaAssociacao()"
+                      style="background:#007bff;color:white;border:none;padding:10px 20px;border-radius:4px;cursor:pointer;font-weight:600;">
+                🔄 Tentar Novamente
+              </button>
+              <button onclick="document.getElementById('modalAssociacao').remove(); itensEntradaManual.forEach(i => i.produto_id = null); renderizarItensEntradaManual(); calcularTotalEntradaManual(); alert('⚠️ Aviso: Todos os itens serão criados como novos produtos.');"
+                      style="background:#28a745;color:white;border:none;padding:10px 20px;border-radius:4px;cursor:pointer;font-weight:600;">
+                ➕ Continuar Sem Associar
+              </button>
+            </div>
+          </td></tr>
+        `;
+      }
+    }
+
+    function marcarComoNovo(index) {
+      // Limpar campo de busca e ID
+      const inputBusca = document.getElementById(`buscaProduto_${index}`);
+      const inputProdutoId = document.getElementById(`produtoId_${index}`);
+      const statusDiv = document.getElementById(`statusAssociacao_${index}`);
+      
+      if (inputBusca) inputBusca.value = '';
+      if (inputProdutoId) inputProdutoId.value = 'NOVO';
+      
+      // Mostrar indicador visual
+      if (statusDiv) {
+        statusDiv.style.display = 'block';
+      }
+      
+      atualizarResumoAssociacao();
+    }
+
+    function selecionarProduto(index, value) {
+      // Extrair o ID do produto do valor selecionado
+      const produtoId = value.split(' - ')[0];
+      const inputProdutoId = document.getElementById(`produtoId_${index}`);
+      const statusDiv = document.getElementById(`statusAssociacao_${index}`);
+      
+      if (inputProdutoId) inputProdutoId.value = produtoId;
+      
+      // Esconder indicador de "criar novo"
+      if (statusDiv) statusDiv.style.display = 'none';
+      
+      atualizarResumoAssociacao();
+    }
+
+    function associarProdutoRapido(index, produtoId, descricao, event) {
+      event.preventDefault();
+      const inputBusca = document.getElementById(`buscaProduto_${index}`);
+      const inputProdutoId = document.getElementById(`produtoId_${index}`);
+      const statusDiv = document.getElementById(`statusAssociacao_${index}`);
+      
+      if (inputBusca) inputBusca.value = descricao;
+      if (inputProdutoId) inputProdutoId.value = produtoId;
+      
+      // Esconder indicador de "criar novo"
+      if (statusDiv) statusDiv.style.display = 'none';
+      
+      atualizarResumoAssociacao();
+    }
+
+    function atualizarResumoAssociacao() {
+      let associados = 0;
+      let novos = 0;
+      
+      itensEntradaManual.forEach((item, index) => {
+        const input = document.getElementById(`produtoId_${index}`);
+        if (input && input.value) {
+          if (input.value === 'NOVO') {
+            novos++;
+          } else {
+            associados++;
+          }
+        }
+      });
+      
+      const semAcao = itensEntradaManual.length - associados - novos;
+      const resumo = document.getElementById('resumoAssociacao');
+      if (resumo) {
+        resumo.innerHTML = `
+          <strong>📊 Resumo:</strong> 
+          <span style="color:#28a745;font-weight:600;">${associados} associado(s)</span> • 
+          <span style="color:#007bff;font-weight:600;">${novos} marcado(s) como novo</span>
+          ${semAcao > 0 ? `• <span style="color:#6c757d;font-weight:600;">${semAcao} pendente(s)</span>` : ''}
+        `;
+      }
+    }
+
+    function confirmarAssociacoes() {
+      // Atualizar itensEntradaManual com os IDs dos produtos associados
+      itensEntradaManual.forEach((item, index) => {
+        const inputProdutoId = document.getElementById(`produtoId_${index}`);
+        if (inputProdutoId && inputProdutoId.value && inputProdutoId.value !== 'NOVO') {
+          item.produto_id = parseInt(inputProdutoId.value);
+        } else {
+          item.produto_id = null; // Criar novo
+        }
+      });
+      
+      // Fechar modal
+      document.getElementById('modalAssociacao').remove();
+      
+      // Renderizar itens no formulário
+      renderizarItensEntradaManual();
+      calcularTotalEntradaManual();
+      
+      const novos = itensEntradaManual.filter(i => !i.produto_id).length;
+      const associados = itensEntradaManual.length - novos;
+      
+      let msg = `✅ Associação concluída!\n\n`;
+      if (associados > 0) msg += `🔗 ${associados} produto(s) associado(s) a existentes\n`;
+      if (novos > 0) msg += `➕ ${novos} produto(s) novo(s) serão criados\n`;
+      
+      if (duplicatasXML.length > 0) {
+        msg += `\n💳 ${duplicatasXML.length} parcela(s) de pagamento detectadas`;
+      }
+      
+      alert(msg);
+    }
+
+    // Trocar abas no modal de item
+    function trocarAbaItem(aba) {
+      const tabProduto = document.getElementById('tabDadosProduto');
+      const tabFiscal = document.getElementById('tabDadosFiscais');
+      const abaProduto = document.getElementById('abaDadosProduto');
+      const abaFiscal = document.getElementById('abaDadosFiscais');
+
+      if (aba === 'produto') {
+        tabProduto.style.background = '#3b82f6';
+        tabProduto.style.color = 'white';
+        tabProduto.style.borderBottom = '3px solid #2563eb';
+        tabFiscal.style.background = '#e5e7eb';
+        tabFiscal.style.color = '#6b7280';
+        tabFiscal.style.borderBottom = 'none';
+        abaProduto.style.display = 'block';
+        abaFiscal.style.display = 'none';
+      } else {
+        tabFiscal.style.background = '#3b82f6';
+        tabFiscal.style.color = 'white';
+        tabFiscal.style.borderBottom = '3px solid #2563eb';
+        tabProduto.style.background = '#e5e7eb';
+        tabProduto.style.color = '#6b7280';
+        tabProduto.style.borderBottom = 'none';
+        abaFiscal.style.display = 'block';
+        abaProduto.style.display = 'none';
+      }
+    }
+
+    // Remover seleção de produto associado
+    function removerSelecaoProduto() {
+      document.getElementById('itemProdutoId').value = '';
+      document.getElementById('produtoSelecionadoInfo').style.display = 'none';
+      document.getElementById('buscaProdutoItem').value = '';
+      document.getElementById('resultadosBuscaProduto').innerHTML = '';
+    }
+
+    function adicionarItemManual() {
+      // Abrir modal profissional
+      document.getElementById('modalAdicionarItem').classList.add('show');
+      
+      // Limpar campos - Aba Dados do Produto
+      document.getElementById('itemProdutoId').value = '';
+      document.getElementById('itemCodigo').value = '';
+      document.getElementById('itemGTIN').value = '';
+      document.getElementById('itemDescricao').value = '';
+      document.getElementById('itemUnidade').value = 'UN';
+      document.getElementById('itemQuantidade').value = '1';
+      document.getElementById('itemValorUnitario').value = '0.00';
+      
+      // Limpar campos - Aba Dados Fiscais
+      document.getElementById('itemNCM').value = '';
+      document.getElementById('itemCFOP').value = '';
+      document.getElementById('itemCEST').value = '';
+      document.getElementById('itemOrigem').value = '';
+      document.getElementById('itemCST').value = '';
+      document.getElementById('itemICMSBase').value = '0';
+      document.getElementById('itemICMSAliquota').value = '0';
+      document.getElementById('itemICMSValor').value = '0';
+      document.getElementById('itemICMSST').value = '0';
+      document.getElementById('itemIPIValor').value = '0';
+      document.getElementById('itemPISValor').value = '0';
+      document.getElementById('itemCOFINSValor').value = '0';
+      document.getElementById('itemDesconto').value = '0';
+      document.getElementById('itemFrete').value = '0';
+      document.getElementById('itemSeguro').value = '0';
+      document.getElementById('itemOutros').value = '0';
+      
+      // Limpar busca de produto
+      document.getElementById('buscaProdutoItem').value = '';
+      document.getElementById('resultadosBuscaProduto').innerHTML = '';
+      document.getElementById('produtoSelecionadoInfo').style.display = 'none';
+      
+      // Voltar para aba de dados do produto
+      trocarAbaItem('produto');
+      
+      calcularTotalItem();
+    }
+
+    async function buscarProdutosParaItem(event) {
+      // Se for Enter, executar busca
+      if (event && event.key && event.key !== 'Enter') return;
+
+      const busca = document.getElementById('buscaProdutoItem').value.trim();
+      const resultado = document.getElementById('resultadosBuscaProduto');
+      
+      if (!busca || busca.length < 2) {
+        resultado.innerHTML = '';
+        return;
+      }
+
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`/api/produtos?busca=${encodeURIComponent(busca)}&ativo=true&limit=10`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        const data = await response.json();
+        const produtos = data.produtos || [];
+
+        if (produtos.length === 0) {
+          resultado.innerHTML = '<p style="padding: 10px; color: #666; text-align: center;">Nenhum produto encontrado</p>';
+          return;
+        }
+
+        resultado.innerHTML = produtos.map(p => `
+          <div onclick="selecionarProdutoParaItem(${p.id}, '${p.codigo_principal}', '${p.descricao.replace(/'/g, "\\'")}', '${p.ncm || ''}', '${p.unidade_medida}', ${p.preco_custo || 0})" 
+               style="padding: 10px; border: 1px solid #e5e7eb; border-radius: 4px; margin-bottom: 5px; cursor: pointer; background: white; transition: all 0.2s;"
+               onmouseover="this.style.background='#f3f4f6'" 
+               onmouseout="this.style.background='white'">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <strong style="color: #1f2937;">${p.codigo_principal}</strong> - ${p.descricao}
+                ${p.ncm ? `<br><small style="color: #6b7280;">NCM: ${p.ncm}</small>` : ''}
+              </div>
+              <div style="text-align: right;">
+                <div style="font-weight: 600; color: #059669;">R$ ${parseFloat(p.preco_custo || 0).toFixed(2)}</div>
+                <small style="color: #6b7280;">${p.unidade_medida}</small>
+              </div>
+            </div>
+          </div>
+        `).join('');
+
+      } catch (error) {
+        console.error('Erro ao buscar produtos:', error);
+        resultado.innerHTML = '<p style="padding: 10px; color: #ef4444;">Erro ao buscar produtos</p>';
+      }
+    }
+
+    function selecionarProdutoParaItem(id, codigo, descricao, ncm, unidade, preco) {
+      document.getElementById('itemProdutoId').value = id;
+      document.getElementById('itemCodigo').value = codigo;
+      document.getElementById('itemDescricao').value = descricao;
+      document.getElementById('itemNCM').value = ncm || '';
+      document.getElementById('itemUnidade').value = unidade || 'UN';
+      document.getElementById('itemValorUnitario').value = parseFloat(preco || 0).toFixed(2);
+      document.getElementById('resultadosBuscaProduto').innerHTML = '';
+      document.getElementById('buscaProdutoItem').value = '';
+      
+      // Mostrar indicador de produto selecionado
+      document.getElementById('produtoSelecionadoInfo').style.display = 'block';
+      document.getElementById('produtoSelecionadoNome').textContent = `${codigo} - ${descricao}`;
+      
+      calcularTotalItem();
+    }
+
+    function calcularTotalItem() {
+      const qtd = parseFloat(document.getElementById('itemQuantidade').value) || 0;
+      const vlrUnit = parseFloat(document.getElementById('itemValorUnitario').value) || 0;
+      const total = qtd * vlrUnit;
+      
+      document.getElementById('itemValorTotal').textContent = 
+        'R$ ' + total.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function confirmarAdicionarItem() {
+      const codigo = document.getElementById('itemCodigo').value.trim();
+      const descricao = document.getElementById('itemDescricao').value.trim();
+      const quantidade = parseFloat(document.getElementById('itemQuantidade').value);
+      const valorUnitario = parseFloat(document.getElementById('itemValorUnitario').value);
+
+      // Validações
+      if (!codigo) {
+        alert('⚠️ Informe o código do produto');
+        document.getElementById('itemCodigo').focus();
+        return;
+      }
+      if (!descricao) {
+        alert('⚠️ Informe a descrição do produto');
+        document.getElementById('itemDescricao').focus();
+        return;
+      }
+      if (!quantidade || quantidade <= 0) {
+        alert('⚠️ Quantidade deve ser maior que zero');
+        document.getElementById('itemQuantidade').focus();
+        return;
+      }
+      if (valorUnitario < 0) {
+        alert('⚠️ Valor unitário inválido');
+        document.getElementById('itemValorUnitario').focus();
+        return;
+      }
+
+      // Montar objeto do item COM TODOS OS CAMPOS
+      const itemData = {
+        produto_id: document.getElementById('itemProdutoId').value || null,
+        codigo: codigo,
+        gtin: document.getElementById('itemGTIN').value || '',
+        descricao: descricao,
+        ncm: document.getElementById('itemNCM').value || '',
+        cfop: document.getElementById('itemCFOP').value || '',
+        cest: document.getElementById('itemCEST').value || '',
+        origem: document.getElementById('itemOrigem').value || '',
+        cst: document.getElementById('itemCST').value || '',
+        unidade: document.getElementById('itemUnidade').value,
+        quantidade: quantidade,
+        valorUnitario: valorUnitario,
+        valorProduto: quantidade * valorUnitario,
+        valorDesconto: parseFloat(document.getElementById('itemDesconto').value) || 0,
+        valorFrete: parseFloat(document.getElementById('itemFrete').value) || 0,
+        valorSeguro: parseFloat(document.getElementById('itemSeguro').value) || 0,
+        valorOutros: parseFloat(document.getElementById('itemOutros').value) || 0,
+        icmsBase: parseFloat(document.getElementById('itemICMSBase').value) || 0,
+        icmsAliquota: parseFloat(document.getElementById('itemICMSAliquota').value) || 0,
+        icmsValor: parseFloat(document.getElementById('itemICMSValor').value) || 0,
+        icmsST: parseFloat(document.getElementById('itemICMSST').value) || 0,
+        ipiValor: parseFloat(document.getElementById('itemIPIValor').value) || 0,
+        pisValor: parseFloat(document.getElementById('itemPISValor').value) || 0,
+        cofinsValor: parseFloat(document.getElementById('itemCOFINSValor').value) || 0
+      };
+
+      // Verificar se é edição ou novo item
+      const itemNumero = document.getElementById('itemNumero').value;
+      if (itemNumero !== '') {
+        // Editar item existente
+        const index = parseInt(itemNumero);
+        itemData.numeroItem = itensEntradaManual[index].numeroItem; // Manter número original
+        itensEntradaManual[index] = itemData;
+      } else {
+        // Adicionar novo item
+        itemData.numeroItem = itensEntradaManual.length + 1;
+        itensEntradaManual.push(itemData);
+      }
+
+      renderizarItensEntradaManual();
+      calcularTotalEntradaManual();
+      fecharModal('modalAdicionarItem');
+    }
+
+    function removerItemManual(index) {
+      itensEntradaManual.splice(index, 1);
+      // Renumerar itens
+      itensEntradaManual.forEach((item, i) => item.numeroItem = i + 1);
+      renderizarItensEntradaManual();
+      calcularTotalEntradaManual();
+    }
+
+    function renderizarItensEntradaManual() {
+      const container = document.getElementById('itensContainer');
+      
+      if (itensEntradaManual.length === 0) {
+        container.innerHTML = '<p style="text-align: center; color: #666; padding: 20px;">Nenhum item adicionado. Clique em "Adicionar Item" ou importe um XML.</p>';
+        return;
+      }
+
+      container.innerHTML = `
+        <div style="overflow-x: auto;">
+          <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+            <thead>
+              <tr style="background: #1f2937; color: white;">
+                <th style="padding: 12px 8px; text-align: center; font-size: 14px;">Item</th>
+                <th style="padding: 12px 10px; text-align: left; font-size: 14px;">Código / GTIN</th>
+                <th style="padding: 12px 10px; text-align: left; font-size: 14px;">Descrição</th>
+                <th style="padding: 12px 8px; text-align: center; font-size: 14px;">NCM</th>
+                <th style="padding: 12px 8px; text-align: center; font-size: 14px;">CFOP</th>
+                <th style="padding: 12px 8px; text-align: center; font-size: 14px;">CST</th>
+                <th style="padding: 12px 8px; text-align: center; font-size: 14px;">Un</th>
+                <th style="padding: 12px 10px; text-align: right; font-size: 14px;">Qtd</th>
+                <th style="padding: 12px 10px; text-align: right; font-size: 14px;">Vlr. Unit.</th>
+                <th style="padding: 12px 10px; text-align: right; font-size: 14px;">Vlr. Produto</th>
+                <th style="padding: 12px 10px; text-align: right; font-size: 14px;" title="Base ICMS">BC ICMS</th>
+                <th style="padding: 12px 10px; text-align: right; font-size: 14px;" title="ICMS">ICMS</th>
+                <th style="padding: 12px 10px; text-align: right; font-size: 14px;" title="ICMS ST">ICMS ST</th>
+                <th style="padding: 12px 10px; text-align: right; font-size: 14px;" title="IPI">IPI</th>
+                <th style="padding: 12px 10px; text-align: right; font-size: 14px;">Total</th>
+                <th style="padding: 12px 8px; text-align: center; font-size: 14px;">Status</th>
+                <th style="padding: 12px 8px; text-align: center; font-size: 14px;">Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${itensEntradaManual.map((item, index) => {
+                const total = item.quantidade * item.valorUnitario;
+                const temProdutoAssociado = item.produto_id !== null && item.produto_id !== '';
+                const statusBadge = temProdutoAssociado 
+                  ? '<span style="background: #059669; color: white; padding: 4px 10px; border-radius: 4px; font-size: 12px; font-weight: 600;">✓ Associado</span>'
+                  : '<span style="background: #f59e0b; color: white; padding: 4px 10px; border-radius: 4px; font-size: 12px; font-weight: 600;">⚠ Sem produto</span>';
+                
+                return `
+                  <tr style="border-bottom: 1px solid #e5e7eb; cursor: pointer; transition: background 0.2s;" 
+                      onmouseover="this.style.background='#f9fafb'" 
+                      onmouseout="this.style.background='white'"
+                      onclick="editarItemManual(${index})" 
+                      title="Clique para editar ou associar ao produto">
+                    <td style="padding: 10px 8px; text-align: center; font-weight: 700; font-size: 15px;">${item.numeroItem}</td>
+                    <td style="padding: 10px;">
+                      <div><code style="background: #f3f4f6; padding: 4px 8px; font-size: 13px; font-weight: 600; border-radius: 4px;">${item.codigo}</code></div>
+                      ${item.gtin ? `<div style="color: #374151; font-size: 12px; margin-top: 3px; font-weight: 500;">${item.gtin}</div>` : ''}
+                    </td>
+                    <td style="padding: 10px; max-width: 280px;">
+                      <div style="font-weight: 600; font-size: 14px; color: #111827; line-height: 1.3;">${item.descricao}</div>
+                    </td>
+                    <td style="padding: 10px 8px; text-align: center;">
+                      <div style="font-weight: 600; font-size: 13px; color: #1f2937;">${item.ncm || '-'}</div>
+                    </td>
+                    <td style="padding: 10px 8px; text-align: center;">
+                      <div style="font-weight: 700; font-size: 14px; color: #7c3aed;">${item.cfop || '-'}</div>
+                    </td>
+                    <td style="padding: 10px 8px; text-align: center;">
+                      <div style="font-weight: 700; font-size: 14px; color: #dc2626;">${item.cst || '-'}</div>
+                    </td>
+                    <td style="padding: 10px 8px; text-align: center; font-weight: 700; font-size: 14px; color: #111827;">${item.unidade}</td>
+                    <td style="padding: 10px; text-align: right; font-weight: 700; font-size: 15px; color: #111827;">${item.quantidade.toFixed(4)}</td>
+                    <td style="padding: 10px; text-align: right; font-weight: 700; font-size: 15px; color: #111827;">R$ ${item.valorUnitario.toFixed(4)}</td>
+                    <td style="padding: 10px; text-align: right; font-weight: 700; font-size: 15px; color: #1f2937;">R$ ${(item.valorProduto || total).toFixed(2)}</td>
+                    <td style="padding: 10px; text-align: right; font-weight: 600; font-size: 14px; color: #6366f1;">
+                      ${item.icmsBase > 0 ? 'R$ ' + item.icmsBase.toFixed(2) : '-'}
+                    </td>
+                    <td style="padding: 10px; text-align: right; color: #059669; font-weight: 700;">
+                      ${item.icmsValor > 0 ? '<div style="font-size: 15px;">R$ ' + item.icmsValor.toFixed(2) + '</div>' : '<div style="font-size: 15px; color: #9ca3af;">-</div>'}
+                      ${item.icmsAliquota > 0 ? `<div style="color: #6b7280; font-size: 12px; margin-top: 2px; font-weight: 600;">${item.icmsAliquota.toFixed(2)}%</div>` : ''}
+                    </td>
+                    <td style="padding: 10px; text-align: right; font-weight: 700;">
+                      ${item.icmsST > 0 ? '<div style="font-size: 15px; color: #dc2626;">R$ ' + item.icmsST.toFixed(2) + '</div>' : '<div style="font-size: 15px; color: #9ca3af;">-</div>'}
+                    </td>
+                    <td style="padding: 10px; text-align: right; color: #0891b2; font-weight: 700; font-size: 15px;">
+                      ${item.ipiValor > 0 ? 'R$ ' + item.ipiValor.toFixed(2) : '<span style="color: #9ca3af;">-</span>'}
+                    </td>
+                    <td style="padding: 10px; text-align: right; font-weight: 700; font-size: 17px; color: #111827; background: #f0fdf4;">R$ ${total.toFixed(2)}</td>
+                    <td style="padding: 10px 8px; text-align: center;">${statusBadge}</td>
+                    <td style="padding: 10px 8px; text-align: center;" onclick="event.stopPropagation();">
+                      <button onclick="removerItemManual(${index})" style="background: #ef4444; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: 600;" title="Remover item">
+                        🗑️
+                      </button>
+                    </td>
+                  </tr>
+                `;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>
+        <div style="margin-top: 10px; padding: 10px; background: #f9fafb; border-radius: 4px; font-size: 12px; color: #6b7280;">
+          💡 <strong>Dica:</strong> Clique em um item da lista para associá-lo a um produto do sistema ou editar suas informações fiscais.
+        </div>
+      `;
+    }
+
+    // Editar/Associar item do XML ao produto do sistema
+    function editarItemManual(index) {
+      const item = itensEntradaManual[index];
+      
+      // Preencher modal com dados do item - Aba Produto
+      document.getElementById('itemNumero').value = index;
+      document.getElementById('itemProdutoId').value = item.produto_id || '';
+      document.getElementById('itemCodigo').value = item.codigo || '';
+      document.getElementById('itemGTIN').value = item.gtin || '';
+      document.getElementById('itemDescricao').value = item.descricao || '';
+      document.getElementById('itemUnidade').value = item.unidade || 'UN';
+      document.getElementById('itemQuantidade').value = item.quantidade || 1;
+      document.getElementById('itemValorUnitario').value = item.valorUnitario || 0;
+      
+      // Preencher aba fiscal
+      document.getElementById('itemNCM').value = item.ncm || '';
+      document.getElementById('itemCFOP').value = item.cfop || '';
+      document.getElementById('itemCEST').value = item.cest || '';
+      document.getElementById('itemOrigem').value = item.origem || '';
+      document.getElementById('itemCST').value = item.cst || '';
+      document.getElementById('itemICMSBase').value = item.icmsBase || 0;
+      document.getElementById('itemICMSAliquota').value = item.icmsAliquota || 0;
+      document.getElementById('itemICMSValor').value = item.icmsValor || 0;
+      document.getElementById('itemICMSST').value = item.icmsST || 0;
+      document.getElementById('itemIPIValor').value = item.ipiValor || 0;
+      document.getElementById('itemPISValor').value = item.pisValor || 0;
+      document.getElementById('itemCOFINSValor').value = item.cofinsValor || 0;
+      document.getElementById('itemDesconto').value = item.valorDesconto || 0;
+      document.getElementById('itemFrete').value = item.valorFrete || 0;
+      document.getElementById('itemSeguro').value = item.valorSeguro || 0;
+      document.getElementById('itemOutros').value = item.valorOutros || 0;
+      
+      // Se já tem produto associado, mostrar indicador
+      if (item.produto_id) {
+        document.getElementById('produtoSelecionadoInfo').style.display = 'block';
+        document.getElementById('produtoSelecionadoNome').textContent = `${item.codigo} - ${item.descricao}`;
+      } else {
+        document.getElementById('produtoSelecionadoInfo').style.display = 'none';
+      }
+      
+      // Mudar título do modal
+      document.getElementById('tituloModalItem').textContent = `✏️ Editar Item ${item.numeroItem}`;
+      
+      // Abrir modal na aba de produto
+      trocarAbaItem('produto');
+      abrirModal('modalAdicionarItem');
+      
+      calcularTotalItem();
+    }
+
+    function calcularTotalEntradaManual() {
+      // Calcular totais dos itens
+      let totalProdutos = 0;
+      let totalBaseICMS = 0;
+      let totalICMS = 0;
+      let totalICMSST = 0;
+      let totalIPI = 0;
+      let totalPIS = 0;
+      let totalCOFINS = 0;
+      let totalDesconto = 0;
+      let totalOutrosItem = 0;
+
+      itensEntradaManual.forEach(item => {
+        totalProdutos += item.quantidade * item.valorUnitario;
+        totalBaseICMS += item.icmsBase || 0;
+        totalICMS += item.icmsValor || 0;
+        totalICMSST += item.icmsST || 0;
+        totalIPI += item.ipiValor || 0;
+        totalPIS += item.pisValor || 0;
+        totalCOFINS += item.cofinsValor || 0;
+        totalDesconto += item.valorDesconto || 0;
+        totalOutrosItem += item.valorOutros || 0;
+      });
+
+      const frete = parseFloat(document.getElementById('valorFrete').value) || 0;
+      const outros = parseFloat(document.getElementById('valorOutros').value) || 0;
+      
+      document.getElementById('valorProdutos').value = totalProdutos.toFixed(2);
+      const total = totalProdutos + frete + outros;
+      document.getElementById('valorTotal').value = total.toFixed(2);
+
+      // Atualizar painel de totais fiscais
+      const painelTotais = document.getElementById('totaisFiscais');
+      if (painelTotais && itensEntradaManual.length > 0) {
+        painelTotais.innerHTML = `
+          <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-top: 20px; padding: 20px; background: #f9fafb; border-radius: 8px; border: 2px solid #e5e7eb;">
+            <div style="text-align: center; padding: 15px; background: white; border-radius: 6px; border: 1px solid #e5e7eb;">
+              <div style="font-size: 12px; color: #6b7280; font-weight: 600; margin-bottom: 5px;">VALOR PRODUTOS</div>
+              <div style="font-size: 20px; font-weight: 700; color: #1f2937;">R$ ${totalProdutos.toFixed(2)}</div>
+            </div>
+            <div style="text-align: center; padding: 15px; background: white; border-radius: 6px; border: 1px solid #e5e7eb;">
+              <div style="font-size: 12px; color: #6b7280; font-weight: 600; margin-bottom: 5px;">BASE ICMS</div>
+              <div style="font-size: 20px; font-weight: 700; color: #6366f1;">R$ ${totalBaseICMS.toFixed(2)}</div>
+            </div>
+            <div style="text-align: center; padding: 15px; background: white; border-radius: 6px; border: 1px solid #e5e7eb;">
+              <div style="font-size: 12px; color: #6b7280; font-weight: 600; margin-bottom: 5px;">ICMS</div>
+              <div style="font-size: 20px; font-weight: 700; color: #059669;">R$ ${totalICMS.toFixed(2)}</div>
+            </div>
+            <div style="text-align: center; padding: 15px; background: white; border-radius: 6px; border: 1px solid #e5e7eb;">
+              <div style="font-size: 12px; color: #6b7280; font-weight: 600; margin-bottom: 5px;">ICMS ST</div>
+              <div style="font-size: 20px; font-weight: 700; color: #dc2626;">R$ ${totalICMSST.toFixed(2)}</div>
+            </div>
+            <div style="text-align: center; padding: 15px; background: white; border-radius: 6px; border: 1px solid #e5e7eb;">
+              <div style="font-size: 12px; color: #6b7280; font-weight: 600; margin-bottom: 5px;">IPI</div>
+              <div style="font-size: 20px; font-weight: 700; color: #0891b2;">R$ ${totalIPI.toFixed(2)}</div>
+            </div>
+            <div style="text-align: center; padding: 15px; background: white; border-radius: 6px; border: 1px solid #e5e7eb;">
+              <div style="font-size: 12px; color: #6b7280; font-weight: 600; margin-bottom: 5px;">PIS</div>
+              <div style="font-size: 20px; font-weight: 700; color: #7c3aed;">R$ ${totalPIS.toFixed(2)}</div>
+            </div>
+            <div style="text-align: center; padding: 15px; background: white; border-radius: 6px; border: 1px solid #e5e7eb;">
+              <div style="font-size: 12px; color: #6b7280; font-weight: 600; margin-bottom: 5px;">COFINS</div>
+              <div style="font-size: 20px; font-weight: 700; color: #db2777;">R$ ${totalCOFINS.toFixed(2)}</div>
+            </div>
+            <div style="text-align: center; padding: 15px; background: #ecfdf5; border-radius: 6px; border: 2px solid #059669;">
+              <div style="font-size: 12px; color: #047857; font-weight: 600; margin-bottom: 5px;">VALOR TOTAL</div>
+              <div style="font-size: 22px; font-weight: 800; color: #047857;">R$ ${total.toFixed(2)}</div>
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    async function salvarEntradaManualComItens() {
+      try {
+        const fornecedorId = document.getElementById('fornecedorId').value;
+        const numeroNF = document.getElementById('numeroNF').value;
+        const serieNF = document.getElementById('serieNF').value;
+        const dataEmissao = document.getElementById('dataEmissao').value;
+        const dataEntrada = document.getElementById('dataEntrada').value;
+        const valorTotal = document.getElementById('valorTotal').value;
+
+        // Validações
+        if (!fornecedorId) {
+          alert('⚠️ Selecione um fornecedor');
+          return;
+        }
+        if (!numeroNF) {
+          alert('⚠️ Informe o número da NF');
+          return;
+        }
+        if (!serieNF) {
+          alert('⚠️ Informe a série da NF');
+          return;
+        }
+        if (!dataEmissao) {
+          alert('⚠️ Informe a data de emissão');
+          return;
+        }
+        if (!dataEntrada) {
+          alert('⚠️ Informe a data de entrada');
+          return;
+        }
+        if (parseFloat(valorTotal) <= 0) {
+          alert('⚠️ O valor total deve ser maior que zero');
+          return;
+        }
+        if (itensEntradaManual.length === 0) {
+          alert('⚠️ Adicione pelo menos um item à nota');
+          return;
+        }
+
+        const entrada = {
+          fornecedor_id: fornecedorId,
+          pedido_compra_id: document.getElementById('pedidoCompraId').value || null,
+          numero_nf: numeroNF,
+          serie_nf: serieNF,
+          chave_acesso: document.getElementById('chaveAcesso').value || null,
+          data_emissao: dataEmissao,
+          data_entrada: dataEntrada,
+          valor_produtos: parseFloat(document.getElementById('valorProdutos').value) || 0,
+          valor_frete: parseFloat(document.getElementById('valorFrete').value) || 0,
+          valor_outros: parseFloat(document.getElementById('valorOutros').value) || 0,
+          valor_total: parseFloat(valorTotal),
+          observacoes: document.getElementById('observacoes').value || null,
+          xml_completo: xmlContentManual,
+          itens: itensEntradaManual,
+          duplicatas: duplicatasXML
+        };
+
+        console.log('Enviando entrada:', entrada);
+
+        const token = localStorage.getItem('token');
+        const response = await fetch('/api/nfe-entrada/manual-completa', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify(entrada)
+        });
+
+        console.log('Response status:', response.status);
+
+        if (!response.ok) {
+          const error = await response.json();
+          console.error('Erro do servidor:', error);
+          throw new Error(error.error || error.message || 'Erro ao salvar entrada');
+        }
+
+        const resultado = await response.json();
+        console.log('Resultado:', resultado);
+        
+        let mensagemSucesso = `✅ Entrada registrada com sucesso!\n\n` +
+              `Nota: #${resultado.nfeId}\n` +
+              `Itens: ${resultado.totalItens}\n` +
+              `Novos produtos: ${resultado.novosProdutos || 0}`;
+        
+        if (resultado.parcelasCriadas > 0) {
+          mensagemSucesso += `\n\n💳 ${resultado.parcelasCriadas} parcela(s) gerada(s) no Contas a Pagar`;
+        }
+        
+        alert(mensagemSucesso);
+        
+        fecharModal('modalEntradaManual');
+        carregarNFes();
+
+      } catch (error) {
+        console.error('Erro ao salvar entrada:', error);
+        alert('❌ Erro: ' + error.message);
+      }
+    }
+
+    async function carregarFornecedores() {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch('/api/fornecedores?ativo=true', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        const data = await response.json();
+        const select = document.getElementById('fornecedorId');
+        
+        select.innerHTML = '<option value="">Selecione...</option>';
+        data.fornecedores?.forEach(f => {
+          select.innerHTML += `<option value="${f.id}">${f.razao_social} - ${f.cnpj_cpf}</option>`;
+        });
+
+      } catch (error) {
+        console.error('Erro ao carregar fornecedores:', error);
+      }
+    }
+
+    async function carregarPedidosCompra() {
+      const fornecedorId = document.getElementById('fornecedorId').value;
+      const select = document.getElementById('pedidoCompraId');
+      
+      select.innerHTML = '<option value="">Nenhum (entrada avulsa)</option>';
+      
+      if (!fornecedorId) return;
+
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`/api/pedidos-compra?fornecedor_id=${fornecedorId}&status=APROVADO`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        const data = await response.json();
+        
+        data.pedidos?.forEach(p => {
+          const valorTotal = parseFloat(p.valor_total || 0).toFixed(2);
+          select.innerHTML += `
+            <option value="${p.id}" data-valor="${valorTotal}">
+              Pedido #${p.numero_pedido} - R$ ${valorTotal} (${p.itens_pendentes || 0} itens pendentes)
+            </option>
+          `;
+        });
+
+      } catch (error) {
+        console.error('Erro ao carregar pedidos:', error);
+      }
+    }
+
+    function preencherDadosPedido() {
+      const select = document.getElementById('pedidoCompraId');
+      const option = select.options[select.selectedIndex];
+      
+      if (option.value) {
+        const valor = option.dataset.valor;
+        if (valor) {
+          document.getElementById('valorProdutos').value = valor;
+          calcularTotal();
+        }
+      }
+    }
+
+    function calcularTotal() {
+      const produtos = parseFloat(document.getElementById('valorProdutos').value) || 0;
+      const frete = parseFloat(document.getElementById('valorFrete').value) || 0;
+      const outros = parseFloat(document.getElementById('valorOutros').value) || 0;
+      
+      const total = produtos + frete + outros;
+      document.getElementById('valorTotal').value = total.toFixed(2);
+    }
+
+    async function salvarEntradaManual() {
+      try {
+        const fornecedorId = document.getElementById('fornecedorId').value;
+        const numeroNF = document.getElementById('numeroNF').value;
+        const serieNF = document.getElementById('serieNF').value;
+        const dataEmissao = document.getElementById('dataEmissao').value;
+        const dataEntrada = document.getElementById('dataEntrada').value;
+        const valorTotal = document.getElementById('valorTotal').value;
+
+        // Validações
+        if (!fornecedorId) {
+          alert('⚠️ Selecione um fornecedor');
+          return;
+        }
+        if (!numeroNF) {
+          alert('⚠️ Informe o número da NF');
+          return;
+        }
+        if (!serieNF) {
+          alert('⚠️ Informe a série da NF');
+          return;
+        }
+        if (!dataEmissao) {
+          alert('⚠️ Informe a data de emissão');
+          return;
+        }
+        if (!dataEntrada) {
+          alert('⚠️ Informe a data de entrada');
+          return;
+        }
+        if (parseFloat(valorTotal) <= 0) {
+          alert('⚠️ O valor total deve ser maior que zero');
+          return;
+        }
+
+        const entrada = {
+          fornecedor_id: fornecedorId,
+          pedido_compra_id: document.getElementById('pedidoCompraId').value || null,
+          numero_nf: numeroNF,
+          serie_nf: serieNF,
+          chave_acesso: document.getElementById('chaveAcesso').value || null,
+          data_emissao: dataEmissao,
+          data_entrada: dataEntrada,
+          valor_produtos: parseFloat(document.getElementById('valorProdutos').value) || 0,
+          valor_frete: parseFloat(document.getElementById('valorFrete').value) || 0,
+          valor_outros: parseFloat(document.getElementById('valorOutros').value) || 0,
+          valor_total: parseFloat(valorTotal),
+          observacoes: document.getElementById('observacoes').value || null,
+          tipo_entrada: 'MANUAL',
+          status_entrada: 'PENDENTE'
+        };
+
+        const token = localStorage.getItem('token');
+        const response = await fetch('/api/nfe-entrada/manual', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify(entrada)
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || 'Erro ao salvar entrada');
+        }
+
+        const resultado = await response.json();
+        alert('✅ Entrada manual registrada com sucesso!');
+        
+        fecharModal('modalEntradaManual');
+        carregarNFes();
+
+      } catch (error) {
+        console.error('Erro ao salvar entrada:', error);
+        alert('❌ Erro: ' + error.message);
+      }
+    }
+
+    // ============================================
+    // ASSOCIAR ITENS DO XML
+    // ============================================
+
+    let itensXML = [];
+    let produtosCadastrados = [];
+    let nfeIdAtual = null;
+
+    async function abrirModalAssociarItens(nfeId) {
+      nfeIdAtual = nfeId;
+      document.getElementById('modalAssociarItens').classList.add('show');
+      
+      try {
+        // Carregar produtos cadastrados
+        await carregarProdutosCadastrados();
+        
+        // Carregar itens do XML
+        await carregarItensXML(nfeId);
+        
+      } catch (error) {
+        console.error('Erro ao carregar itens:', error);
+        alert('❌ Erro ao carregar itens do XML');
+      }
+    }
+
+    async function carregarProdutosCadastrados() {
+      const token = localStorage.getItem('token');
+      const response = await fetch('/api/produtos?ativo=true', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      
+      const data = await response.json();
+      produtosCadastrados = data.produtos || [];
+    }
+
+    async function carregarItensXML(nfeId) {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${API_BASE}/${nfeId}/itens-xml`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (!response.ok) {
+        throw new Error('Erro ao carregar itens do XML');
+      }
+
+      const data = await response.json();
+      itensXML = data.itens || [];
+      
+      renderizarItensXML();
+    }
+
+    function renderizarItensXML() {
+      const container = document.getElementById('itensXMLContent');
+      
+      if (itensXML.length === 0) {
+        container.innerHTML = '<p style="text-align: center; color: #666;">Nenhum item encontrado no XML</p>';
+        return;
+      }
+
+      container.innerHTML = `
+        <div style="overflow-x: auto;">
+          <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+              <tr style="background: #f8f9fa;">
+                <th style="padding: 12px; text-align: left; border-bottom: 2px solid #dee2e6;">Item</th>
+                <th style="padding: 12px; text-align: left; border-bottom: 2px solid #dee2e6;">Código XML</th>
+                <th style="padding: 12px; text-align: left; border-bottom: 2px solid #dee2e6;">Descrição XML</th>
+                <th style="padding: 12px; text-align: center; border-bottom: 2px solid #dee2e6;">Qtd</th>
+                <th style="padding: 12px; text-align: right; border-bottom: 2px solid #dee2e6;">Valor Unit.</th>
+                <th style="padding: 12px; text-align: left; border-bottom: 2px solid #dee2e6; width: 350px;">🔗 Associar ao Produto</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${itensXML.map((item, index) => `
+                <tr style="border-bottom: 1px solid #e5e7eb;">
+                  <td style="padding: 12px; text-align: center; font-weight: 600;">${item.numeroItem}</td>
+                  <td style="padding: 12px;">
+                    <code style="background: #f3f4f6; padding: 2px 6px; border-radius: 3px;">${item.codigoProduto}</code>
+                    ${item.gtin ? `<br><small style="color: #666;">GTIN: ${item.gtin}</small>` : ''}
+                  </td>
+                  <td style="padding: 12px;">
+                    <strong>${item.descricao}</strong>
+                    ${item.ncm ? `<br><small style="color: #666;">NCM: ${item.ncm}</small>` : ''}
+                  </td>
+                  <td style="padding: 12px; text-align: center;">
+                    ${item.quantidade} ${item.unidade}
+                  </td>
+                  <td style="padding: 12px; text-align: right;">
+                    R$ ${parseFloat(item.valorUnitario).toFixed(2)}
+                  </td>
+                  <td style="padding: 12px;">
+                    ${renderizarSelectProduto(item, index)}
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    function renderizarSelectProduto(item, index) {
+      // Tentar encontrar produto automaticamente
+      const produtoSugerido = produtosCadastrados.find(p => 
+        p.codigo_principal === item.codigoProduto || 
+        p.gtin === item.gtin ||
+        p.descricao.toLowerCase().includes(item.descricao.toLowerCase().substring(0, 20))
+      );
+
+      let html = `<select id="produto_${index}" data-item-index="${index}" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">`;
+      html += `<option value="">❌ Criar novo produto</option>`;
+      
+      produtosCadastrados.forEach(p => {
+        const selected = produtoSugerido && p.id === produtoSugerido.id ? 'selected' : '';
+        html += `<option value="${p.id}" ${selected}>
+          ${p.codigo_principal} - ${p.descricao}
+        </option>`;
+      });
+      
+      html += `</select>`;
+      
+      if (produtoSugerido) {
+        html += `<small style="color: #059669; display: block; margin-top: 5px;">✓ Associação sugerida</small>`;
+      }
+      
+      return html;
+    }
+
+    async function salvarAssociacoes() {
+      try {
+        const associacoes = [];
+        
+        itensXML.forEach((item, index) => {
+          const select = document.getElementById(`produto_${index}`);
+          const produtoId = select?.value || null;
+          
+          associacoes.push({
+            numeroItem: item.numeroItem,
+            codigoProduto: item.codigoProduto,
+            gtin: item.gtin,
+            descricao: item.descricao,
+            ncm: item.ncm,
+            cfop: item.cfop,
+            unidade: item.unidade,
+            quantidade: item.quantidade,
+            valorUnitario: item.valorUnitario,
+            valorTotal: item.valorTotal,
+            icmsValor: item.icmsValor,
+            icmsAliquota: item.icmsAliquota,
+            ipiValor: item.ipiValor,
+            ipiAliquota: item.ipiAliquota,
+            produto_id: produtoId ? parseInt(produtoId) : null
+          });
+        });
+
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_BASE}/${nfeIdAtual}/associar-itens`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ itens: associacoes })
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || 'Erro ao salvar associações');
+        }
+
+        const resultado = await response.json();
+        alert(`✅ ${resultado.message}\n\n` +
+              `✓ ${resultado.itensAssociados} itens associados\n` +
+              `+ ${resultado.novosProdutos} novos produtos criados`);
+        
+        fecharModal('modalAssociarItens');
+        carregarNFes();
+
+      } catch (error) {
+        console.error('Erro ao salvar associações:', error);
+        alert('❌ Erro: ' + error.message);
+      }
+    }
+  </script>
+</body>
+</html>

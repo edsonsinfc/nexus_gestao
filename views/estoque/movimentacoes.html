@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movimentações de Estoque - Nexus Gestão</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css">
+    <style>
+        body { background-color: #f8f9fa; }
+        .navbar { background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%); }
+        .card { border: none; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+        .table-hover tbody tr:hover { background-color: #f0f7ff; cursor: pointer; }
+        .badge-tipo { padding: 8px 12px; border-radius: 20px; font-weight: 500; }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand fw-bold" href="/admin.html">
+                <i class="bi bi-box-seam me-2"></i>Nexus Gestão - Estoque
+            </a>
+            <div class="collapse navbar-collapse">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="dashboard.html">Dashboard</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="#">Movimentações</a></li>
+                    <li class="nav-item"><a class="nav-link" href="inventario.html">Inventário</a></li>
+                    <li class="nav-item"><a class="nav-link" href="ajustes.html">Ajustes</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid py-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="bi bi-arrow-left-right me-2"></i>Movimentações de Estoque</h2>
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalNovaMovimentacao">
+                <i class="bi bi-plus-circle me-2"></i>Nova Movimentação
+            </button>
+        </div>
+
+        <!-- Filtros -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <label class="form-label">Produto</label>
+                        <select class="form-select" id="filtroProduto"></select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Tipo</label>
+                        <select class="form-select" id="filtroTipo">
+                            <option value="">Todos</option>
+                            <option value="ENTRADA">Entrada</option>
+                            <option value="SAIDA">Saída</option>
+                            <option value="AJUSTE_ENTRADA">Ajuste Entrada</option>
+                            <option value="AJUSTE_SAIDA">Ajuste Saída</option>
+                            <option value="DEVOLUCAO">Devolução</option>
+                            <option value="PERDA">Perda</option>
+                            <option value="TRANSFERENCIA">Transferência</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Data Início</label>
+                        <input type="date" class="form-control" id="filtroDataInicio">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Data Fim</label>
+                        <input type="date" class="form-control" id="filtroDataFim">
+                    </div>
+                    <div class="col-md-3 d-flex align-items-end">
+                        <button class="btn btn-primary me-2" onclick="filtrarMovimentacoes()">
+                            <i class="bi bi-search me-1"></i>Filtrar
+                        </button>
+                        <button class="btn btn-secondary" onclick="limparFiltros()">
+                            <i class="bi bi-x-circle me-1"></i>Limpar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabela -->
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Data/Hora</th>
+                                <th>Produto</th>
+                                <th>Tipo</th>
+                                <th>Quantidade</th>
+                                <th>Estoque Anterior</th>
+                                <th>Estoque Novo</th>
+                                <th>Documento</th>
+                                <th>Usuário</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabelaMovimentacoes">
+                            <tr>
+                                <td colspan="9" class="text-center py-4">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">Carregando...</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <nav id="paginacao"></nav>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Nova Movimentação -->
+    <div class="modal fade" id="modalNovaMovimentacao" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Nova Movimentação de Estoque</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formMovimentacao">
+                        <div class="row g-3">
+                            <div class="col-md-8">
+                                <label class="form-label">Produto *</label>
+                                <select class="form-select" id="produto_id" required></select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Tipo *</label>
+                                <select class="form-select" id="tipo" required>
+                                    <option value="">Selecione...</option>
+                                    <option value="ENTRADA">Entrada</option>
+                                    <option value="SAIDA">Saída</option>
+                                    <option value="AJUSTE_ENTRADA">Ajuste Entrada</option>
+                                    <option value="AJUSTE_SAIDA">Ajuste Saída</option>
+                                    <option value="DEVOLUCAO">Devolução</option>
+                                    <option value="PERDA">Perda</option>
+                                    <option value="TRANSFERENCIA">Transferência</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Quantidade *</label>
+                                <input type="number" class="form-control" id="quantidade" step="0.01" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Documento de Referência</label>
+                                <input type="text" class="form-control" id="documento_referencia">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Motivo</label>
+                                <input type="text" class="form-control" id="motivo">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Lote</label>
+                                <input type="text" class="form-control" id="lote">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Observação</label>
+                                <textarea class="form-control" id="observacao" rows="3"></textarea>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="salvarMovimentacao()">
+                        <i class="bi bi-check-circle me-1"></i>Salvar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script>
+        // Verificar autenticação - tentar localStorage e sessionStorage
+        let token = localStorage.getItem('token') || sessionStorage.getItem('token');
+        if (!token) {
+            alert('Você precisa fazer login para acessar esta página.');
+            window.location.href = '/login.html';
+        }
+
+        let paginaAtual = 1;
+        const itensPorPagina = 50;
+
+        async function carregarProdutos() {
+            try {
+                const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+                const response = await fetch('/api/estoque/produtos', {
+                    headers: { 
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) throw new Error('Erro ao carregar produtos');
+
+                const produtos = await response.json();
+                
+                const selects = ['#produto_id', '#filtroProduto'];
+                selects.forEach(selector => {
+                    const select = $(selector);
+                    select.empty().append('<option value="">Selecione um produto...</option>');
+                    
+                    produtos.forEach(produto => {
+                        select.append(new Option(
+                            `${produto.codigo_principal} - ${produto.descricao}`,
+                            produto.id
+                        ));
+                    });
+                    
+                    select.select2({ width: '100%', placeholder: 'Selecione um produto' });
+                });
+
+            } catch (error) {
+                console.error('Erro:', error);
+            }
+        }
+
+        async function carregarMovimentacoes() {
+            try {
+                const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+                const params = new URLSearchParams({
+                    page: paginaAtual,
+                    limit: itensPorPagina
+                });
+
+                const produtoId = $('#filtroProduto').val();
+                const tipo = $('#filtroTipo').val();
+                const dataInicio = $('#filtroDataInicio').val();
+                const dataFim = $('#filtroDataFim').val();
+
+                if (produtoId) params.append('produto_id', produtoId);
+                if (tipo) params.append('tipo', tipo);
+                if (dataInicio) params.append('data_inicio', dataInicio);
+                if (dataFim) params.append('data_fim', dataFim);
+
+                const response = await fetch(`/api/estoque/movimentacoes?${params}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!response.ok) throw new Error('Erro ao carregar movimentações');
+
+                const data = await response.json();
+                mostrarMovimentacoes(data.movimentacoes);
+                criarPaginacao(data.pagination);
+
+            } catch (error) {
+                console.error('Erro:', error);
+                document.getElementById('tabelaMovimentacoes').innerHTML = `
+                    <tr><td colspan="9" class="text-center text-danger">Erro ao carregar movimentações</td></tr>
+                `;
+            }
+        }
+
+        function mostrarMovimentacoes(movimentacoes) {
+            const tbody = document.getElementById('tabelaMovimentacoes');
+            
+            if (movimentacoes.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="9" class="text-center">Nenhuma movimentação encontrada</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = movimentacoes.map(mov => `
+                <tr>
+                    <td>${new Date(mov.data_movimentacao).toLocaleString('pt-BR')}</td>
+                    <td>
+                        <strong>${mov.codigo_principal}</strong><br>
+                        <small>${mov.produto_descricao}</small>
+                    </td>
+                    <td><span class="badge-tipo bg-${getTipoCor(mov.tipo)}">${mov.tipo}</span></td>
+                    <td>${parseFloat(mov.quantidade).toFixed(2)}</td>
+                    <td>${parseFloat(mov.estoque_anterior).toFixed(2)}</td>
+                    <td>${parseFloat(mov.estoque_novo).toFixed(2)}</td>
+                    <td>${mov.documento_referencia || '-'}</td>
+                    <td>${mov.usuario_nome}</td>
+                    <td>
+                        <button class="btn btn-sm btn-info" onclick='verDetalhes(${JSON.stringify(mov)})'>
+                            <i class="bi bi-eye"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function getTipoCor(tipo) {
+            const cores = {
+                'ENTRADA': 'success',
+                'AJUSTE_ENTRADA': 'primary',
+                'DEVOLUCAO': 'info',
+                'SAIDA': 'danger',
+                'AJUSTE_SAIDA': 'warning',
+                'PERDA': 'dark',
+                'TRANSFERENCIA': 'secondary'
+            };
+            return cores[tipo] || 'secondary';
+        }
+
+        function criarPaginacao(pagination) {
+            const nav = document.getElementById('paginacao');
+            if (pagination.pages <= 1) {
+                nav.innerHTML = '';
+                return;
+            }
+
+            let html = '<ul class="pagination justify-content-center mt-3">';
+            
+            for (let i = 1; i <= pagination.pages; i++) {
+                html += `
+                    <li class="page-item ${i === pagination.page ? 'active' : ''}">
+                        <a class="page-link" href="#" onclick="irParaPagina(${i}); return false;">${i}</a>
+                    </li>
+                `;
+            }
+            
+            html += '</ul>';
+            nav.innerHTML = html;
+        }
+
+        function irParaPagina(pagina) {
+            paginaAtual = pagina;
+            carregarMovimentacoes();
+        }
+
+        function filtrarMovimentacoes() {
+            paginaAtual = 1;
+            carregarMovimentacoes();
+        }
+
+        function limparFiltros() {
+            $('#filtroProduto').val('').trigger('change');
+            $('#filtroTipo').val('');
+            $('#filtroDataInicio').val('');
+            $('#filtroDataFim').val('');
+            filtrarMovimentacoes();
+        }
+
+        async function salvarMovimentacao() {
+            try {
+                const token = localStorage.getItem('token');
+                const dados = {
+                    produto_id: $('#produto_id').val(),
+                    tipo: $('#tipo').val(),
+                    quantidade: $('#quantidade').val(),
+                    documento_referencia: $('#documento_referencia').val(),
+                    motivo: $('#motivo').val(),
+                    lote: $('#lote').val(),
+                    observacao: $('#observacao').val()
+                };
+
+                if (!dados.produto_id || !dados.tipo || !dados.quantidade) {
+                    alert('Preencha os campos obrigatórios');
+                    return;
+                }
+
+                const response = await fetch('/api/estoque/movimentacoes', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(dados)
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(result.message || 'Erro ao salvar');
+                }
+
+                alert(result.message);
+                bootstrap.Modal.getInstance(document.getElementById('modalNovaMovimentacao')).hide();
+                document.getElementById('formMovimentacao').reset();
+                $('#produto_id').val('').trigger('change');
+                carregarMovimentacoes();
+
+            } catch (error) {
+                console.error('Erro:', error);
+                alert(error.message);
+            }
+        }
+
+        function verDetalhes(mov) {
+            alert(`Detalhes da Movimentação:\n\nProduto: ${mov.produto_descricao}\nTipo: ${mov.tipo}\nQuantidade: ${mov.quantidade}\nMotivo: ${mov.motivo || 'Não informado'}\nObservação: ${mov.observacao || 'Nenhuma'}`);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            carregarProdutos();
+            carregarMovimentacoes();
+        });
+    </script>
+</body>
+</html>

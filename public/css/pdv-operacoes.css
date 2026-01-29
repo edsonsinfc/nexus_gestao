@@ -1,0 +1,94 @@
+/* Estilos para operações do PDV */
+.pdv-operacoes {
+    background-color: var(--bs-dark);
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+}
+
+.pdv-operacoes .btn-group {
+    gap: 5px;
+}
+
+.pdv-operacoes .btn {
+    flex: 1;
+    padding: 10px;
+    font-weight: 500;
+}
+
+#divBuscaVenda {
+    background-color: var(--bs-gray-800);
+    padding: 15px;
+    border-radius: 8px;
+}
+
+#divBuscaVenda .input-group {
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.pdv-opcoes-operacao {
+    background-color: var(--bs-gray-800);
+    padding: 15px;
+    border-radius: 8px;
+    margin-top: 15px;
+}
+
+.pdv-opcoes-operacao label {
+    color: var(--bs-light);
+    margin-bottom: 5px;
+}
+
+/* Estilização dos campos de devolução/troca */
+.qtd-devolver {
+    width: 80px !important;
+    text-align: center;
+}
+
+.motivo-item {
+    min-width: 200px;
+}
+
+/* Alertas personalizados */
+.pdv-alerta {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1050;
+    min-width: 300px;
+    max-width: 500px;
+    opacity: 0;
+    transform: translateX(100%);
+    transition: all 0.3s ease-in-out;
+}
+
+.pdv-alerta.show {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+/* Estados da operação */
+.pdv-operacao-ativa .pdv-busca {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .pdv-operacoes .btn-group {
+        flex-direction: column;
+    }
+    
+    .pdv-operacoes .btn {
+        width: 100%;
+        margin-bottom: 5px;
+    }
+    
+    .qtd-devolver {
+        width: 60px !important;
+    }
+    
+    .motivo-item {
+        min-width: 150px;
+    }
+}

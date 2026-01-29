@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Categorias Financeiras - Nexus Gestão</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      overflow: hidden;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 30px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .header h1 {
+      font-size: 28px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-primary {
+      background: white;
+      color: #667eea;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(255,255,255,0.3);
+    }
+
+    .btn-success {
+      background: #48bb78;
+      color: white;
+    }
+
+    .btn-success:hover {
+      background: #38a169;
+    }
+
+    .btn-warning {
+      background: #ed8936;
+      color: white;
+      padding: 8px 16px;
+      font-size: 12px;
+    }
+
+    .btn-warning:hover {
+      background: #dd6b20;
+    }
+
+    .btn-danger {
+      background: #f56565;
+      color: white;
+      padding: 8px 16px;
+      font-size: 12px;
+    }
+
+    .btn-danger:hover {
+      background: #e53e3e;
+    }
+
+    .btn-secondary {
+      background: #718096;
+      color: white;
+    }
+
+    .btn-secondary:hover {
+      background: #4a5568;
+    }
+
+    .content {
+      padding: 40px;
+    }
+
+    .filters {
+      background: #f7fafc;
+      padding: 20px;
+      border-radius: 12px;
+      margin-bottom: 30px;
+      display: flex;
+      gap: 15px;
+      align-items: center;
+    }
+
+    .filters label {
+      font-weight: 600;
+      color: #2d3748;
+    }
+
+    .filters select {
+      padding: 10px 15px;
+      border: 2px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .filters select:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    .stat-card {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+    }
+
+    .stat-card.receita {
+      background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+    }
+
+    .stat-card.despesa {
+      background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
+    }
+
+    .stat-card.custo {
+      background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%);
+    }
+
+    .stat-label {
+      font-size: 13px;
+      opacity: 0.9;
+      margin-bottom: 8px;
+    }
+
+    .stat-value {
+      font-size: 32px;
+      font-weight: 700;
+    }
+
+    .table-container {
+      overflow-x: auto;
+      border-radius: 12px;
+      border: 1px solid #e2e8f0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    thead {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    th {
+      padding: 15px;
+      text-align: left;
+      font-weight: 600;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    tbody tr {
+      border-bottom: 1px solid #e2e8f0;
+      transition: all 0.3s;
+    }
+
+    tbody tr:hover {
+      background: #f7fafc;
+    }
+
+    tbody tr.nivel-1 {
+      font-weight: 600;
+      background: #edf2f7;
+    }
+
+    tbody tr.nivel-2 {
+      font-weight: 500;
+    }
+
+    tbody tr.nivel-3 {
+      font-weight: 400;
+    }
+
+    td {
+      padding: 15px;
+      font-size: 14px;
+      color: #2d3748;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .badge.receita {
+      background: #c6f6d5;
+      color: #22543d;
+    }
+
+    .badge.despesa {
+      background: #fed7d7;
+      color: #742a2a;
+    }
+
+    .badge.custo {
+      background: #feebc8;
+      color: #7c2d12;
+    }
+
+    .actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.7);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal.active {
+      display: flex;
+    }
+
+    .modal-content {
+      background: white;
+      border-radius: 20px;
+      max-width: 600px;
+      width: 90%;
+      max-height: 90vh;
+      overflow-y: auto;
+      animation: slideIn 0.3s;
+    }
+
+    @keyframes slideIn {
+      from {
+        transform: translateY(-50px);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .modal-header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 25px 30px;
+      border-radius: 20px 20px 0 0;
+    }
+
+    .modal-header h2 {
+      font-size: 24px;
+    }
+
+    .modal-body {
+      padding: 30px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      font-weight: 600;
+      color: #2d3748;
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 12px 15px;
+      border: 2px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 14px;
+      transition: all 0.3s;
+      font-family: inherit;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    .form-group small {
+      display: block;
+      margin-top: 5px;
+      color: #718096;
+      font-size: 12px;
+    }
+
+    .modal-footer {
+      padding: 20px 30px;
+      border-top: 1px solid #e2e8f0;
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: #667eea;
+      font-size: 18px;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #718096;
+    }
+
+    .empty-state svg {
+      width: 80px;
+      height: 80px;
+      margin-bottom: 20px;
+      opacity: 0.3;
+    }
+
+    .alert {
+      padding: 15px 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      display: none;
+    }
+
+    .alert.success {
+      background: #c6f6d5;
+      color: #22543d;
+      border: 1px solid #9ae6b4;
+    }
+
+    .alert.error {
+      background: #fed7d7;
+      color: #742a2a;
+      border: 1px solid #fc8181;
+    }
+
+    .alert.active {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>
+        <span>📊</span>
+        Categorias Financeiras
+      </h1>
+      <div style="display: flex; gap: 10px;">
+        <button class="btn btn-primary" onclick="abrirModal()">
+          ➕ Nova Categoria
+        </button>
+        <a href="/admin.html" class="btn btn-secondary">← Voltar</a>
+      </div>
+    </div>
+
+    <div class="content">
+      <div id="alert" class="alert"></div>
+
+      <div class="filters">
+        <label>Filtrar por tipo:</label>
+        <select id="filtroTipo" onchange="carregarCategorias()">
+          <option value="">Todos</option>
+          <option value="RECEITA">Receitas</option>
+          <option value="DESPESA">Despesas</option>
+          <option value="CUSTO">Custos</option>
+        </select>
+      </div>
+
+      <div class="stats">
+        <div class="stat-card">
+          <div class="stat-label">Total de Categorias</div>
+          <div class="stat-value" id="totalCategorias">0</div>
+        </div>
+        <div class="stat-card receita">
+          <div class="stat-label">Receitas</div>
+          <div class="stat-value" id="totalReceitas">0</div>
+        </div>
+        <div class="stat-card despesa">
+          <div class="stat-label">Despesas</div>
+          <div class="stat-value" id="totalDespesas">0</div>
+        </div>
+        <div class="stat-card custo">
+          <div class="stat-label">Custos</div>
+          <div class="stat-value" id="totalCustos">0</div>
+        </div>
+      </div>
+
+      <div id="loading" class="loading" style="display: none;">
+        Carregando categorias...
+      </div>
+
+      <div id="tableContainer" class="table-container" style="display: none;">
+        <table>
+          <thead>
+            <tr>
+              <th>Código</th>
+              <th>Nome</th>
+              <th>Tipo</th>
+              <th>Nível</th>
+              <th>Grupo DRE</th>
+              <th style="text-align: center;">Ações</th>
+            </tr>
+          </thead>
+          <tbody id="tbody">
+          </tbody>
+        </table>
+      </div>
+
+      <div id="emptyState" class="empty-state" style="display: none;">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+        </svg>
+        <h3>Nenhuma categoria encontrada</h3>
+        <p>Adicione sua primeira categoria financeira</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Cadastro/Edição -->
+  <div id="modal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="modalTitle">Nova Categoria</h2>
+      </div>
+      <form id="categoriaForm">
+        <div class="modal-body">
+          <input type="hidden" id="categoriaId">
+          
+          <div class="form-group">
+            <label>Código *</label>
+            <input type="text" id="codigo" required placeholder="Ex: 1.1.1">
+            <small>Código hierárquico da conta (ex: 1.1, 1.1.1, 1.1.2)</small>
+          </div>
+
+          <div class="form-group">
+            <label>Nome *</label>
+            <input type="text" id="nome" required placeholder="Ex: Receita de Vendas">
+          </div>
+
+          <div class="form-group">
+            <label>Tipo *</label>
+            <select id="tipo" required>
+              <option value="">Selecione...</option>
+              <option value="RECEITA">Receita</option>
+              <option value="DESPESA">Despesa</option>
+              <option value="CUSTO">Custo</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Nível</label>
+            <input type="number" id="nivel" min="1" max="5" value="1">
+            <small>Nível hierárquico (1 = principal, 2 = subconta, etc)</small>
+          </div>
+
+          <div class="form-group">
+            <label>Grupo DRE</label>
+            <input type="text" id="dreGrupo" placeholder="Ex: RECEITA_BRUTA, CUSTO_VENDAS">
+            <small>Grupo para classificação no DRE (opcional)</small>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="fecharModal()">
+            Cancelar
+          </button>
+          <button type="submit" class="btn btn-success">
+            Salvar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    let categorias = [];
+
+    // Carregar categorias ao iniciar
+    document.addEventListener('DOMContentLoaded', () => {
+      carregarCategorias();
+    });
+
+    async function carregarCategorias() {
+      const filtro = document.getElementById('filtroTipo').value;
+      
+      document.getElementById('loading').style.display = 'block';
+      document.getElementById('tableContainer').style.display = 'none';
+      document.getElementById('emptyState').style.display = 'none';
+
+      try {
+        const token = localStorage.getItem('token');
+        let url = '/api/categorias-financeiras';
+        
+        if (filtro) {
+          url += `?tipo=${filtro}`;
+        }
+
+        const response = await fetch(url, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (!response.ok) throw new Error('Erro ao carregar categorias');
+
+        const data = await response.json();
+        categorias = data.categorias;
+
+        atualizarEstatisticas();
+        renderizarTabela();
+
+      } catch (error) {
+        mostrarAlerta('Erro ao carregar categorias: ' + error.message, 'error');
+      } finally {
+        document.getElementById('loading').style.display = 'none';
+      }
+    }
+
+    function atualizarEstatisticas() {
+      const total = categorias.length;
+      const receitas = categorias.filter(c => c.tipo === 'RECEITA').length;
+      const despesas = categorias.filter(c => c.tipo === 'DESPESA').length;
+      const custos = categorias.filter(c => c.tipo === 'CUSTO').length;
+
+      document.getElementById('totalCategorias').textContent = total;
+      document.getElementById('totalReceitas').textContent = receitas;
+      document.getElementById('totalDespesas').textContent = despesas;
+      document.getElementById('totalCustos').textContent = custos;
+    }
+
+    function renderizarTabela() {
+      const tbody = document.getElementById('tbody');
+      tbody.innerHTML = '';
+
+      if (categorias.length === 0) {
+        document.getElementById('emptyState').style.display = 'block';
+        return;
+      }
+
+      document.getElementById('tableContainer').style.display = 'block';
+
+      categorias.forEach(cat => {
+        const tr = document.createElement('tr');
+        tr.className = `nivel-${cat.nivel}`;
+        
+        tr.innerHTML = `
+          <td><strong>${cat.codigo}</strong></td>
+          <td>${cat.nome}</td>
+          <td><span class="badge ${cat.tipo.toLowerCase()}">${cat.tipo}</span></td>
+          <td>${cat.nivel}</td>
+          <td>${cat.dre_grupo || '-'}</td>
+          <td style="text-align: center;">
+            <div class="actions">
+              <button class="btn btn-warning" onclick="editarCategoria(${cat.id})">
+                ✏️ Editar
+              </button>
+              <button class="btn btn-danger" onclick="confirmarExclusao(${cat.id}, '${cat.nome}')">
+                🗑️ Excluir
+              </button>
+            </div>
+          </td>
+        `;
+        
+        tbody.appendChild(tr);
+      });
+    }
+
+    function abrirModal() {
+      document.getElementById('modalTitle').textContent = 'Nova Categoria';
+      document.getElementById('categoriaForm').reset();
+      document.getElementById('categoriaId').value = '';
+      document.getElementById('modal').classList.add('active');
+    }
+
+    function fecharModal() {
+      document.getElementById('modal').classList.remove('active');
+    }
+
+    async function editarCategoria(id) {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`/api/categorias-financeiras/${id}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (!response.ok) throw new Error('Erro ao buscar categoria');
+
+        const data = await response.json();
+        const cat = data.categoria;
+
+        document.getElementById('modalTitle').textContent = 'Editar Categoria';
+        document.getElementById('categoriaId').value = cat.id;
+        document.getElementById('codigo').value = cat.codigo;
+        document.getElementById('nome').value = cat.nome;
+        document.getElementById('tipo').value = cat.tipo;
+        document.getElementById('nivel').value = cat.nivel;
+        document.getElementById('dreGrupo').value = cat.dre_grupo || '';
+        
+        document.getElementById('modal').classList.add('active');
+
+      } catch (error) {
+        mostrarAlerta('Erro ao carregar categoria: ' + error.message, 'error');
+      }
+    }
+
+    document.getElementById('categoriaForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const id = document.getElementById('categoriaId').value;
+      const dados = {
+        codigo: document.getElementById('codigo').value,
+        nome: document.getElementById('nome').value,
+        tipo: document.getElementById('tipo').value,
+        nivel: parseInt(document.getElementById('nivel').value),
+        dre_grupo: document.getElementById('dreGrupo').value || null
+      };
+
+      try {
+        const token = localStorage.getItem('token');
+        const url = id 
+          ? `/api/categorias-financeiras/${id}`
+          : '/api/categorias-financeiras';
+        
+        const method = id ? 'PUT' : 'POST';
+
+        const response = await fetch(url, {
+          method,
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(dados)
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+          throw new Error(result.error || 'Erro ao salvar categoria');
+        }
+
+        mostrarAlerta(result.message, 'success');
+        fecharModal();
+        carregarCategorias();
+
+      } catch (error) {
+        mostrarAlerta(error.message, 'error');
+      }
+    });
+
+    async function confirmarExclusao(id, nome) {
+      if (!confirm(`Tem certeza que deseja excluir a categoria "${nome}"?\n\nEsta ação não pode ser desfeita.`)) {
+        return;
+      }
+
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`/api/categorias-financeiras/${id}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+          throw new Error(result.error || 'Erro ao excluir categoria');
+        }
+
+        mostrarAlerta(result.message, 'success');
+        carregarCategorias();
+
+      } catch (error) {
+        mostrarAlerta(error.message, 'error');
+      }
+    }
+
+    function mostrarAlerta(mensagem, tipo) {
+      const alert = document.getElementById('alert');
+      alert.textContent = mensagem;
+      alert.className = `alert ${tipo} active`;
+      
+      setTimeout(() => {
+        alert.classList.remove('active');
+      }, 5000);
+    }
+
+    // Fechar modal ao clicar fora
+    document.getElementById('modal').addEventListener('click', (e) => {
+      if (e.target.id === 'modal') {
+        fecharModal();
+      }
+    });
+  </script>
+</body>
+</html>

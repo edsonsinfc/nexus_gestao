@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fluxo de Caixa - Nexus Gestão</title>
+  <link rel="stylesheet" href="/styles.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f5f7fa;
+      padding: 20px;
+      color: #2d3748;
+    }
+
+    .header {
+      background: white;
+      padding: 24px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      margin-bottom: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+
+    .header h1 {
+      font-size: 28px;
+      color: #1a202c;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-secondary {
+      background: white;
+      color: #4a5568;
+      border: 1px solid #e2e8f0;
+    }
+
+    .btn-secondary:hover {
+      background: #f7fafc;
+    }
+
+    .filters {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      margin-bottom: 24px;
+    }
+
+    .filters h3 {
+      font-size: 16px;
+      color: #2d3748;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .filter-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .form-group label {
+      font-size: 13px;
+      font-weight: 500;
+      color: #4a5568;
+    }
+
+    .form-control {
+      padding: 10px 12px;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      font-size: 14px;
+      color: #2d3748;
+      transition: border-color 0.3s;
+    }
+
+    .form-control:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .stat-card {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+    }
+
+    .stat-card.saldo-inicial::before { background: #4299e1; }
+    .stat-card.entradas::before { background: #48bb78; }
+    .stat-card.saidas::before { background: #f56565; }
+    .stat-card.saldo-periodo::before { background: #ed8936; }
+    .stat-card.saldo-final::before { background: #9f7aea; }
+
+    .stat-label {
+      font-size: 13px;
+      color: #718096;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .stat-value {
+      font-size: 28px;
+      font-weight: 700;
+      color: #1a202c;
+    }
+
+    .stat-value.positive { color: #48bb78; }
+    .stat-value.negative { color: #f56565; }
+    .stat-value.neutral { color: #4299e1; }
+
+    .content-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+
+    @media (max-width: 1200px) {
+      .content-grid { grid-template-columns: 1fr; }
+    }
+
+    .section {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 2px solid #f7fafc;
+    }
+
+    .section-header h3 {
+      font-size: 18px;
+      color: #1a202c;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .section-badge {
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+      background: #edf2f7;
+      color: #4a5568;
+    }
+
+    .transaction-list {
+      max-height: 400px;
+      overflow-y: auto;
+    }
+
+    .transaction-item {
+      padding: 12px;
+      border-left: 3px solid;
+      background: #f7fafc;
+      margin-bottom: 8px;
+      border-radius: 0 6px 6px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: transform 0.2s;
+    }
+
+    .transaction-item:hover {
+      transform: translateX(4px);
+      background: #edf2f7;
+    }
+
+    .transaction-item.entrada { border-left-color: #48bb78; }
+    .transaction-item.saida { border-left-color: #f56565; }
+
+    .transaction-info { flex: 1; }
+
+    .transaction-desc {
+      font-size: 14px;
+      font-weight: 500;
+      color: #2d3748;
+      margin-bottom: 4px;
+    }
+
+    .transaction-meta {
+      font-size: 12px;
+      color: #718096;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .transaction-value {
+      font-size: 16px;
+      font-weight: 700;
+      padding: 6px 12px;
+      border-radius: 6px;
+    }
+
+    .transaction-value.entrada {
+      color: #22543d;
+      background: #c6f6d5;
+    }
+
+    .transaction-value.saida {
+      color: #742a2a;
+      background: #fed7d7;
+    }
+
+    .chart-container {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      margin-bottom: 24px;
+    }
+
+    .daily-flow-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    .daily-flow-table thead { background: #f7fafc; }
+
+    .daily-flow-table th {
+      padding: 12px;
+      text-align: left;
+      font-weight: 600;
+      color: #4a5568;
+      border-bottom: 2px solid #e2e8f0;
+    }
+
+    .daily-flow-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid #f7fafc;
+    }
+
+    .daily-flow-table tbody tr:hover { background: #f7fafc; }
+
+    .text-right { text-align: right !important; }
+    .text-center { text-align: center !important; }
+
+    .badge {
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .badge-success {
+      background: #c6f6d5;
+      color: #22543d;
+    }
+
+    .badge-warning {
+      background: #feebc8;
+      color: #7c2d12;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: #a0aec0;
+    }
+
+    .empty-state-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+
+    .loading {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 40px;
+      color: #718096;
+    }
+
+    .spinner {
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #667eea;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 16px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      border-bottom: 2px solid #e2e8f0;
+    }
+
+    .tab {
+      padding: 10px 20px;
+      background: none;
+      border: none;
+      border-bottom: 3px solid transparent;
+      color: #718096;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .tab.active {
+      color: #667eea;
+      border-bottom-color: #667eea;
+    }
+
+    .tab:hover {
+      color: #667eea;
+      background: #f7fafc;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>💰 Fluxo de Caixa</h1>
+    <div class="header-actions">
+      <button class="btn btn-primary" onclick="window.location.href='lancamentos-financeiros.html'">
+        ➕ Novo Lançamento
+      </button>
+      <button class="btn btn-secondary" onclick="exportarExcel()">
+        📊 Exportar Excel
+      </button>
+      <button class="btn btn-secondary" onclick="window.location.href='admin.html'">
+        ← Voltar
+      </button>
+    </div>
+  </div>
+
+  <div class="filters">
+    <h3>🔍 Filtros</h3>
+    <div class="filter-row">
+      <div class="form-group">
+        <label>Data Início</label>
+        <input type="date" id="dataInicio" class="form-control">
+      </div>
+      <div class="form-group">
+        <label>Data Fim</label>
+        <input type="date" id="dataFim" class="form-control">
+      </div>
+      <div class="form-group">
+        <label>Tipo de Visualização</label>
+        <select id="tipoVisualizacao" class="form-control">
+          <option value="realizado">💵 Realizado (Pago)</option>
+          <option value="projetado">📅 Projetado (A Vencer)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>&nbsp;</label>
+        <button class="btn btn-primary" onclick="carregarFluxoCaixa()" style="width: 100%;">
+          🔍 Buscar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="stats-grid" id="statsGrid">
+    <div class="stat-card saldo-inicial">
+      <div class="stat-label">💼 Saldo Inicial</div>
+      <div class="stat-value neutral" id="saldoInicial">R$ 0,00</div>
+    </div>
+    <div class="stat-card entradas">
+      <div class="stat-label">📈 Entradas</div>
+      <div class="stat-value positive" id="totalEntradas">R$ 0,00</div>
+    </div>
+    <div class="stat-card saidas">
+      <div class="stat-label">📉 Saídas</div>
+      <div class="stat-value negative" id="totalSaidas">R$ 0,00</div>
+    </div>
+    <div class="stat-card saldo-periodo">
+      <div class="stat-label">💹 Saldo do Período</div>
+      <div class="stat-value" id="saldoPeriodo">R$ 0,00</div>
+    </div>
+    <div class="stat-card saldo-final">
+      <div class="stat-label">💰 Saldo Final</div>
+      <div class="stat-value" id="saldoFinal">R$ 0,00</div>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="trocarTab('movimentacoes')">📋 Movimentações</button>
+    <button class="tab" onclick="trocarTab('diario')">📅 Fluxo Diário</button>
+    <button class="tab" onclick="trocarTab('categorias')">📊 Por Categoria</button>
+  </div>
+
+  <div id="tabMovimentacoes">
+    <div class="content-grid">
+      <div class="section">
+        <div class="section-header">
+          <h3>📈 Entradas</h3>
+          <span class="section-badge" id="badgeEntradas">0 lançamentos</span>
+        </div>
+        <div class="transaction-list" id="listaEntradas">
+          <div class="loading">
+            <div>
+              <div class="spinner"></div>
+              <div>Carregando...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-header">
+          <h3>📉 Saídas</h3>
+          <span class="section-badge" id="badgeSaidas">0 lançamentos</span>
+        </div>
+        <div class="transaction-list" id="listaSaidas">
+          <div class="loading">
+            <div>
+              <div class="spinner"></div>
+              <div>Carregando...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="tabDiario" style="display: none;">
+    <div class="chart-container">
+      <div class="section-header">
+        <h3>📅 Fluxo de Caixa Diário</h3>
+      </div>
+      <div style="overflow-x: auto;">
+        <table class="daily-flow-table" id="tabelaFluxoDiario">
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th class="text-right">Entradas</th>
+              <th class="text-right">Saídas</th>
+              <th class="text-right">Saldo do Dia</th>
+              <th class="text-right">Saldo Acumulado</th>
+            </tr>
+          </thead>
+          <tbody id="corpoTabelaDiaria">
+            <tr>
+              <td colspan="5" class="loading">
+                <div>
+                  <div class="spinner"></div>
+                  <div>Carregando...</div>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div id="tabCategorias" style="display: none;">
+    <div class="content-grid">
+      <div class="section">
+        <div class="section-header">
+          <h3>📊 Entradas por Categoria</h3>
+        </div>
+        <div id="categoriasEntradas">
+          <div class="loading">
+            <div>
+              <div class="spinner"></div>
+              <div>Carregando...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-header">
+          <h3>📊 Saídas por Categoria</h3>
+        </div>
+        <div id="categoriasSaidas">
+          <div class="loading">
+            <div>
+              <div class="spinner"></div>
+              <div>Carregando...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_URL = 'http://localhost:3000/api';
+    let dadosFluxo = null;
+    let tabAtual = 'movimentacoes';
+
+    function inicializarDatas() {
+      const hoje = new Date();
+      const primeiroDiaMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+      const ultimoDiaMes = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0);
+
+      document.getElementById('dataInicio').value = primeiroDiaMes.toISOString().split('T')[0];
+      document.getElementById('dataFim').value = ultimoDiaMes.toISOString().split('T')[0];
+    }
+
+    function formatarMoeda(valor) {
+      return new Intl.NumberFormat('pt-BR', {
+        style: 'currency',
+        currency: 'BRL'
+      }).format(valor);
+    }
+
+    function formatarData(data) {
+      return new Date(data + 'T00:00:00').toLocaleDateString('pt-BR');
+    }
+
+    function trocarTab(nomeTab) {
+      document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+      event.target.classList.add('active');
+
+      document.getElementById('tabMovimentacoes').style.display = nomeTab === 'movimentacoes' ? 'block' : 'none';
+      document.getElementById('tabDiario').style.display = nomeTab === 'diario' ? 'block' : 'none';
+      document.getElementById('tabCategorias').style.display = nomeTab === 'categorias' ? 'block' : 'none';
+
+      tabAtual = nomeTab;
+    }
+
+    async function carregarFluxoCaixa() {
+      try {
+        const dataInicio = document.getElementById('dataInicio').value;
+        const dataFim = document.getElementById('dataFim').value;
+        const tipoVisualizacao = document.getElementById('tipoVisualizacao').value;
+
+        if (!dataInicio || !dataFim) {
+          alert('Por favor, selecione o período');
+          return;
+        }
+
+        const token = localStorage.getItem('token');
+        
+        if (!token) {
+          alert('Sessão expirada. Faça login novamente.');
+          window.location.href = 'login.html';
+          return;
+        }
+
+        const response = await fetch(
+          `${API_URL}/fluxo-caixa?data_inicio=${dataInicio}&data_fim=${dataFim}&tipo_visualizacao=${tipoVisualizacao}`,
+          {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          }
+        );
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          console.error('Erro na resposta:', errorData);
+          throw new Error(errorData.error || 'Erro ao carregar fluxo de caixa');
+        }
+
+        const data = await response.json();
+        console.log('Dados recebidos:', data);
+        
+        dadosFluxo = data.fluxo_caixa;
+
+        renderizarResumo();
+        renderizarMovimentacoes();
+        renderizarFluxoDiario();
+        renderizarCategorias();
+
+      } catch (error) {
+        console.error('Erro completo:', error);
+        
+        let mensagem = 'Erro ao carregar fluxo de caixa.';
+        
+        if (error.message.includes('Failed to fetch')) {
+          mensagem = 'Erro de conexão. Verifique se o servidor está rodando.';
+        } else if (error.message) {
+          mensagem = error.message;
+        }
+        
+        alert(mensagem + '\n\nVerifique se há lançamentos no período.');
+        
+        mostrarEstadoVazio();
+      }
+    }
+    
+    function mostrarEstadoVazio() {
+      document.getElementById('saldoInicial').textContent = 'R$ 0,00';
+      document.getElementById('totalEntradas').textContent = 'R$ 0,00';
+      document.getElementById('totalSaidas').textContent = 'R$ 0,00';
+      document.getElementById('saldoPeriodo').textContent = 'R$ 0,00';
+      document.getElementById('saldoFinal').textContent = 'R$ 0,00';
+      
+      document.getElementById('badgeEntradas').textContent = '0 lançamentos';
+      document.getElementById('badgeSaidas').textContent = '0 lançamentos';
+      
+      const emptyHTML = '<div class="empty-state"><div class="empty-state-icon">📭</div><div>Nenhuma movimentação no período</div></div>';
+      document.getElementById('listaEntradas').innerHTML = emptyHTML;
+      document.getElementById('listaSaidas').innerHTML = emptyHTML;
+      document.getElementById('corpoTabelaDiaria').innerHTML = '<tr><td colspan="5">' + emptyHTML + '</td></tr>';
+      document.getElementById('categoriasEntradas').innerHTML = emptyHTML;
+      document.getElementById('categoriasSaidas').innerHTML = emptyHTML;
+    }
+
+    function renderizarResumo() {
+      const { resumo } = dadosFluxo;
+
+      document.getElementById('saldoInicial').textContent = formatarMoeda(resumo.saldo_inicial);
+      document.getElementById('totalEntradas').textContent = formatarMoeda(resumo.total_entradas);
+      document.getElementById('totalSaidas').textContent = formatarMoeda(resumo.total_saidas);
+      
+      const saldoPeriodoEl = document.getElementById('saldoPeriodo');
+      saldoPeriodoEl.textContent = formatarMoeda(resumo.saldo_periodo);
+      saldoPeriodoEl.className = resumo.saldo_periodo >= 0 ? 'stat-value positive' : 'stat-value negative';
+      
+      const saldoFinalEl = document.getElementById('saldoFinal');
+      saldoFinalEl.textContent = formatarMoeda(resumo.saldo_final);
+      saldoFinalEl.className = resumo.saldo_final >= 0 ? 'stat-value positive' : 'stat-value negative';
+    }
+
+    function renderizarMovimentacoes() {
+      const { entradas, saidas } = dadosFluxo;
+
+      document.getElementById('badgeEntradas').textContent = `${entradas.length} lançamentos`;
+      document.getElementById('badgeSaidas').textContent = `${saidas.length} lançamentos`;
+
+      const listaEntradas = document.getElementById('listaEntradas');
+      if (entradas.length === 0) {
+        listaEntradas.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📭</div><div>Nenhuma entrada no período</div></div>';
+      } else {
+        listaEntradas.innerHTML = entradas.map(item => `
+          <div class="transaction-item entrada">
+            <div class="transaction-info">
+              <div class="transaction-desc">${item.descricao}</div>
+              <div class="transaction-meta">
+                <span>📅 ${formatarData(item.data)}</span>
+                ${item.categoria ? `<span>🏷️ ${item.categoria}</span>` : ''}
+                ${item.pessoa_nome ? `<span>👤 ${item.pessoa_nome}</span>` : ''}
+                ${item.status === 'PAGO' ? '<span class="badge badge-success">Pago</span>' : '<span class="badge badge-warning">Pendente</span>'}
+              </div>
+            </div>
+            <div class="transaction-value entrada">${formatarMoeda(item.valor)}</div>
+          </div>
+        `).join('');
+      }
+
+      const listaSaidas = document.getElementById('listaSaidas');
+      if (saidas.length === 0) {
+        listaSaidas.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📭</div><div>Nenhuma saída no período</div></div>';
+      } else {
+        listaSaidas.innerHTML = saidas.map(item => `
+          <div class="transaction-item saida">
+            <div class="transaction-info">
+              <div class="transaction-desc">${item.descricao}</div>
+              <div class="transaction-meta">
+                <span>📅 ${formatarData(item.data)}</span>
+                ${item.categoria ? `<span>🏷️ ${item.categoria}</span>` : ''}
+                ${item.pessoa_nome ? `<span>👤 ${item.pessoa_nome}</span>` : ''}
+                ${item.status === 'PAGO' ? '<span class="badge badge-success">Pago</span>' : '<span class="badge badge-warning">Pendente</span>'}
+              </div>
+            </div>
+            <div class="transaction-value saida">${formatarMoeda(item.valor)}</div>
+          </div>
+        `).join('');
+      }
+    }
+
+    function renderizarFluxoDiario() {
+      const { fluxo_diario } = dadosFluxo;
+      const corpo = document.getElementById('corpoTabelaDiaria');
+
+      if (fluxo_diario.length === 0) {
+        corpo.innerHTML = '<tr><td colspan="5" class="empty-state"><div class="empty-state-icon">📭</div><div>Nenhuma movimentação no período</div></td></tr>';
+        return;
+      }
+
+      corpo.innerHTML = fluxo_diario.map(dia => {
+        return `
+          <tr>
+            <td>${formatarData(dia.data)}</td>
+            <td class="text-right" style="color: #48bb78; font-weight: 600;">${formatarMoeda(dia.entradas)}</td>
+            <td class="text-right" style="color: #f56565; font-weight: 600;">${formatarMoeda(dia.saidas)}</td>
+            <td class="text-right" style="color: ${dia.saldo_dia >= 0 ? '#48bb78' : '#f56565'}; font-weight: 600;">${formatarMoeda(dia.saldo_dia)}</td>
+            <td class="text-right" style="color: ${dia.saldo_acumulado >= 0 ? '#667eea' : '#f56565'}; font-weight: 700; font-size: 16px;">${formatarMoeda(dia.saldo_acumulado)}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function renderizarCategorias() {
+      const { estatisticas_categorias } = dadosFluxo;
+
+      const entradas = estatisticas_categorias.filter(e => e.tipo === 'RECEITA');
+      const saidas = estatisticas_categorias.filter(e => e.tipo === 'DESPESA');
+
+      const categoriasEntradas = document.getElementById('categoriasEntradas');
+      if (entradas.length === 0) {
+        categoriasEntradas.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📭</div><div>Nenhuma entrada</div></div>';
+      } else {
+        const totalEntradas = entradas.reduce((sum, e) => sum + parseFloat(e.total), 0);
+        categoriasEntradas.innerHTML = entradas.map(cat => {
+          const percentual = (parseFloat(cat.total) / totalEntradas * 100).toFixed(1);
+          return `
+            <div class="transaction-item entrada" style="margin-bottom: 12px;">
+              <div class="transaction-info">
+                <div class="transaction-desc">${cat.categoria || 'Sem categoria'}</div>
+                <div class="transaction-meta">
+                  <span>${cat.quantidade_lancamentos} lançamentos</span>
+                  <span>${percentual}% do total</span>
+                </div>
+              </div>
+              <div class="transaction-value entrada">${formatarMoeda(cat.total)}</div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      const categoriasSaidas = document.getElementById('categoriasSaidas');
+      if (saidas.length === 0) {
+        categoriasSaidas.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📭</div><div>Nenhuma saída</div></div>';
+      } else {
+        const totalSaidas = saidas.reduce((sum, e) => sum + parseFloat(e.total), 0);
+        categoriasSaidas.innerHTML = saidas.map(cat => {
+          const percentual = (parseFloat(cat.total) / totalSaidas * 100).toFixed(1);
+          return `
+            <div class="transaction-item saida" style="margin-bottom: 12px;">
+              <div class="transaction-info">
+                <div class="transaction-desc">${cat.categoria || 'Sem categoria'}</div>
+                <div class="transaction-meta">
+                  <span>${cat.quantidade_lancamentos} lançamentos</span>
+                  <span>${percentual}% do total</span>
+                </div>
+              </div>
+              <div class="transaction-value saida">${formatarMoeda(cat.total)}</div>
+            </div>
+          `;
+        }).join('');
+      }
+    }
+
+    function exportarExcel() {
+      alert('Funcionalidade de exportação será implementada em breve!');
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      inicializarDatas();
+      carregarFluxoCaixa();
+    });
+  </script>
+</body>
+</html>

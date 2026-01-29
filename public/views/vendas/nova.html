@@ -1,0 +1,267 @@
+<!-- views/vendas/nova.html -->
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nova Venda - Nexus Gestão</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+    <!-- Select2 -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
+    
+    <style>
+        .card {
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .card-header {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+            padding: 1rem;
+        }
+        .table th {
+            background-color: #f8f9fa;
+        }
+        .total-box {
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        .form-label {
+            font-weight: 500;
+        }
+        .btn-icon {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .table-responsive {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .item-row:hover {
+            background-color: #f8f9fa;
+        }
+        .select2-container {
+            width: 100% !important;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container-fluid py-4">
+    <form id="form-venda" class="needs-validation" novalidate>
+        <!-- Cabeçalho -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="fas fa-shopping-cart me-2"></i>Nova Venda</h5>
+                        <div>
+                            <button type="button" class="btn btn-outline-secondary btn-icon me-2" onclick="history.back()">
+                                <i class="fas fa-arrow-left"></i> Voltar
+                            </button>
+                            <button type="submit" class="btn btn-primary btn-icon">
+                                <i class="fas fa-save"></i> Salvar Venda
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Informações Principais -->
+        <div class="row mb-4">
+            <div class="col-md-8">
+                <div class="card h-100">
+                    <div class="card-header">
+                        <h6 class="mb-0"><i class="fas fa-info-circle me-2"></i>Informações da Venda</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label for="data_venda" class="form-label">Data da Venda</label>
+                                <input type="date" class="form-control" id="data_venda" name="data_venda" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="tipo_venda" class="form-label">Tipo de Venda</label>
+                                <select class="form-select" id="tipo_venda" name="tipo_venda" required>
+                                    <option value="NAO_FISCAL">Não Fiscal</option>
+                                    <option value="FISCAL">Fiscal</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="status" class="form-label">Status</label>
+                                <input type="text" class="form-control" id="status" value="Em Andamento" readonly>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="cliente" class="form-label">Cliente</label>
+                                <select class="form-select select2" id="cliente" name="cliente_id" required>
+                                    <option value="">Carregando...</option>
+                                    <option value="1">Consumidor Final</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="vendedor" class="form-label">Vendedor</label>
+                                <select class="form-select select2" id="vendedor" name="vendedor_id" required>
+                                    <option value="">Carregando...</option>
+                                    <option value="1">Vendedor Padrão</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-header">
+                        <h6 class="mb-0"><i class="fas fa-dollar-sign me-2"></i>Forma de Pagamento</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label for="condicao_pagamento" class="form-label">Condição de Pagamento</label>
+                                <select class="form-select" id="condicao_pagamento" name="condicao_pagamento" required>
+                                    <option value="a_vista" selected>À Vista</option>
+                                    <option value="30_dias">30 Dias</option>
+                                    <option value="2x">2x sem juros</option>
+                                    <option value="3x">3x sem juros</option>
+                                </select>
+                            </div>
+                            <div class="col-12">
+                                <label for="forma_pagamento" class="form-label">Forma de Pagamento</label>
+                                <select class="form-select" id="forma_pagamento" name="forma_pagamento" required>
+                                    <option value="dinheiro" selected>Dinheiro</option>
+                                    <option value="cartao_credito">Cartão de Crédito</option>
+                                    <option value="cartao_debito">Cartão de Débito</option>
+                                    <option value="pix">PIX</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Produtos -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="mb-0"><i class="fas fa-box me-2"></i>Produtos</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-4">
+                                <label for="produto" class="form-label">Produto</label>
+                                <select class="form-select select2" id="produto" name="produto">
+                                    <option value="">Selecione...</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label for="quantidade" class="form-label">Quantidade</label>
+                                <input type="number" class="form-control" id="quantidade" name="quantidade" step="0.001" min="0.001">
+                            </div>
+                            <div class="col-md-2">
+                                <label for="preco_unitario" class="form-label">Preço Unit.</label>
+                                <input type="number" class="form-control" id="preco_unitario" name="preco_unitario" step="0.01" min="0.01">
+                            </div>
+                            <div class="col-md-2">
+                                <label for="desconto" class="form-label">Desconto (%)</label>
+                                <input type="number" class="form-control" id="desconto" name="desconto" step="0.01" min="0" max="100">
+                            </div>
+                            <div class="col-md-2">
+                                <label class="d-block">&nbsp;</label>
+                                <button type="button" id="btn-adicionar-item" class="btn btn-success btn-icon w-100">
+                                    <i class="fas fa-plus"></i> Adicionar
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table table-hover" id="itens-table">
+                                <thead>
+                                    <tr>
+                                        <th>Código</th>
+                                        <th>Descrição</th>
+                                        <th class="text-center">Qtde</th>
+                                        <th class="text-end">Preço Unit.</th>
+                                        <th class="text-center">Desc. %</th>
+                                        <th class="text-end">Subtotal</th>
+                                        <th class="text-center">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Totais -->
+        <div class="row mb-4">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="mb-0"><i class="fas fa-clipboard me-2"></i>Observações</h6>
+                    </div>
+                    <div class="card-body">
+                        <textarea class="form-control" id="observacoes" name="observacoes" rows="4" placeholder="Observações da venda..."></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="mb-0"><i class="fas fa-calculator me-2"></i>Totais</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label for="subtotal" class="form-label">Subtotal</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">R$</span>
+                                    <input type="text" class="form-control text-end" id="subtotal" readonly>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <label for="desconto_geral" class="form-label">Desconto Geral (%)</label>
+                                <input type="number" class="form-control" id="desconto_geral" name="desconto_geral" step="0.01" min="0" max="100">
+                            </div>
+                            <div class="col-12">
+                                <label for="valor_frete" class="form-label">Frete</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">R$</span>
+                                    <input type="number" class="form-control" id="valor_frete" name="valor_frete" step="0.01" min="0">
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <label for="valor_total" class="form-label fw-bold">Total</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">R$</span>
+                                    <input type="text" class="form-control text-end fw-bold" id="valor_total" readonly>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Scripts -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script src="/js/vendas-app.js"></script>
+
+</body>
+</html>

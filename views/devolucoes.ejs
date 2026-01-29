@@ -1,0 +1,272 @@
+<%- include('includes/header') %>
+
+<div class="container-fluid px-4">
+    <h1 class="mt-4">Devoluções e Trocas</h1>
+
+    <!-- Tabs -->
+    <ul class="nav nav-tabs mb-4" id="operacoesTab" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="nova-tab" data-bs-toggle="tab" data-bs-target="#nova" type="button" role="tab">
+                Nova Devolução/Troca
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="lista-tab" data-bs-toggle="tab" data-bs-target="#lista" type="button" role="tab">
+                Histórico
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="creditos-tab" data-bs-toggle="tab" data-bs-target="#creditos" type="button" role="tab">
+                Créditos
+            </button>
+        </li>
+    </ul>
+
+    <!-- Conteúdo das Tabs -->
+    <div class="tab-content" id="operacoesTabContent">
+        <!-- Nova Devolução/Troca -->
+        <div class="tab-pane fade show active" id="nova" role="tabpanel">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <form id="formDevolucao">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Venda</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="numeroVenda" placeholder="Número da venda">
+                                    <button class="btn btn-outline-secondary" type="button" id="buscarVenda">
+                                        <i class="fas fa-search"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Cliente</label>
+                                <input type="text" class="form-control" id="nomeCliente" readonly>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label class="form-label">Tipo de Operação</label>
+                                <select class="form-select" id="tipoOperacao" required>
+                                    <option value="">Selecione...</option>
+                                    <option value="DEVOLUCAO">Devolução</option>
+                                    <option value="TROCA">Troca</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Forma de Ressarcimento</label>
+                                <select class="form-select" id="formaRessarcimento" required>
+                                    <option value="">Selecione...</option>
+                                    <option value="ABATER_VENDA">Abater na Venda</option>
+                                    <option value="CREDITO">Gerar Crédito</option>
+                                    <option value="TROCA">Troca por Outro Produto</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Motivo</label>
+                                <input type="text" class="form-control" id="motivo" required>
+                            </div>
+                        </div>
+
+                        <!-- Produtos da Venda -->
+                        <div class="table-responsive mb-3">
+                            <table class="table table-bordered" id="tabelaProdutos">
+                                <thead>
+                                    <tr>
+                                        <th>Produto</th>
+                                        <th>Qtd. Original</th>
+                                        <th>Qtd. Devolver</th>
+                                        <th>Valor Unit.</th>
+                                        <th>Total</th>
+                                        <th>Motivo</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+
+                        <!-- Diferença de Valores (para Troca) -->
+                        <div id="divDiferenca" class="row mb-3" style="display: none;">
+                            <div class="col-md-4">
+                                <label class="form-label">Diferença de Valor</label>
+                                <input type="number" class="form-control" id="valorDiferenca" step="0.01">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Forma de Pagamento</label>
+                                <select class="form-select" id="formaPagamentoDiferenca">
+                                    <option value="">Selecione...</option>
+                                    <option value="DINHEIRO">Dinheiro</option>
+                                    <option value="PIX">PIX</option>
+                                    <option value="CARTAO_DEBITO">Cartão de Débito</option>
+                                    <option value="CARTAO_CREDITO">Cartão de Crédito</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-12">
+                                <label class="form-label">Observações</label>
+                                <textarea class="form-control" id="observacoes" rows="3"></textarea>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-primary">Confirmar</button>
+                                <button type="button" class="btn btn-secondary" id="btnCancelar">Cancelar</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lista de Devoluções -->
+        <div class="tab-pane fade" id="lista" role="tabpanel">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <!-- Filtros -->
+                    <div class="row mb-3">
+                        <div class="col-md-3">
+                            <label class="form-label">Data Início</label>
+                            <input type="date" class="form-control" id="filtroDataInicio">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Data Fim</label>
+                            <input type="date" class="form-control" id="filtroDataFim">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Cliente</label>
+                            <input type="text" class="form-control" id="filtroCliente">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">&nbsp;</label>
+                            <button class="btn btn-primary w-100" id="btnFiltrar">
+                                <i class="fas fa-search"></i> Filtrar
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Tabela de Devoluções -->
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover" id="tabelaDevolucoes">
+                            <thead>
+                                <tr>
+                                    <th>Data</th>
+                                    <th>Venda</th>
+                                    <th>Cliente</th>
+                                    <th>Tipo</th>
+                                    <th>Valor</th>
+                                    <th>Ressarcimento</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Créditos -->
+        <div class="tab-pane fade" id="creditos" role="tabpanel">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <!-- Filtro de Cliente -->
+                    <div class="row mb-3">
+                        <div class="col-md-10">
+                            <label class="form-label">Cliente</label>
+                            <input type="text" class="form-control" id="filtroClienteCreditos">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">&nbsp;</label>
+                            <button class="btn btn-primary w-100" id="btnFiltrarCreditos">
+                                <i class="fas fa-search"></i> Buscar
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Tabela de Créditos -->
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover" id="tabelaCreditos">
+                            <thead>
+                                <tr>
+                                    <th>Data</th>
+                                    <th>Cliente</th>
+                                    <th>Valor Total</th>
+                                    <th>Valor Utilizado</th>
+                                    <th>Saldo</th>
+                                    <th>Validade</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Detalhes -->
+<div class="modal fade" id="modalDetalhes" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Detalhes da Devolução</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Informações Gerais -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <h6>Informações da Devolução</h6>
+                        <p><strong>Data:</strong> <span id="detalheData"></span></p>
+                        <p><strong>Venda:</strong> <span id="detalheVenda"></span></p>
+                        <p><strong>Cliente:</strong> <span id="detalheCliente"></span></p>
+                        <p><strong>Tipo:</strong> <span id="detalheTipo"></span></p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Valores</h6>
+                        <p><strong>Valor Total:</strong> <span id="detalheValorTotal"></span></p>
+                        <p><strong>Ressarcimento:</strong> <span id="detalheRessarcimento"></span></p>
+                        <p><strong>Diferença:</strong> <span id="detalheDiferenca"></span></p>
+                    </div>
+                </div>
+
+                <!-- Produtos -->
+                <h6>Produtos Devolvidos</h6>
+                <div class="table-responsive mb-3">
+                    <table class="table table-bordered" id="tabelaDetalhesProdutos">
+                        <thead>
+                            <tr>
+                                <th>Produto</th>
+                                <th>Quantidade</th>
+                                <th>Valor Unit.</th>
+                                <th>Total</th>
+                                <th>Motivo</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+
+                <!-- Observações -->
+                <div class="row">
+                    <div class="col-12">
+                        <h6>Observações</h6>
+                        <p id="detalheObservacoes"></p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                <button type="button" class="btn btn-primary" id="btnImprimir">Imprimir</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<%- include('includes/footer') %>

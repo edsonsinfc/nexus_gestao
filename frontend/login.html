@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - Nexus Gestão</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      background: linear-gradient(120deg, #007cf0 0%, #00dfd8 100%);
+      font-family: 'Roboto', sans-serif;
+      min-height: 100vh;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .login-container {
+      background: #fff;
+      padding: 2.5rem 2rem 2rem 2rem;
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+      width: 100%;
+      max-width: 370px;
+      display: flex;
+      flex-direction: column;
+      gap: 1.2rem;
+      animation: fadeIn 1s;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .login-container h2 {
+      margin: 0 0 0.5rem 0;
+      color: #007cf0;
+      font-weight: 700;
+      text-align: center;
+    }
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+    .input-group label {
+      font-size: 0.95rem;
+      color: #333;
+    }
+    .input-group input {
+      padding: 0.7rem;
+      border: 1px solid #cfd8dc;
+      border-radius: 8px;
+      font-size: 1rem;
+      outline: none;
+      transition: border 0.2s;
+    }
+    .input-group input:focus {
+      border: 1.5px solid #007cf0;
+    }
+    .login-btn {
+      background: linear-gradient(90deg, #007cf0 0%, #00dfd8 100%);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 0.8rem;
+      font-size: 1.1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s;
+      margin-top: 0.5rem;
+    }
+    .login-btn:hover {
+      background: linear-gradient(90deg, #005fa3 0%, #00b3a4 100%);
+    }
+    .forgot-link {
+      color: #007cf0;
+      text-align: right;
+      font-size: 0.95rem;
+      text-decoration: none;
+      margin-top: -0.5rem;
+      margin-bottom: 0.5rem;
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+    .forgot-link:hover {
+      color: #00b3a4;
+      text-decoration: underline;
+    }
+    .message {
+      text-align: center;
+      color: #e53935;
+      font-size: 1rem;
+      margin-top: 0.5rem;
+      min-height: 1.2em;
+    }
+    .recovery-container {
+      display: none;
+      flex-direction: column;
+      gap: 1rem;
+      animation: fadeIn 0.7s;
+    }
+    .recovery-container.active {
+      display: flex;
+    }
+    .back-link {
+      color: #007cf0;
+      font-size: 0.95rem;
+      text-align: left;
+      cursor: pointer;
+      margin-bottom: -0.5rem;
+      transition: color 0.2s;
+    }
+    .back-link:hover {
+      color: #00b3a4;
+      text-decoration: underline;
+    }
+    .success {
+      color: #388e3c;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-container" id="loginForm">
+    <h2>Nexus Gestão</h2>
+    <form id="formLogin">
+      <div class="input-group">
+        <label for="login">Usuário</label>
+        <input type="text" id="login" name="login" required autocomplete="username">
+      </div>
+      <div class="input-group">
+        <label for="senha">Senha</label>
+        <input type="password" id="senha" name="senha" required autocomplete="current-password">
+      </div>
+      <a class="forgot-link" id="showRecovery">Esqueceu a senha?</a>
+      <button type="submit" class="login-btn">Entrar</button>
+      <div class="message" id="loginMessage"></div>
+    </form>
+    <form id="formRecovery" class="recovery-container">
+      <a class="back-link" id="backToLogin">&larr; Voltar ao login</a>
+      <div class="input-group">
+        <label for="recoveryEmail">E-mail cadastrado</label>
+        <input type="email" id="recoveryEmail" name="recoveryEmail" required autocomplete="email">
+      </div>
+      <button type="submit" class="login-btn">Recuperar Senha</button>
+      <div class="message" id="recoveryMessage"></div>
+    </form>
+  </div>
+  <script>
+    // Alternar entre login e recuperação
+    const showRecovery = document.getElementById('showRecovery');
+    const backToLogin = document.getElementById('backToLogin');
+    const formLogin = document.getElementById('formLogin');
+    const formRecovery = document.getElementById('formRecovery');
+    const loginMessage = document.getElementById('loginMessage');
+    const recoveryMessage = document.getElementById('recoveryMessage');
+
+    showRecovery.onclick = (e) => {
+      e.preventDefault();
+      formLogin.style.display = 'none';
+      formRecovery.classList.add('active');
+    };
+    backToLogin.onclick = (e) => {
+      e.preventDefault();
+      formRecovery.classList.remove('active');
+      formLogin.style.display = 'block';
+      recoveryMessage.textContent = '';
+    };
+
+    // Login AJAX
+    formLogin.onsubmit = async (e) => {
+      e.preventDefault();
+      loginMessage.textContent = '';
+      const login = document.getElementById('login').value;
+      const senha = document.getElementById('senha').value;
+
+
+
+      try {
+        const res = await fetch('http://localhost:3000/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ login, senha })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          loginMessage.textContent = 'Login realizado com sucesso!';
+          loginMessage.classList.add('success');
+          setTimeout(() => { loginMessage.textContent = ''; }, 2000);
+        } else {
+          loginMessage.textContent = data.message || 'Erro ao fazer login.';
+          loginMessage.classList.remove('success');
+        }
+      } catch (err) {
+        loginMessage.textContent = 'Erro de conexão.';
+        loginMessage.classList.remove('success');
+      }
+    };
+
+    // Recuperação de senha (simulação)
+    formRecovery.onsubmit = async (e) => {
+      e.preventDefault();
+      recoveryMessage.textContent = '';
+      const email = document.getElementById('recoveryEmail').value;
+      // Aqui você pode fazer um fetch para sua API de recuperação
+      setTimeout(() => {
+        recoveryMessage.textContent = 'Se o e-mail existir, enviaremos instruções.';
+        recoveryMessage.classList.add('success');
+      }, 1200);
+    };
+  </script>
+</body>
+</html>

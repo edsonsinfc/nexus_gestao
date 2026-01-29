@@ -1,0 +1,139 @@
+.pdv-container {
+    padding: 20px;
+    background-color: var(--bs-dark);
+    min-height: 100vh;
+    color: var(--bs-light);
+}
+
+.pdv-titulo {
+    margin-bottom: 20px;
+    color: var(--bs-light);
+}
+
+.pdv-status {
+    margin-bottom: 20px;
+}
+
+.pdv-busca {
+    margin-bottom: 20px;
+}
+
+.pdv-busca .input-group {
+    max-width: 600px;
+}
+
+/* Operações do PDV */
+.pdv-operacoes {
+    background-color: var(--bs-gray-800);
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.pdv-operacoes .btn-group {
+    width: 100%;
+    gap: 10px;
+}
+
+.pdv-operacoes .btn {
+    flex: 1;
+    padding: 10px;
+    font-weight: 500;
+}
+
+#buscaVenda {
+    background-color: var(--bs-gray-800);
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+#buscaVenda .input-group {
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+/* Tabela de Itens */
+.pdv-itens {
+    margin-bottom: 20px;
+    background-color: var(--bs-gray-800);
+    border-radius: 8px;
+    padding: 15px;
+}
+
+.pdv-itens table {
+    margin-bottom: 0;
+}
+
+.pdv-itens th, .pdv-itens td {
+    vertical-align: middle;
+}
+
+.qtd-devolver {
+    width: 80px !important;
+    text-align: center;
+}
+
+.motivo-item {
+    min-width: 200px;
+}
+
+/* Totais */
+.pdv-totais {
+    margin-bottom: 20px;
+}
+
+.pdv-totais .card {
+    background-color: var(--bs-gray-800) !important;
+}
+
+/* Ações */
+.pdv-acoes {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.pdv-acoes .btn {
+    flex: 1;
+    padding: 15px;
+}
+
+/* Modal de Pagamento */
+.modal-content {
+    background-color: var(--bs-gray-800) !important;
+    color: var(--bs-light);
+}
+
+/* Alertas */
+.alert {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1050;
+    min-width: 300px;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .pdv-operacoes .btn-group {
+        flex-direction: column;
+    }
+    
+    .pdv-operacoes .btn {
+        width: 100%;
+        margin-bottom: 5px;
+    }
+    
+    .qtd-devolver {
+        width: 60px !important;
+    }
+    
+    .motivo-item {
+        min-width: 150px;
+    }
+    
+    .pdv-acoes {
+        flex-direction: column;
+    }
+}

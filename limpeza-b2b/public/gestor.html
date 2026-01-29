@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nexus B2B - Dashboard Gestor</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    :root {
+      --primary: #0066cc;
+      --primary-dark: #0052a3;
+      --secondary: #ff6600;
+      --success: #00a650;
+      --danger: #dc3545;
+      --warning: #ff9500;
+      --bg-light: #f8f9fa;
+      --white: #ffffff;
+      --gray-100: #f8f9fa;
+      --gray-200: #e9ecef;
+      --gray-300: #dee2e6;
+      --gray-400: #ced4da;
+      --gray-500: #adb5bd;
+      --gray-600: #6c757d;
+      --gray-700: #495057;
+      --gray-800: #343a40;
+      --gray-900: #212529;
+      --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
+      --shadow: 0 4px 6px rgba(0,0,0,0.1);
+      --shadow-lg: 0 10px 15px rgba(0,0,0,0.1);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--bg-light);
+      color: var(--gray-900);
+      line-height: 1.6;
+    }
+
+    /* Header */
+    .header {
+      background: var(--white);
+      box-shadow: var(--shadow);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .nav-tabs {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .nav-tab {
+      padding: 0.75rem 1rem;
+      border: none;
+      background: transparent;
+      color: var(--gray-600);
+      cursor: pointer;
+      border-radius: 8px;
+      font-weight: 500;
+      transition: all 0.2s ease;
+    }
+
+    .nav-tab.active {
+      background: var(--primary);
+      color: white;
+    }
+
+    .nav-tab:hover:not(.active) {
+      background: var(--gray-100);
+    }
+
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .logout-btn {
+      background: var(--danger);
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: all 0.2s ease;
+    }
+
+    .logout-btn:hover {
+      background: #c82333;
+    }
+
+    /* Main Content */
+    .main-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    /* Cards and Grid */
+    .grid {
+      display: grid;
+      gap: 1.5rem;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      margin-bottom: 2rem;
+    }
+
+    .card {
+      background: var(--white);
+      border: 1px solid var(--gray-200);
+      border-radius: 12px;
+      padding: 1.5rem;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.5rem;
+    }
+
+    .card-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--gray-800);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    /* Forms */
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    .form-label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+      color: var(--gray-700);
+      font-size: 0.9rem;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 0.75rem;
+      border: 2px solid var(--gray-300);
+      border-radius: 6px;
+      font-size: 1rem;
+      transition: border-color 0.2s ease;
+    }
+
+    .form-input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
+    }
+
+    .form-row {
+      display: flex;
+      gap: 1rem;
+      align-items: end;
+    }
+
+    /* Buttons */
+    .btn {
+      padding: 0.75rem 1rem;
+      border: none;
+      border-radius: 6px;
+      font-weight: 500;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.2s ease;
+      text-decoration: none;
+      font-size: 0.9rem;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-dark);
+    }
+
+    .btn-secondary {
+      background: var(--gray-200);
+      color: var(--gray-700);
+    }
+
+    .btn-secondary:hover {
+      background: var(--gray-300);
+    }
+
+    .btn-success {
+      background: var(--success);
+      color: white;
+    }
+
+    .btn-success:hover {
+      background: #008c42;
+    }
+
+    .btn-danger {
+      background: var(--danger);
+      color: white;
+    }
+
+    .btn-danger:hover {
+      background: #c82333;
+    }
+
+    .btn-sm {
+      padding: 0.5rem 0.75rem;
+      font-size: 0.8rem;
+    }
+
+    /* Tables */
+    .table-container {
+      background: var(--white);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .table th,
+    .table td {
+      padding: 1rem;
+      text-align: left;
+      border-bottom: 1px solid var(--gray-200);
+    }
+
+    .table th {
+      background: var(--gray-50);
+      font-weight: 600;
+      color: var(--gray-700);
+      font-size: 0.9rem;
+    }
+
+    .table tbody tr:hover {
+      background: var(--gray-50);
+    }
+
+    /* Status Pills */
+    .status {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 500;
+    }
+
+    .status.success {
+      background: rgba(0, 166, 80, 0.1);
+      color: var(--success);
+    }
+
+    .status.danger {
+      background: rgba(220, 53, 69, 0.1);
+      color: var(--danger);
+    }
+
+    .status.warning {
+      background: rgba(255, 149, 0, 0.1);
+      color: var(--warning);
+    }
+
+    .status.info {
+      background: rgba(0, 102, 204, 0.1);
+      color: var(--primary);
+    }
+
+    /* Pagination */
+    .pagination {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem;
+      background: var(--gray-50);
+    }
+
+    .pagination-info {
+      color: var(--gray-600);
+      font-size: 0.9rem;
+    }
+
+    .pagination-controls {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    /* Messages */
+    .message {
+      padding: 1rem;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .message.success {
+      background: rgba(0, 166, 80, 0.1);
+      color: var(--success);
+      border: 1px solid rgba(0, 166, 80, 0.2);
+    }
+
+    .message.error {
+      background: rgba(220, 53, 69, 0.1);
+      color: var(--danger);
+      border: 1px solid rgba(220, 53, 69, 0.2);
+    }
+
+    /* Modal */
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      backdrop-filter: blur(4px);
+    }
+
+    .modal-content {
+      background: var(--white);
+      border-radius: 12px;
+      box-shadow: var(--shadow-lg);
+      width: 90%;
+      max-width: 600px;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.5rem;
+      border-bottom: 1px solid var(--gray-200);
+    }
+
+    .modal-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--gray-800);
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      color: var(--gray-500);
+      cursor: pointer;
+      padding: 0.5rem;
+      border-radius: 50%;
+      transition: all 0.2s ease;
+    }
+
+    .modal-close:hover {
+      background: var(--gray-100);
+      color: var(--gray-700);
+    }
+
+    .modal-body {
+      padding: 1.5rem;
+    }
+
+    .modal-footer {
+      padding: 1rem 1.5rem;
+      border-top: 1px solid var(--gray-200);
+      display: flex;
+      gap: 0.5rem;
+      justify-content: flex-end;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .header-content {
+        padding: 1rem;
+        flex-direction: column;
+        gap: 1rem;
+      }
+
+      .nav-tabs {
+        order: 2;
+      }
+
+      .main-content {
+        padding: 1rem;
+      }
+
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      .form-row {
+        flex-direction: column;
+      }
+
+      .table-container {
+        overflow-x: auto;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="header-content">
+      <div class="logo">
+        <i class="fas fa-chart-bar"></i>
+        Nexus B2B - Dashboard Gestor
+      </div>
+      
+      <nav class="nav-tabs">
+        <button class="nav-tab active" data-tab="equipes">
+          <i class="fas fa-users"></i>
+          Equipes
+        </button>
+        <button class="nav-tab" data-tab="produtos">
+          <i class="fas fa-boxes"></i>
+          Produtos
+        </button>
+        <button class="nav-tab" data-tab="pedidos">
+          <i class="fas fa-shopping-cart"></i>
+          Pedidos
+        </button>
+        <button class="nav-tab" data-tab="usuarios">
+          <i class="fas fa-user-cog"></i>
+          Usuários
+        </button>
+      </nav>
+      
+      <div class="user-info">
+        <span id="userGreeting">Carregando...</span>
+        <button class="logout-btn" onclick="logout()">
+          <i class="fas fa-sign-out-alt"></i>
+          Sair
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <!-- Tab Equipes -->
+    <div class="tab-content active" id="tab-equipes">
+      <div class="grid">
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">
+              <i class="fas fa-plus-circle"></i>
+              Nova Equipe
+            </h3>
+          </div>
+          <form id="formNovaEquipe">
+            <div class="form-group">
+              <label class="form-label">Nome da Equipe</label>
+              <input type="text" class="form-input" id="nomeEquipe" placeholder="Ex: Equipe Centro" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Limite Total (R$)</label>
+              <input type="number" class="form-input" id="limiteEquipe" step="0.01" placeholder="0.00" required>
+            </div>
+            <button type="submit" class="btn btn-primary">
+              <i class="fas fa-save"></i>
+              Criar Equipe
+            </button>
+          </form>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">
+              <i class="fas fa-wallet"></i>
+              Consultar Saldo
+            </h3>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Selecionar Equipe</label>
+            <select class="form-input" id="selEquipeSaldo">
+              <option value="">Carregando...</option>
+            </select>
+          </div>
+          <button type="button" class="btn btn-secondary" onclick="verSaldo()">
+            <i class="fas fa-search"></i>
+            Ver Saldo
+          </button>
+          <div id="saldoResult" class="message" style="display: none; margin-top: 1rem;"></div>
+        </div>
+      </div>
+
+      <div class="table-container">
+        <div class="card-header" style="margin: 0; padding: 1.5rem; border-bottom: 1px solid var(--gray-200);">
+          <h3 class="card-title">
+            <i class="fas fa-users"></i>
+            Equipes Cadastradas
+          </h3>
+          <button class="btn btn-secondary" onclick="carregarEquipes()">
+            <i class="fas fa-sync-alt"></i>
+            Recarregar
+          </button>
+        </div>
+        <table class="table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Nome</th>
+              <th>Limite (R$)</th>
+              <th>Saldo (R$)</th>
+              <th>Status</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="tbodyEquipes"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Tab Produtos -->
+    <div class="tab-content" id="tab-produtos">
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">
+            <i class="fas fa-plus-circle"></i>
+            Novo Produto
+          </h3>
+        </div>
+        <form id="formNovoProduto">
+          <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin: 0;">
+            <div class="form-group">
+              <label class="form-label">Código do Produto *</label>
+              <input type="text" class="form-input" id="codprod" placeholder="Ex: LMP001" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Descrição *</label>
+              <input type="text" class="form-input" id="descricao" placeholder="Ex: Detergente Neutro 5L" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Unidade *</label>
+              <select class="form-input" id="unidade" required>
+                <option value="UN">Unidade</option>
+                <option value="PCT">Pacote</option>
+                <option value="CX">Caixa</option>
+                <option value="FD">Fardo</option>
+                <option value="KG">Quilograma</option>
+                <option value="L">Litro</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Múltiplos</label>
+              <input type="number" class="form-input" id="multiplos" value="1" min="1">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Estoque</label>
+              <input type="number" class="form-input" id="estoque" step="0.001" value="0">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Preço (R$)</label>
+              <input type="number" class="form-input" id="preco" step="0.01" value="0">
+            </div>
+            <div class="form-group">
+              <label class="form-label">NCM</label>
+              <input type="text" class="form-input" id="ncm" placeholder="Ex: 3402.20.00">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Categoria</label>
+              <select class="form-input" id="categoria">
+                <option value="limpeza">Limpeza</option>
+                <option value="higiene">Higiene</option>
+                <option value="descartaveis">Descartáveis</option>
+                <option value="equipamentos">Equipamentos</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">URL da Foto</label>
+            <input type="url" class="form-input" id="foto" placeholder="https://exemplo.com/foto.jpg">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Observações</label>
+            <textarea class="form-input" id="observacoes" rows="3" placeholder="Informações adicionais sobre o produto"></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary">
+            <i class="fas fa-save"></i>
+            Salvar Produto
+          </button>
+        </form>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">
+            <i class="fas fa-search"></i>
+            Buscar Produtos
+          </h3>
+        </div>
+        <div class="form-row">
+          <div class="form-group" style="flex: 1;">
+            <input type="text" class="form-input" id="searchProdutos" placeholder="Buscar por código ou descrição...">
+          </div>
+          <div class="form-group">
+            <select class="form-input" id="filterCategoria">
+              <option value="">Todas as categorias</option>
+              <option value="limpeza">Limpeza</option>
+              <option value="higiene">Higiene</option>
+              <option value="descartaveis">Descartáveis</option>
+              <option value="equipamentos">Equipamentos</option>
+            </select>
+          </div>
+          <button class="btn btn-primary" onclick="buscarProdutos()">
+            <i class="fas fa-search"></i>
+            Buscar
+          </button>
+        </div>
+      </div>
+
+      <div class="table-container">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Código</th>
+              <th>Descrição</th>
+              <th>Unidade</th>
+              <th>Múltiplos</th>
+              <th>Estoque</th>
+              <th>Preço (R$)</th>
+              <th>Categoria</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="tbodyProdutos"></tbody>
+        </table>
+        <div class="pagination">
+          <div class="pagination-info" id="produtosPaginaInfo"></div>
+          <div class="pagination-controls">
+            <button class="btn btn-secondary btn-sm" id="produtosPrev">
+              <i class="fas fa-chevron-left"></i>
+              Anterior
+            </button>
+            <button class="btn btn-secondary btn-sm" id="produtosNext">
+              Próxima
+              <i class="fas fa-chevron-right"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab Pedidos -->
+    <div class="tab-content" id="tab-pedidos">
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">
+            <i class="fas fa-filter"></i>
+            Filtros
+          </h3>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Status</label>
+            <select class="form-input" id="selFiltroStatus">
+              <option value="AGUARDANDO" selected>AGUARDANDO</option>
+              <option value="ENVIADO">ENVIADO</option>
+              <option value="APROVADO">APROVADO</option>
+              <option value="CANCELADO">CANCELADO</option>
+            </select>
+          </div>
+          <button class="btn btn-primary" onclick="carregarPedidos()">
+            <i class="fas fa-search"></i>
+            Filtrar
+          </button>
+        </div>
+      </div>
+
+      <div class="table-container">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Equipe</th>
+              <th>Valor Total (R$)</th>
+              <th>Data</th>
+              <th>Status</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="tbodyPedidos"></tbody>
+        </table>
+        <div class="pagination">
+          <div class="pagination-info" id="pedidosPaginaInfo"></div>
+          <div class="pagination-controls">
+            <button class="btn btn-secondary btn-sm" id="pedidosPrev">
+              <i class="fas fa-chevron-left"></i>
+              Anterior
+            </button>
+            <button class="btn btn-secondary btn-sm" id="pedidosNext">
+              Próxima
+              <i class="fas fa-chevron-right"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab Usuários -->
+    <div class="tab-content" id="tab-usuarios">
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">
+            <i class="fas fa-user-plus"></i>
+            Novo Usuário
+          </h3>
+        </div>
+        <form id="formNovoUsuario">
+          <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); margin: 0;">
+            <div class="form-group">
+              <label class="form-label">Nome Completo *</label>
+              <input type="text" class="form-input" id="novoNome" placeholder="Nome completo" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Email *</label>
+              <input type="email" class="form-input" id="novoEmail" placeholder="email@exemplo.com" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Senha *</label>
+              <input type="password" class="form-input" id="novoSenha" placeholder="Mínimo 6 caracteres" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Perfil *</label>
+              <select class="form-input" id="novoPerfil" required>
+                <option value="gestor">Gestor</option>
+                <option value="equipe">Equipe</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Equipe</label>
+              <select class="form-input" id="novoEquipe">
+                <option value="">(sem equipe)</option>
+              </select>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary">
+            <i class="fas fa-user-plus"></i>
+            Criar Usuário
+          </button>
+        </form>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">
+            <i class="fas fa-search"></i>
+            Buscar Usuários
+          </h3>
+        </div>
+        <div class="form-row">
+          <div class="form-group" style="flex: 1;">
+            <input type="text" class="form-input" id="usrBusca" placeholder="Buscar por nome ou email...">
+          </div>
+          <div class="form-group">
+            <select class="form-input" id="selFiltroPerfil">
+              <option value="">(todos)</option>
+              <option value="gestor">gestor</option>
+              <option value="equipe">equipe</option>
+            </select>
+          </div>
+          <button class="btn btn-primary" onclick="buscarUsuarios()">
+            <i class="fas fa-search"></i>
+            Buscar
+          </button>
+        </div>
+      </div>
+
+      <div class="table-container">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Nome</th>
+              <th>Email</th>
+              <th>Nova Senha</th>
+              <th>Perfil</th>
+              <th>Equipe</th>
+              <th>Status</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="tbodyUsuarios"></tbody>
+        </table>
+        <div class="pagination">
+          <div class="pagination-info" id="usuariosPaginaInfo"></div>
+          <div class="pagination-controls">
+            <button class="btn btn-secondary btn-sm" id="usuariosPrev">
+              <i class="fas fa-chevron-left"></i>
+              Anterior
+            </button>
+            <button class="btn btn-secondary btn-sm" id="usuariosNext">
+              Próxima
+              <i class="fas fa-chevron-right"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Modal Editar Produto -->
+  <div id="modalEditarProduto" class="modal" style="display: none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">
+          <i class="fas fa-edit"></i>
+          Editar Produto
+        </h3>
+        <button class="modal-close" onclick="fecharModalProduto()">×</button>
+      </div>
+      <div class="modal-body">
+        <form id="formEditarProduto">
+          <input type="hidden" id="editProdutoId">
+          <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin: 0;">
+            <div class="form-group">
+              <label class="form-label">Código do Produto *</label>
+              <input type="text" class="form-input" id="editCodprod" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Descrição *</label>
+              <input type="text" class="form-input" id="editDescricao" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Unidade *</label>
+              <select class="form-input" id="editUnidade" required>
+                <option value="UN">Unidade</option>
+                <option value="PCT">Pacote</option>
+                <option value="CX">Caixa</option>
+                <option value="FD">Fardo</option>
+                <option value="KG">Quilograma</option>
+                <option value="L">Litro</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Múltiplos</label>
+              <input type="number" class="form-input" id="editMultiplos" min="1">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Estoque</label>
+              <input type="number" class="form-input" id="editEstoque" step="0.001">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Preço (R$)</label>
+              <input type="number" class="form-input" id="editPreco" step="0.01">
+            </div>
+            <div class="form-group">
+              <label class="form-label">NCM</label>
+              <input type="text" class="form-input" id="editNcm">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Categoria</label>
+              <select class="form-input" id="editCategoria">
+                <option value="limpeza">Limpeza</option>
+                <option value="higiene">Higiene</option>
+                <option value="descartaveis">Descartáveis</option>
+                <option value="equipamentos">Equipamentos</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">URL da Foto</label>
+            <input type="url" class="form-input" id="editFoto">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Observações</label>
+            <textarea class="form-input" id="editObservacoes" rows="3"></textarea>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="fecharModalProduto()">Cancelar</button>
+        <button class="btn btn-primary" onclick="salvarEdicaoProduto()">
+          <i class="fas fa-save"></i>
+          Salvar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/gestor.js"></script>
+</body>
+</html>
