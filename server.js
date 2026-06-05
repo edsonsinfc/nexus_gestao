@@ -58,7 +58,10 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Middlewares
-app.use(cors()); // Habilita o CORS para todas as rotas
+const corsOptions = {
+  origin: process.env.CORS_ORIGIN || '*'
+};
+app.use(cors(corsOptions)); // Habilita o CORS configurável
 app.use(express.json()); // Habilita o parsing de JSON no corpo das requisições
 // Arquivos estáticos (UI)
 app.use(express.static(path.join(__dirname, 'public')));
@@ -108,7 +111,8 @@ app.use('/api/dashboard', dashboardRoutes);
 // Rotas de visualização
 app.use('/', viewsRoutes);
 
-// Log de todas as requisições NFC-e para debug
+// Log de todas as requisições NFC-e desativado em produção para evitar vazamento de credenciais
+/*
 app.use((req, res, next) => {
   if (req.url.includes('/api/nfce')) {
     console.log(`📡 Requisição NFC-e: ${req.method} ${req.url}`);
@@ -117,6 +121,7 @@ app.use((req, res, next) => {
   }
   next();
 });
+*/
 
 // Rota raiz para teste
 app.get('/', (req, res) => {

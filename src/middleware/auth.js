@@ -13,8 +13,9 @@ const authenticateToken = async (req, res, next) => {
 
   try {
     console.log('🔐 Middleware auth - Verificando token...');
-    const decoded = jwt.verify(token, 'nexus_gestao_secret_key_2024');
-    console.log('🔐 Token decodificado:', decoded);
+    const secret = process.env.JWT_SECRET || 'nexus_gestao_secret_key_2024';
+    const decoded = jwt.verify(token, secret);
+    // console.log('🔐 Token decodificado:', decoded);
     
     // Buscar dados completos do usuário
     console.log('🔐 Buscando usuário no banco...');

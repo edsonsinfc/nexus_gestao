@@ -27,11 +27,7 @@ console.log('O valor da minha variável é:', login);
     }
 
     // LOG 2: O que o banco retornou?
-    console.log('3. Usuário encontrado:', user);
-
-    // LOG 3: Qual é o hash que está no banco?
-    console.log('4. Hash do banco:', user.senha);
-    console.log('   Tamanho do hash:', user.senha.length);
+    console.log('3. Usuário encontrado:', user.nome);
 
     console.log('5. Comparando a senha recebida com o hash do banco...');
     const isMatch = await bcrypt.compare(senha, user.senha);
@@ -47,7 +43,8 @@ console.log('O valor da minha variável é:', login);
 
     // Se chegou até aqui, o login deu certo.
     const payload = { userId: user.id, perfilId: user.perfil_id, nome: user.nome };
-    const token = jwt.sign(payload, 'nexus_gestao_secret_key_2024', { expiresIn: '8h' });
+    const secret = process.env.JWT_SECRET || 'nexus_gestao_secret_key_2024';
+    const token = jwt.sign(payload, secret, { expiresIn: '8h' });
 
     return res.status(200).json({
       message: 'Login bem-sucedido!',

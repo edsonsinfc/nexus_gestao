@@ -335,8 +335,8 @@ async function findFormaPagamentoId(descricao) {
   const descUpper = descricao.toString().trim().toUpperCase();
   const possuiColunaTipo = await columnExists('formas_pagamento', 'tipo').catch(() => false);
   const consulta = possuiColunaTipo
-    ? 'SELECT id FROM formas_pagamento WHERE UPPER(descricao) = ? OR UPPER(tipo) = ? LIMIT 1'
-    : 'SELECT id FROM formas_pagamento WHERE UPPER(descricao) = ? LIMIT 1';
+    ? 'SELECT id FROM formas_pagamento WHERE UPPER(nome) = ? OR UPPER(tipo) = ? LIMIT 1'
+    : 'SELECT id FROM formas_pagamento WHERE UPPER(nome) = ? LIMIT 1';
   const params = possuiColunaTipo ? [descUpper, descUpper] : [descUpper];
   const [rows] = await pool.query(consulta, params);
   return rows.length > 0 ? rows[0].id : null;
